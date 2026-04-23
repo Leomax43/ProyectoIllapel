@@ -1,0 +1,27 @@
+# Dependencias (Ignorar en TODAS las carpetas)
+node_modules/
+
+# Variables de entorno y contraseñas
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Archivos de compilación y empaquetado (React y Expo)
+dist/
+build/
+.expo/
+web-build/
+
+# Archivos de logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Configuración de editores locales
+.vscode/
