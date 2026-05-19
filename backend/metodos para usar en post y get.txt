@@ -249,6 +249,34 @@ ahora el de mi mejor amigo...
 
 
 
+Cómo probar la subida de PDF en Thunder Client:
+Crea una nueva petición (New Request) y asegúrate de que el método sea POST.
+
+En la URL escribe:
+http://localhost:3000/api/familias/2/ficha-social
+
+Abajo, en lugar de ir a la pestaña JSON, haz clic en la pestaña que dice Form (o Form-encode dependiendo de tu versión, pero que permita subir archivos).
+
+Verás que te pide llenar pares de "Key" (Clave) y "Value" (Valor):
+
+En Key, escribe la palabra: archivo (tiene que ser exactamente esta palabra porque así la definimos en upload.single('archivo')).
+
+A la derecha, en Value, suele haber un pequeño ícono de un clip o una casilla que dice "File". Haz clic ahí y se abrirá el explorador de Windows.
+
+Selecciona cualquier archivo PDF o imagen que tengas a mano en tu computador (un currículum viejo, una boleta, lo que sea para probar).
+
+¡Dale al botón Send!
+
+¿Cómo confirmamos el éxito? (La triple validación)
+Si todo salió bien, deberías ver tres cosas mágicas:
+
+En Thunder Client: Un estado 200 OK con un JSON que dice "Ficha Social subida y asociada correctamente" y te muestra la ruta_archivo.
+
+En VS Code (Explorador de archivos): Si miras la barra izquierda de tu proyecto, mágicamente debería haber aparecido la carpeta backend/archivosDocumentos/familias/2/ y adentro estará tu archivo con un nombre único (ej: 1716155...-mi_archivo.pdf).
+
+En la Base de Datos: Si vuelves a hacer la petición GET a http://localhost:3000/api/familias/9876543-2 (el detalle de la familia Pérez), verás que el campo "pdf_ficha_social" ya no dice null, sino que tiene la ruta guardada.
+
+Haz la prueba y cuéntame cómo te va. Si logramos que el archivo aterrice a salvo en tu disco duro, ya tendríamos el backend prácticamente sellado. ¿Lograste subir el archivo correctamente?
 
 
 
@@ -261,16 +289,59 @@ ahora el de mi mejor amigo...
 
 
 
+Vamos a sumarle un integrante a la Familia Pérez (id_familia: 2).
+
+Abre Thunder Client, haz un POST a http://localhost:3000/api/integrantes/familia/2.
+
+En la pestaña JSON, envía este Body:
+
+JSON
+{
+  "nombre_completo": "Juanito Pérez Fuentes",
+  "rut": "23444555-K",
+  "parentesco": "Hijo",
+  "edad": 12
+}
+
+
+
+
+Cómo probar la eliminación:
+En Thunder Client, abre una nueva pestaña y cambia el método a DELETE.
+
+Escribe la URL apuntando directamente al ID de Juanito: http://localhost:3000/api/integrantes/4
+
+Dale a Send (para esta petición no necesitas enviar absolutamente nada en la pestaña Body).
 
 
 
 
 
 
+¿Cómo probar la paginación y el buscador en Thunder Client?
+Al pasar a un modelo paginado, los parámetros ya no se envían en el "Body", sino directamente adjuntos en la URL usando Query Parameters (los que van después del signo ?).
 
+Abre Thunder Client y haz peticiones GET probando estas tres combinaciones:
 
+Prueba 1: Probar el buscador por RUT
+Busca cualquier familia escribiendo solo una parte de su RUT.
 
+URL: http://localhost:3000/api/familias?search=987
 
+Debería devolver únicamente a la Familia Pérez Fuentes (RUT: 9876543-2).
 
+Prueba 2: Probar la paginación estricta (Páginas pequeñas)
+Para comprobar que la matemática de las páginas funciona sin tener 10.000 registros, podemos forzar al sistema a traer "de 1 en 1" cambiando el límite.
+
+URL: http://localhost:3000/api/familias?page=1&limit=1
+
+Debería devolverte solo la primera familia alfabéticamente, y el objeto paginacion te dirá cuántas páginas existen en total bajo esa regla.
+
+Prueba 3: Ir a la página siguiente
+Cambia el número de página manteniendo el límite bajo.
+
+URL: http://localhost:3000/api/familias?page=2&limit=1
+
+Debería mostrarte la segunda familia del sistema.
 
 

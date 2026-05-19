@@ -11,6 +11,13 @@ const fondosRoutes = require('./routes/fondosRoutes');
 const aprobacionesRoutes = require('./routes/aprobacionesRoutes');
 const transaccionesRoutes = require('./routes/transaccionesRoutes');
 const comerciosRoutes = require('./routes/comerciosRoutes');
+const path = require('path');
+const integrantesRoutes = require('./routes/integrantesRoutes');
+const appMovilRoutes = require('./routes/appMovilRoutes');
+
+
+
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -26,6 +33,11 @@ app.use('/api/fondos', fondosRoutes);
 app.use('/api/aprobaciones', aprobacionesRoutes);
 app.use('/api/transacciones', transaccionesRoutes);
 app.use('/api/comercios', comerciosRoutes);
+app.use('/archivosDocumentos', express.static(path.join(__dirname, 'archivosDocumentos')));
+app.use('/api/integrantes', integrantesRoutes);
+app.use('/api/movil', appMovilRoutes);
+
+
 
 // Endpoint de prueba (Health Check)
 app.get('/health', async (req, res) => {

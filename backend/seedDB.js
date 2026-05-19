@@ -1,26 +1,30 @@
 const pool = require('./config/db');
+const bcrypt = require('bcrypt'); // <-- IMPORTAR BCRYPT
 
 const insertarDatosPrueba = async () => {
     try {
         console.log("Iniciando inyección de datos de prueba...");
 
-        // 1. Insertar Administradores (1 Asistente Social y 1 Jefatura)
-        // Usamos contraseñas simples por ahora (en el futuro irán encriptadas con bcrypt)
+        // Generar un hash para las claves (usaremos "1234" para todos por simplicidad en pruebas)
+        const saltRounds = 10;
+        const claveGenericaHasheada = await bcrypt.hash("1234", saltRounds);
+
+        // 1. Insertar Administradores
         await pool.query(`
             INSERT INTO admin (rut, nombre_completo, rol, clave, estado) VALUES 
-            ('11111111-1', 'María González Rojas', 'ASISTENTE_SOCIAL', '1234', 'ACTIVO'),
-            ('22222222-2', 'Carlos Muñoz Araya', 'JEFATURA', 'admin123', 'ACTIVO')
+            ('11111111-1', 'María González Rojas', 'ASISTENTE_SOCIAL', $1, 'ACTIVO'),
+            ('22222222-2', 'Carlos Muñoz Araya', 'JEFATURA', $1, 'ACTIVO')
             ON CONFLICT DO NOTHING;
-        `);
+        `, [claveGenericaHasheada]);
         console.log("- Administradores creados.");
 
         // 2. Insertar Familias
         await pool.query(`
             INSERT INTO familias (rut_representante, nombre_familia, direccion, telefono, clave_acceso, saldo, estado) VALUES 
-            ('12345678-9', 'Familia Martínez Ríos', 'Los Aromos 432, Illapel', '+56912345678', '1234', 45000, 'ACTIVO'),
-            ('9876543-2', 'Familia Pérez Fuentes', 'Calle Larga 12, Illapel', '+56987654321', '1234', 0, 'PENDIENTE')
+            ('12345678-9', 'Familia Martínez Ríos', 'Los Aromos 432, Illapel', '+56912345678', $1, 45000, 'ACTIVO'),
+            ('9876543-2', 'Familia Pérez Fuentes', 'Calle Larga 12, Illapel', '+56987654321', $1, 0, 'PENDIENTE')
             ON CONFLICT DO NOTHING;
-        `);
+        `, [claveGenericaHasheada]);
         console.log("- Familias creadas.");
 
         // 3. Insertar Integrantes (Asociados a la Familia 1)
@@ -41,7 +45,7 @@ const insertarDatosPrueba = async () => {
         `);
         console.log("- Comercios creados.");
 
-        // 5. Simular Cargas de Fondos (La Asistente Social le carga a la Familia 1)
+        // 5. Simular cargas de fondos (La Asistente Social le carga a la familia 1)
         await pool.query(`
             INSERT INTO cargas_fondos (id_familia, id_admin, monto, fecha) VALUES 
             (1, 1, 50000, CURRENT_TIMESTAMP - INTERVAL '2 days'),
@@ -53,16 +57,16 @@ const insertarDatosPrueba = async () => {
         await pool.query(`
             INSERT INTO transacciones (id_familia, rut_comercio, monto, metodo_pago, fecha) VALUES 
             (1, '76111222-3', 12000, 'QR', CURRENT_TIMESTAMP - INTERVAL '1 day'),
-            (1, '76111222-3', 8500, 'RUT+PIN', CURRENT_TIMESTAMP - INTERVAL '2 hours')
+            (1, '76111222-3', 8500, 'RUT+PIN', CURRENT_TIMESTAMP - INTERVAL '5 hours')
         `);
-        console.log("- Transacciones de prueba registradas.");
+        console.log("- Transacciones simuladas registradas.");
 
-        console.log("¡Todos los datos de prueba fueron inyectados con éxito!");
+        console.log("¡Base de datos poblada exitosamente!");
+        process.exit(0);
 
     } catch (error) {
         console.error("Error al inyectar datos:", error);
-    } finally {
-        pool.end();
+        process.exit(1);
     }
 };
 

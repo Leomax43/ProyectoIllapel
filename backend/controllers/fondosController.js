@@ -1,19 +1,18 @@
 const pool = require('../config/db');
 
 const cargarFondos = async (req, res) => {
-    // Recibimos quién recibe (id_familia), quién autoriza (id_admin) y cuánta plata (monto)
-    const { id_familia, id_admin, monto } = req.body;
+    // Ahora el id_familia viene por la URL (:id_familia) y el resto por el body (Form-Data)
+    const { id_familia } = req.params;
+    const { id_admin, monto } = req.body;
 
     try {
-        // 1. Iniciamos una "Transacción". Esto asegura que si algo falla a la mitad, 
-        // no se guarde nada (evita que se registre la recarga pero no se sume el saldo).
-        await pool.query('BEGIN');
+        await pool.query('BEGIN'); // Transacción segura
 
-        // 2. Verificar que la familia exista y esté ACTIVA
+        // 1. Verificar que la familia exista y esté ACTIVA
         const famRes = await pool.query('SELECT saldo, estado FROM familias WHERE id_familia = $1', [id_familia]);
         
         if (famRes.rows.length === 0) {
-            await pool.query('ROLLBACK'); // Abortar transacción
+            await pool.query('ROLLBACK');
             return res.status(404).json({ status: 'Error', mensaje: 'Familia no encontrada' });
         }
 
@@ -21,15 +20,11 @@ const cargarFondos = async (req, res) => {
         
         if (familia.estado !== 'ACTIVO') {
             await pool.query('ROLLBACK');
-            return res.status(403).json({ status: 'Error', mensaje: 'La cuenta de la familia no está ACTIVA (Estado actual: ' + familia.estado + ')' });
+            return res.status(403).json({ status: 'Error', mensaje: 'La cuenta no está ACTIVA' });
         }
 
-
-
-
-        /* Voy a desactivar esto para probar si funciona sin la regla y todo bien
-        
-        // 3. REGLA DE NEGOCIO: Validar la regla de los 30 días
+        // voy a dejar el requisito de los 30 dias comentado para hacer pruebas
+        /*
         const ultimasCargas = await pool.query(`
             SELECT fecha FROM cargas_fondos 
             WHERE id_familia = $1 AND fecha >= NOW() - INTERVAL '30 days'
@@ -37,37 +32,48 @@ const cargarFondos = async (req, res) => {
 
         if (ultimasCargas.rows.length > 0) {
             await pool.query('ROLLBACK');
-            return res.status(400).json({ 
-                status: 'Error', 
-                mensaje: 'Bloqueo: El núcleo familiar ya recibió fondos en los últimos 30 días.' 
-            });
+            return res.status(400).json({ status: 'Error', mensaje: 'Bloqueo: Ya recibió fondos en los últimos 30 days.' });
         }
         */
 
 
-        // 4. Registrar la carga en el historial
+        
+        // voy a dejar esto tambien comentado para no necesitar de un pdf para añadir dinero
+        let pdfResolucionPath = null;
+
+        /*
+        if (req.file) {
+            pdfResolucionPath = `/archivosDocumentos/familias/${id_familia}/${req.file.filename}`;
+        } else {
+            await pool.query('ROLLBACK');
+            return res.status(400).json({ status: 'Error', mensaje: 'No se adjuntó el PDF de la resolución municipal' });
+        }
+        */
+        
+
+        // 2. Registrar la carga en el historial (incluyendo la columna del PDF)
         await pool.query(
-            'INSERT INTO cargas_fondos (id_familia, id_admin, monto) VALUES ($1, $2, $3)',
-            [id_familia, id_admin, monto]
+            'INSERT INTO cargas_fondos (id_familia, id_admin, monto, pdf_resolucion) VALUES ($1, $2, $3, $4)',
+            [id_familia, id_admin, monto, pdfResolucionPath]
         );
 
-        // 5. Actualizar (sumar) el saldo de la familia
+        // 3. Actualizar el saldo de la familia
         await pool.query(
             'UPDATE familias SET saldo = saldo + $1 WHERE id_familia = $2',
             [monto, id_familia]
         );
 
-        // 6. Si llegamos hasta aquí sin errores, guardamos los cambios de forma permanente
         await pool.query('COMMIT');
 
         res.status(200).json({ 
             status: 'Éxito', 
             mensaje: 'Fondos cargados correctamente', 
-            nuevo_saldo: familia.saldo + monto 
+            nuevo_saldo: parseInt(familia.saldo) + parseInt(monto),
+            documento_adjunto: pdfResolucionPath ? 'Guardado' : 'Ninguno (Modo Prueba)'
         });
 
     } catch (error) {
-        await pool.query('ROLLBACK'); // Si el servidor explota, deshacemos todo
+        await pool.query('ROLLBACK');
         res.status(500).json({ status: 'Error', mensaje: 'Error interno al cargar fondos', error: error.message });
     }
 };

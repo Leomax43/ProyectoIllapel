@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { crearFamilia, obtenerFamilias, obtenerFamiliaDetalle } = require('../controllers/familiaController');
+const { crearFamilia, obtenerFamilias, obtenerFamiliaDetalle, subirFichaSocial } = require('../controllers/familiaController');
+const upload = require('../middlewares/uploadMiddleware');
+
 
 // Ruta POST para registrar una nueva familia
 router.post('/', crearFamilia);
@@ -8,7 +10,11 @@ router.post('/', crearFamilia);
 // Ruta GET para listar todas las familias
 router.get('/', obtenerFamilias);
 
+//para obtener familias
 router.get('/:rut', obtenerFamiliaDetalle);
+
+//para subir ficha social
+router.post('/:id_familia/ficha-social', upload.single('archivo'), subirFichaSocial);
 
 
 module.exports = router;

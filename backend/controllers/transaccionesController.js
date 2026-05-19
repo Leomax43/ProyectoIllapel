@@ -1,4 +1,10 @@
 const pool = require('../config/db');
+const jwt = require('jsonwebtoken');
+
+
+
+
+
 
 const realizarTransaccion = async (req, res) => {
     // Recibimos quién compra, dónde compra, cuánto gasta y cómo paga
@@ -68,4 +74,70 @@ const realizarTransaccion = async (req, res) => {
     }
 };
 
-module.exports = { realizarTransaccion };
+
+
+
+
+// Nueva función: Cobrar usando el Token del QR
+const comprarConQR = async (req, res) => {
+    // El comercio envía su RUT, el monto a cobrar y el código gigante que escaneó
+    const { rut_comercio, monto, qr_token } = req.body;
+    let id_familia;
+
+    // 1. ABRIR EL SOBRE (Validar el QR)
+    try {
+        const decoded = jwt.verify(qr_token, 'secreto_municipal_qr_2026');
+        id_familia = decoded.id_familia; // Extraemos de quién es el código
+    } catch (error) {
+        // Si el token fue alterado o pasaron los 5 minutos, explota y cae aquí
+        return res.status(401).json({ status: 'Error', mensaje: 'El código QR es inválido o ha expirado. Genere uno nuevo.' });
+    }
+
+    // 2. PROCESAR EL PAGO (Igual que antes, ahora que sabemos quién es la familia)
+    try {
+        await pool.query('BEGIN');
+
+        // Validar Familia
+        const famRes = await pool.query('SELECT saldo, estado FROM familias WHERE id_familia = $1', [id_familia]);
+        if (famRes.rows.length === 0 || famRes.rows[0].estado !== 'ACTIVO' || famRes.rows[0].saldo < monto) {
+            await pool.query('ROLLBACK');
+            return res.status(400).json({ status: 'Error', mensaje: 'Problemas con la cuenta de la familia o saldo insuficiente' });
+        }
+
+        // Validar Comercio
+        const comRes = await pool.query('SELECT estado FROM comercios WHERE rut_comercio = $1', [rut_comercio]);
+        if (comRes.rows.length === 0 || comRes.rows[0].estado !== 'ACTIVO') {
+            await pool.query('ROLLBACK');
+            return res.status(400).json({ status: 'Error', mensaje: 'Comercio no habilitado' });
+        }
+
+        // Mover dinero y registrar boleta
+        await pool.query('UPDATE familias SET saldo = saldo - $1 WHERE id_familia = $2', [monto, id_familia]);
+        await pool.query('UPDATE comercios SET saldo_acumulado = saldo_acumulado + $1 WHERE rut_comercio = $2', [monto, rut_comercio]);
+        await pool.query(
+            'INSERT INTO transacciones (id_familia, rut_comercio, monto, metodo_pago) VALUES ($1, $2, $3, $4)',
+            [id_familia, rut_comercio, monto, 'App Movil QR']
+        );
+
+        await pool.query('COMMIT');
+        
+        // Devolvemos el monto cobrado y calculamos el saldo restante
+        res.status(200).json({ 
+            status: 'Éxito', 
+            mensaje: 'Pago con QR aprobado', 
+            monto_cobrado: monto,
+            saldo_restante: parseInt(famRes.rows[0].saldo) - parseInt(monto) // <-- ESTA ES LA LÍNEA NUEVA
+        });
+
+    } catch (error) {
+        await pool.query('ROLLBACK');
+        res.status(500).json({ status: 'Error', mensaje: 'Error en transacción', error: error.message });
+    }
+};
+
+
+
+
+
+
+module.exports = { realizarTransaccion, comprarConQR };
