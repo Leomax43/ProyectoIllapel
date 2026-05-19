@@ -1,43 +1,102 @@
-// backend/initDB.js
-const pool = require('./config/db.js');
+const pool = require('./config/db');
 
-const createTables = async () => {
-  const query = `
-    CREATE TABLE IF NOT EXISTS familias (
-        id_familia SERIAL PRIMARY KEY,
-        rut_representante VARCHAR(12) UNIQUE NOT NULL,
-        nombre_familia VARCHAR(100) NOT NULL,
-        clave_acceso VARCHAR(255) NOT NULL,
-        saldo INTEGER DEFAULT 0,
-        fecha_ultima_recarga TIMESTAMP
-    );
+const crearTablas = async () => {
+    try {
+        console.log("Iniciando creación de tablas (V2 - Arquitectura Completa)...");
 
-    CREATE TABLE IF NOT EXISTS tiendas (
-        id_tienda SERIAL PRIMARY KEY,
-        rut_comercial VARCHAR(12) UNIQUE NOT NULL,
-        nombre_tienda VARCHAR(100) NOT NULL,
-        clave_acceso VARCHAR(255) NOT NULL,
-        saldo INTEGER DEFAULT 0
-    );
+        // 0. Limpiar base de datos anterior (Ideal para desarrollo)
+        await pool.query(`
+            DROP TABLE IF EXISTS transacciones CASCADE;
+            DROP TABLE IF EXISTS cargas_fondos CASCADE;
+            DROP TABLE IF EXISTS integrantes CASCADE;
+            DROP TABLE IF EXISTS familias CASCADE;
+            DROP TABLE IF EXISTS comercios CASCADE;
+            DROP TABLE IF EXISTS admin CASCADE;
+        `);
 
-    CREATE TABLE IF NOT EXISTS transacciones (
-        id_transaccion SERIAL PRIMARY KEY,
-        id_familia INTEGER REFERENCES familias(id_familia),
-        id_tienda INTEGER REFERENCES tiendas(id_tienda),
-        monto INTEGER NOT NULL,
-        fecha_transaccion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `;
+        // 1. Usuarios Municipales (Roles de Asistente y Jefatura)
+        await pool.query(`
+            CREATE TABLE admin (
+                id_admin SERIAL PRIMARY KEY,
+                rut VARCHAR(12) UNIQUE NOT NULL,
+                nombre_completo VARCHAR(100) NOT NULL,
+                rol VARCHAR(50) NOT NULL, -- 'ASISTENTE_SOCIAL' o 'JEFATURA'
+                clave VARCHAR(255) NOT NULL,
+                estado VARCHAR(20) DEFAULT 'ACTIVO'
+            );
+        `);
 
-  try {
-    console.log("Iniciando creación de tablas...");
-    await pool.query(query);
-    console.log("¡Tablas creadas exitosamente en PostgreSQL!");
-  } catch (error) {
-    console.error("Error al crear las tablas:", error);
-  } finally {
-    pool.end();
-  }
+        // 2. Familias (Beneficiarios) - Expandido con estados y PDF
+        await pool.query(`
+            CREATE TABLE familias (
+                id_familia SERIAL PRIMARY KEY,
+                rut_representante VARCHAR(12) UNIQUE NOT NULL,
+                nombre_familia VARCHAR(100) NOT NULL,
+                direccion VARCHAR(255),
+                telefono VARCHAR(20),
+                clave_acceso VARCHAR(255) NOT NULL,
+                saldo INT DEFAULT 0,
+                estado VARCHAR(20) DEFAULT 'PENDIENTE', -- PENDIENTE, ACTIVO, RECHAZADO, BAJA
+                pdf_ficha_social VARCHAR(255) -- Ruta donde guardaremos el PDF
+            );
+        `);
+
+        // 3. Integrantes del Núcleo Familiar
+        await pool.query(`
+            CREATE TABLE integrantes (
+                id_integrante SERIAL PRIMARY KEY,
+                id_familia INT REFERENCES familias(id_familia) ON DELETE CASCADE,
+                nombre_completo VARCHAR(150) NOT NULL,
+                rut VARCHAR(12), -- OPCIONAL (basado en el análisis de la Cartola)
+                parentesco VARCHAR(50),
+                edad INT
+            );
+        `);
+
+        // 4. Comercios - Expandido
+        await pool.query(`
+            CREATE TABLE comercios (
+                rut_comercio VARCHAR(12) PRIMARY KEY,
+                nombre_comercio VARCHAR(100) NOT NULL,
+                rubro VARCHAR(50),
+                direccion VARCHAR(255),
+                responsable VARCHAR(100),
+                telefono VARCHAR(20),
+                saldo_acumulado INT DEFAULT 0,
+                estado VARCHAR(20) DEFAULT 'ACTIVO'
+            );
+        `);
+
+        // 5. Historial de Cargas de Fondos
+        await pool.query(`
+            CREATE TABLE cargas_fondos (
+                id_carga SERIAL PRIMARY KEY,
+                id_familia INT REFERENCES familias(id_familia),
+                id_admin INT REFERENCES admin(id_admin), -- Funcionario que cargó la plata
+                monto INT NOT NULL,
+                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                pdf_resolucion VARCHAR(255)
+            );
+        `);
+
+        // 6. Transacciones (Compras en comercios) - Expandido
+        await pool.query(`
+            CREATE TABLE transacciones (
+                id_transaccion SERIAL PRIMARY KEY,
+                id_familia INT REFERENCES familias(id_familia),
+                rut_comercio VARCHAR(12) REFERENCES comercios(rut_comercio),
+                monto INT NOT NULL,
+                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                metodo_pago VARCHAR(20) -- 'QR' o 'RUT+PIN'
+            );
+        `);
+
+        console.log("¡Tablas V2 creadas exitosamente en PostgreSQL!");
+    } catch (error) {
+        console.error("Error al crear las tablas:", error);
+    } finally {
+        pool.end();
+    }
 };
 
-createTables();
+crearTablas();

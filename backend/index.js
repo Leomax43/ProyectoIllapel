@@ -5,6 +5,12 @@ require('dotenv').config();
 
 // Importar rutas
 const familiaRoutes = require('./routes/familiaRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const fondosRoutes = require('./routes/fondosRoutes');
+const aprobacionesRoutes = require('./routes/aprobacionesRoutes');
+const transaccionesRoutes = require('./routes/transaccionesRoutes');
+const comerciosRoutes = require('./routes/comerciosRoutes');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -12,8 +18,14 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Conectar las rutas de familias
+// Conectar las rutas
 app.use('/api/familias', familiaRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/fondos', fondosRoutes);
+app.use('/api/aprobaciones', aprobacionesRoutes);
+app.use('/api/transacciones', transaccionesRoutes);
+app.use('/api/comercios', comerciosRoutes);
 
 // Endpoint de prueba (Health Check)
 app.get('/health', async (req, res) => {

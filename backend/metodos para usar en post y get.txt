@@ -1,0 +1,276 @@
+Usando thunder client podemos
+
+
+
+
+Cómo ver el dinero de la Familia Pérez
+
+Abre una nueva pestaña en Thunder Client (New Request).
+
+Asegúrate de que el método sea GET.
+
+Escribe la URL apuntando al RUT del representante de la Familia Pérez (que, si miras tu archivo seedDB.js, el RUT de esa familia es '9876543-2').
+La URL será: http://localhost:3000/api/familias/9876543-2
+
+Dale a Send.
+
+
+
+
+
+
+Cargar dinero a una familia
+
+
+post
+
+http://localhost:3000/api/fondos/cargar
+
+body
+
+{
+  "id_familia": 2,
+  "id_admin": 1,
+  "monto": 50000
+}
+
+
+
+
+
+
+
+
+
+Pasar familia de estado PENDIENTE a ACTIVO
+
+Crea un PUT a http://localhost:3000/api/aprobaciones/familia/2
+
+En el Body (JSON) pon:
+
+JSON
+{
+  "nuevo_estado": "ACTIVO"
+}
+
+
+
+
+
+
+
+
+¡Momento de ir de compras!
+ahora descontar dinero de una familia 
+
+Ve a tu Thunder Client y vamos a hacer que la Familia Pérez (que ahora es millonaria con sus 100.005 pesos) vaya a comprar fideos al Minimarket Don Jorge (RUT: 76111222-3).
+
+Haz un POST a http://localhost:3000/api/transacciones/comprar con este Body:
+
+JSON
+{
+  "id_familia": 2,
+  "rut_comercio": "76111222-3",
+  "monto": 15000,
+  "metodo_pago": "QR"
+}
+
+
+
+
+
+
+
+
+prueba para ver historial ventas local comercial
+
+¡Pruébalo en Thunder Client!
+Te sugiero probar la joya de este controlador, que es ver las ventas. Si recuerdas, en el seedDB.js y en la prueba anterior, hicimos compras en el Minimarket Don Jorge (76111222-3).
+
+Haz una petición GET a:
+http://localhost:3000/api/comercios/76111222-3
+
+
+
+
+
+este lo hice yo xd
+
+
+
+ahora el de mi mejor amigo...
+
+
+--------------------------------------------------------
+1. AUTENTICACIÓN (ADMINISTRADORES)
+---------------------------------------------------------
+
+# Iniciar Sesión
+- Qué hace: Valida las credenciales de un funcionario y devuelve su rol.
+- Método: POST
+- URL: http://localhost:3000/api/admin/login
+- Body (JSON):
+{
+  "rut": "11111111-1",
+  "clave": "1234"
+}
+
+
+---------------------------------------------------------
+2. DASHBOARD (RESUMEN)
+---------------------------------------------------------
+
+# Obtener Estadísticas Principales
+- Qué hace: Trae los contadores globales y las últimas 5 familias para la pantalla de inicio.
+- Método: GET
+- URL: http://localhost:3000/api/dashboard/resumen
+- Body: (No requiere)
+
+
+---------------------------------------------------------
+3. GESTIÓN DE FAMILIAS (BENEFICIARIOS)
+---------------------------------------------------------
+
+# Listar Todas las Familias
+- Qué hace: Obtiene un listado general de todas las familias registradas.
+- Método: GET
+- URL: http://localhost:3000/api/familias
+- Body: (No requiere)
+
+# Ver Expediente Completo de una Familia
+- Qué hace: Busca por RUT y trae datos personales, integrantes del núcleo y su historial de cargas.
+- Método: GET
+- URL: http://localhost:3000/api/familias/9876543-2  <-- (Reemplazar con el RUT real)
+- Body: (No requiere)
+
+# Registrar Nueva Familia (Básico)
+- Qué hace: Crea una nueva cuenta de familia en estado PENDIENTE con saldo 0.
+- Método: POST
+- URL: http://localhost:3000/api/familias
+- Body (JSON):
+{
+  "rut_representante": "19888777-6",
+  "nombre_familia": "Familia de Prueba",
+  "clave_acceso": "1234"
+}
+
+
+---------------------------------------------------------
+4. APROBACIONES (JEFATURA)
+---------------------------------------------------------
+
+# Cambiar Estado de Familia
+- Qué hace: Permite cambiar a ACTIVO, RECHAZADO o BAJA.
+- Método: PUT
+- URL: http://localhost:3000/api/aprobaciones/familia/2  <-- (El número es el id_familia)
+- Body (JSON):
+{
+  "nuevo_estado": "ACTIVO"
+}
+
+
+---------------------------------------------------------
+5. CARGA DE FONDOS (ASISTENTE SOCIAL)
+---------------------------------------------------------
+
+# Inyectar Dinero a Familia
+- Qué hace: Suma saldo a la familia y deja registro. Valida estado ACTIVO y regla de 30 días.
+- Método: POST
+- URL: http://localhost:3000/api/fondos/cargar
+- Body (JSON):
+{
+  "id_familia": 2,
+  "id_admin": 1,
+  "monto": 50000
+}
+
+
+---------------------------------------------------------
+6. TRANSACCIONES (COMPRAS EN COMERCIO)
+---------------------------------------------------------
+
+# Realizar una Compra
+- Qué hace: Descuenta saldo a la familia, suma al comercio y guarda la boleta. Valida saldo suficiente.
+- Método: POST
+- URL: http://localhost:3000/api/transacciones/comprar
+- Body (JSON):
+{
+  "id_familia": 2,
+  "rut_comercio": "76111222-3",
+  "monto": 15000,
+  "metodo_pago": "QR"
+}
+
+
+---------------------------------------------------------
+7. GESTIÓN DE COMERCIOS
+---------------------------------------------------------
+
+# Listar Todos los Comercios
+- Qué hace: Trae el listado completo de negocios para la tabla de gestión.
+- Método: GET
+- URL: http://localhost:3000/api/comercios
+- Body: (No requiere)
+
+# Ver Detalle y Ventas de un Comercio
+- Qué hace: Trae datos del negocio, su saldo acumulado y la lista de familias que le han comprado.
+- Método: GET
+- URL: http://localhost:3000/api/comercios/76111222-3  <-- (Reemplazar con RUT del comercio)
+- Body: (No requiere)
+
+# Registrar Nuevo Comercio
+- Qué hace: Ingresa un nuevo local al sistema.
+- Método: POST
+- URL: http://localhost:3000/api/comercios
+- Body (JSON):
+{
+  "rut_comercio": "76999888-7",
+  "nombre_comercio": "Panadería La Central",
+  "rubro": "Alimentación",
+  "direccion": "Plaza de Armas, Illapel",
+  "responsable": "Juan Pérez",
+  "telefono": "+56911223344"
+}
+
+# Cambiar Estado de un Comercio (Dar de Baja)
+- Qué hace: Permite suspender un comercio (ej. estado BAJA) para que no reciba más transacciones.
+- Método: PUT
+- URL: http://localhost:3000/api/comercios/76111222-3/estado
+- Body (JSON):
+{
+  "nuevo_estado": "BAJA"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
