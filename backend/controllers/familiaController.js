@@ -26,36 +26,59 @@ const crearFamilia = async (req, res) => {
 
 
 const obtenerFamilias = async (req, res) => {
-    // Capturamos los parámetros de la URL. Si no vienen, por defecto mostramos la página 1 con 50 registros.
+    // Capturamos los parámetros de la URL. Si no vienen, por defecto mostramos la página 1 con 8 registros.
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 50;
+    const limit = parseInt(req.query.limit) || 8;
     const search = req.query.search || '';
+    const estado = req.query.estado || '';
 
     // Calculamos el desfase (cuántos registros nos saltamos)
-    // Ejemplo: Página 1 -> (1-1)*50 = 0 (se salta 0). Página 2 -> (2-1)*50 = 50 (se salta los primeros 50).
     const offset = (page - 1) * limit;
 
     try {
-        let queryText = 'SELECT * FROM familias';
-        let countQueryText = 'SELECT COUNT(*) FROM familias';
+        let queryText = `
+            SELECT 
+                f.id_familia,
+                f.rut_representante,
+                f.nombre_familia,
+                f.saldo,
+                f.estado,
+                f.pdf_ficha_social,
+                COUNT(i.id_integrante) as total_integrantes
+            FROM familias f
+            LEFT JOIN integrantes i ON f.id_familia = i.id_familia
+        `;
+        let countQueryText = `
+            SELECT COUNT(DISTINCT f.id_familia) FROM familias f
+        `;
         let queryParams = [];
+        let paramCount = 0;
 
-        // 1. Si el usuario escribió algo en el buscador, aplicamos el filtro por RUT
+        // 1. Aplicar filtros de búsqueda
+        let whereConditions = [];
+        
         if (search) {
-            queryText += ' WHERE rut_representante ILIKE $1';
-            countQueryText += ' WHERE rut_representante ILIKE $1';
-            queryParams.push(`%${search}%`); // El '%' permite coincidencias parciales (ej: escribir "987" y encontrar "9876543-2")
+            whereConditions.push(`(f.nombre_familia ILIKE $${++paramCount} OR f.rut_representante ILIKE $${paramCount})`);
+            queryParams.push(`%${search}%`);
         }
 
-        // 2. Obtener el total de elementos que cumplen la condición (necesario para calcular las páginas totales)
+        if (estado) {
+            whereConditions.push(`f.estado = $${++paramCount}`);
+            queryParams.push(estado);
+        }
+
+        if (whereConditions.length > 0) {
+            const whereClause = ' WHERE ' + whereConditions.join(' AND ');
+            queryText += whereClause;
+            countQueryText += whereClause;
+        }
+
+        // 2. Obtener el total de elementos que cumplen la condición
         const totalRes = await pool.query(countQueryText, queryParams);
         const totalItems = parseInt(totalRes.rows[0].count);
 
-        // 3. Añadimos el ordenamiento y los controles de paginación a la consulta final
-        const numParametros = queryParams.length;
-        queryText += ` ORDER BY nombre_familia ASC LIMIT $${numParametros + 1} OFFSET $${numParametros + 2}`;
-        
-        // Agregamos el limit y el offset al arreglo de parámetros
+        // 3. Agrupar por familia y añadir paginación
+        queryText += ` GROUP BY f.id_familia ORDER BY f.nombre_familia ASC LIMIT $${++paramCount} OFFSET $${++paramCount}`;
         queryParams.push(limit, offset);
 
         // Ejecutamos la consulta de datos paginados
@@ -64,7 +87,6 @@ const obtenerFamilias = async (req, res) => {
         // Calculamos el total de páginas necesarias
         const totalPages = Math.ceil(totalItems / limit);
 
-        // Devolvemos una estructura meta-data muy limpia para que el Frontend dibuje la paginación fácilmente
         res.status(200).json({
             status: 'Éxito',
             paginacion: {
@@ -147,4 +169,31 @@ const subirFichaSocial = async (req, res) => {
     }
 };
 
-module.exports = { crearFamilia, obtenerFamilias, obtenerFamiliaDetalle, subirFichaSocial };
+const obtenerEstadisticasBeneficiarios = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                COUNT(*) as total,
+                COUNT(CASE WHEN estado = 'ACTIVO' THEN 1 END) as activos,
+                COUNT(CASE WHEN estado = 'PENDIENTE' THEN 1 END) as pendientes,
+                COUNT(CASE WHEN estado = 'BAJA' THEN 1 END) as bajas
+            FROM familias
+        `);
+
+        const stats = result.rows[0];
+
+        res.status(200).json({
+            status: 'Éxito',
+            datos: {
+                total_registrados: parseInt(stats.total),
+                activos: parseInt(stats.activos),
+                pendientes: parseInt(stats.pendientes),
+                bajas: parseInt(stats.bajas)
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ status: 'Error', mensaje: 'Error al obtener estadísticas', error: error.message });
+    }
+};
+
+module.exports = { crearFamilia, obtenerFamilias, obtenerFamiliaDetalle, subirFichaSocial, obtenerEstadisticasBeneficiarios };

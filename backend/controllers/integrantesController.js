@@ -5,7 +5,7 @@ const agregarIntegrante = async (req, res) => {
     // Recibimos el ID de la familia a la que se sumará el integrante
     const { id_familia } = req.params;
     // Recibimos los datos del nuevo integrante
-    const { nombre_completo, rut, parentesco, edad } = req.body;
+    const { nombre_completo, rut, parentesco, fecha_nacimiento } = req.body;
 
     try {
         // Verificamos si la familia existe
@@ -16,9 +16,9 @@ const agregarIntegrante = async (req, res) => {
         }
 
         const result = await pool.query(
-            `INSERT INTO integrantes (id_familia, nombre_completo, rut, parentesco, edad) 
+            `INSERT INTO integrantes (id_familia, nombre_completo, rut, parentesco, fecha_nacimiento) 
              VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-            [id_familia, nombre_completo, rut, parentesco, edad]
+            [id_familia, nombre_completo, rut, parentesco, fecha_nacimiento]
         );
 
         res.status(201).json({ 
