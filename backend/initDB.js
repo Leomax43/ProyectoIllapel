@@ -77,7 +77,7 @@ const crearTablas = async () => {
                 motivo VARCHAR(50), -- 'Alimento', 'Construcción', etc
                 detalles VARCHAR(500), -- Descripción extensa del caso
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                pdf_r   esolucion VARCHAR(255)
+                pdf_resolucion VARCHAR(255)
             );
         `);
 
