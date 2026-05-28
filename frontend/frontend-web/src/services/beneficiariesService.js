@@ -18,6 +18,21 @@ const beneficiariesService = {
     }
   },
 
+  // Búsqueda rápida de beneficiarios (devuelve lista sin paginación)
+  search: async (searchTerm) => {
+    try {
+      const params = new URLSearchParams();
+      params.append('search', searchTerm);
+      params.append('limit', 50);
+
+      const data = await request(`/api/familias?${params.toString()}`);
+      return data.familias || [];
+    } catch (error) {
+      console.error('Error searching beneficiaries:', error);
+      throw error;
+    }
+  },
+
   // Obtener estadísticas de beneficiarios (pills)
   getBeneficiariesStats: async () => {
     try {

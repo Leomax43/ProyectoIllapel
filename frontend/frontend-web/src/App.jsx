@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import AdminDashboardNew from './pages/AdminDashboardNew.jsx';
 import BeneficiariesPage from './pages/BeneficiariesPage.jsx';
 import NewSolicitudPage from './pages/NewSolicitudPage.jsx';
+import ComerciosPage from './pages/ComerciosPage.jsx';
+import NewComercioPage from './pages/NewComercioPage.jsx';
+import CargaFondosPage from './pages/CargaFondosPage.jsx';
 import Login from './pages/Login.jsx';
 import { useAuth } from './hooks/useAuth.js';
 
@@ -23,6 +26,12 @@ function App() {
     <BeneficiariesPage onNavigate={handleNavigation} />
   ) : currentPage === 'nueva-solicitud' ? (
     <NewSolicitudPage onNavigate={handleNavigation} />
+  ) : currentPage === 'comercios' ? (
+    <ComerciosPage onNavigate={handleNavigation} />
+  ) : currentPage === 'nuevo-comercio' ? (
+    <NewComercioPage onNavigate={handleNavigation} />
+  ) : currentPage === 'fondos' ? (
+    <CargaFondosPage onNavigate={handleNavigation} />
   ) : (
     <AdminDashboardNew onNavigate={handleNavigation} />
   );

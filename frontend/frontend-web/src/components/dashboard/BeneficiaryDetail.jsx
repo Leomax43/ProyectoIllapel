@@ -236,6 +236,12 @@ const BeneficiaryDetail = ({ beneficiary, onClose }) => {
         >
           PIN
         </div>
+        <div
+          style={tabStyle(activeTab === 'documentos')}
+          onClick={() => setActiveTab('documentos')}
+        >
+          Documentos
+        </div>
       </div>
 
       <div style={tabContentStyle}>
@@ -372,6 +378,64 @@ const BeneficiaryDetail = ({ beneficiary, onClose }) => {
           <div style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
             PIN - Funcionalidad pendiente (Implementación por Maximiliano)
           </div>
+        )}
+
+        {activeTab === 'documentos' && (
+          <>
+            <div style={detailTitleStyle}>Ficha Social</div>
+            {detail.datos_personales?.pdf_ficha_social ? (
+              <div style={{
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                padding: '12px',
+                background: '#f9fafb'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ fontSize: '24px' }}>📄</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '3px' }}>
+                      {detail.datos_personales.pdf_ficha_social.split('/').pop()}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#666' }}>
+                      Ficha Social - Creada el {formatDate(detail.datos_personales?.fecha_creacion)}
+                    </div>
+                  </div>
+                  <a
+                    href={`http://localhost:3000${detail.datos_personales.pdf_ficha_social}`}
+                    download
+                    style={{
+                      background: '#2563a0',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '3px',
+                      padding: '6px 12px',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      fontWeight: 'bold'
+                    }}
+                    onMouseEnter={(e) => e.target.style.background = '#1a4f80'}
+                    onMouseLeave={(e) => e.target.style.background = '#2563a0'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Descargar
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                border: '1px dashed #ddd',
+                borderRadius: '4px',
+                padding: '20px',
+                textAlign: 'center',
+                color: '#999',
+                background: '#f9fafb'
+              }}>
+                📭 No hay ficha social adjunta para esta familia
+              </div>
+            )}
+          </>
         )}
       </div>
 

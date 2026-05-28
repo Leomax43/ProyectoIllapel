@@ -23,6 +23,10 @@ const NewSolicitudPage = ({ onNavigate }) => {
   // Tabla de integrantes adicionales (pareja, hijos, etc.)
   const [integrantesAdicionales, setIntegrantesAdicionales] = useState([]);
 
+  // PDF para subir
+  const [pdfFile, setPdfFile] = useState(null);
+  const [pdfFileName, setPdfFileName] = useState('');
+
   const handleBeneficiarioChange = (field, value) => {
     setBeneficiario(prev => ({ ...prev, [field]: value }));
   };
@@ -43,6 +47,43 @@ const NewSolicitudPage = ({ onNavigate }) => {
 
   const eliminarIntegrante = (id) => {
     setIntegrantesAdicionales(prev => prev.filter(int => int.id !== id));
+  };
+
+  const handlePdfChange = (file) => {
+    if (!file) return;
+    
+    // Validar que sea PDF
+    if (file.type !== 'application/pdf') {
+      setMessage({ text: '❌ Solo se aceptan archivos PDF', type: 'error' });
+      return;
+    }
+
+    // Validar tamaño máximo (10 MB)
+    const maxSizeMB = 10;
+    const fileSizeMB = file.size / (1024 * 1024);
+    if (fileSizeMB > maxSizeMB) {
+      setMessage({ text: `❌ El archivo excede el tamaño máximo de ${maxSizeMB} MB`, type: 'error' });
+      return;
+    }
+
+    setPdfFile(file);
+    setPdfFileName(file.name);
+    setMessage(null);
+  };
+
+  const handleFileInputChange = (e) => {
+    handlePdfChange(e.target.files[0]);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handlePdfChange(e.dataTransfer.files[0]);
   };
 
   const handleSubmit = async (e) => {
@@ -92,6 +133,11 @@ const NewSolicitudPage = ({ onNavigate }) => {
         await solicitudesService.agregarIntegrante(id_familia, integrantePayload);
       }
 
+      // 4. Subir PDF si se seleccionó uno
+      if (pdfFile) {
+        await solicitudesService.subirFichaSocial(id_familia, pdfFile);
+      }
+
       setMessage({ text: '✅ Solicitud creada exitosamente', type: 'success' });
       
       // Limpiar formulario
@@ -107,6 +153,8 @@ const NewSolicitudPage = ({ onNavigate }) => {
           clave_acceso: ''
         });
         setIntegrantesAdicionales([]);
+        setPdfFile(null);
+        setPdfFileName('');
         // Volver a beneficiarios
         onNavigate('beneficiarios');
       }, 2000);
@@ -489,6 +537,59 @@ const NewSolicitudPage = ({ onNavigate }) => {
               >
                 + Agregar integrante
               </button>
+            </div>
+          </div>
+
+          {/* Sección 3: Ficha Social (PDF) */}
+          <div style={formCardStyle}>
+            <div style={formCardHeaderStyle}>3. Ficha Social (PDF)</div>
+            <div style={formCardBodyStyle}>
+              <label style={{ ...labelStyle, display: 'block', marginBottom: '6px' }}>
+                Adjunta la ficha social en formato PDF
+              </label>
+              <div
+                style={{
+                  border: '2px dashed #2563a0',
+                  borderRadius: '4px',
+                  padding: '24px',
+                  textAlign: 'center',
+                  background: '#f9fafb',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onDragOver={handleDragOver}
+                onDrop={handleDragDrop}
+                onClick={() => document.getElementById('pdfInput').click()}
+              >
+                <input
+                  id="pdfInput"
+                  type="file"
+                  accept="application/pdf"
+                  style={{ display: 'none' }}
+                  onChange={handleFileInputChange}
+                />
+                {pdfFileName ? (
+                  <div>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>📄</div>
+                    <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '4px' }}>
+                      {pdfFileName}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#666' }}>
+                      Haz clic para cambiar el archivo
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>📤</div>
+                    <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '4px' }}>
+                      Arrastra tu PDF aquí
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#666' }}>
+                      o haz clic para seleccionar (máx 10 MB)
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
