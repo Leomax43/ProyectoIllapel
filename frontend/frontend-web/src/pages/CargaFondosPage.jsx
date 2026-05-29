@@ -135,9 +135,6 @@ const CargaFondosPage = ({ onNavigate }) => {
       if (tipoAyuda === 'Seleccione...') {
         throw new Error('Debe seleccionar un tipo de ayuda');
       }
-      if (!pdfFile) {
-        throw new Error('Debe adjuntar un PDF');
-      }
 
       // Obtener id_admin del usuario autenticado
       const userStr = localStorage.getItem('illapel_token');
@@ -159,10 +156,12 @@ const CargaFondosPage = ({ onNavigate }) => {
         id_familia,
         id_admin,
         monto,
-        archivo: pdfFile.name
+        motivo: tipoAyuda,
+        observaciones: observaciones || 'N/A',
+        archivo: pdfFile?.name || 'Ninguno'
       });
 
-      const result = await fondosService.cargarFondos(id_familia, id_admin, monto, pdfFile);
+      const result = await fondosService.cargarFondos(id_familia, id_admin, monto, tipoAyuda, observaciones, pdfFile);
 
       console.log('✅ Respuesta:', result);
 
@@ -549,16 +548,16 @@ const CargaFondosPage = ({ onNavigate }) => {
                       <tr>
                         <th style={thStyle}>Integrante</th>
                         <th style={thStyle}>RUT</th>
-                        <th style={thStyle}>Relación</th>
+                        <th style={thStyle}>Parentesco</th>
                         <th style={thStyle}>Estado</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedBeneficiario.nucleo_familiar?.map((integrante, idx) => (
                         <tr key={idx}>
-                          <td style={tdStyle}>{integrante.nombre}</td>
+                          <td style={tdStyle}>{integrante.nombre_completo}</td>
                           <td style={tdStyle}>{integrante.rut}</td>
-                          <td style={tdStyle}>{integrante.rol_hogar || '—'}</td>
+                          <td style={tdStyle}>{integrante.parentesco || '—'}</td>
                           <td style={tdStyle}>
                             <span style={badgeStyle('Activo')}>Activo</span>
                           </td>
@@ -600,7 +599,7 @@ const CargaFondosPage = ({ onNavigate }) => {
                   </div>
 
                   <div style={fieldStyle}>
-                    <label style={labelStyle}>Tipo de ayuda <span style={requiredStyle}>*</span></label>
+                    <label style={labelStyle}>Motivo de la carga <span style={requiredStyle}>*</span></label>
                     <select
                       style={selectStyle}
                       value={tipoAyuda}
@@ -691,7 +690,7 @@ const CargaFondosPage = ({ onNavigate }) => {
                       <tr>
                         <th style={thStyle}>Fecha</th>
                         <th style={thStyle}>Monto</th>
-                        <th style={thStyle}>Tipo</th>
+                        <th style={thStyle}>Motivo</th>
                         <th style={thStyle}>PDF</th>
                       </tr>
                     </thead>
@@ -700,7 +699,7 @@ const CargaFondosPage = ({ onNavigate }) => {
                         <tr key={idx}>
                           <td style={tdStyle}>{formatDate(item.fecha)}</td>
                           <td style={tdStyle}>{formatCurrency(item.monto)}</td>
-                          <td style={tdStyle}>{item.tipo}</td>
+                          <td style={tdStyle}>{item.motivo || '—'}</td>
                           <td style={{ ...tdStyle, color: '#2563a0', cursor: 'pointer' }}>📄 Ver</td>
                         </tr>
                       ))}
