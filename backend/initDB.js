@@ -49,7 +49,7 @@ const crearTablas = async () => {
                 nombre_completo VARCHAR(150) NOT NULL,
                 rut VARCHAR(12), -- OPCIONAL (basado en el análisis de la Cartola)
                 parentesco VARCHAR(50),
-                edad INT
+                fecha_nacimiento DATE
             );
         `);
 
@@ -74,6 +74,8 @@ const crearTablas = async () => {
                 id_familia INT REFERENCES familias(id_familia),
                 id_admin INT REFERENCES admin(id_admin), -- Funcionario que cargó la plata
                 monto INT NOT NULL,
+                motivo VARCHAR(50), -- 'Alimento', 'Construcción', etc
+                detalles VARCHAR(500), -- Descripción extensa del caso
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 pdf_resolucion VARCHAR(255)
             );

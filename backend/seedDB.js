@@ -29,10 +29,10 @@ const insertarDatosPrueba = async () => {
 
         // 3. Insertar Integrantes (Asociados a la Familia 1)
         await pool.query(`
-            INSERT INTO integrantes (id_familia, nombre_completo, rut, parentesco, edad) VALUES 
-            (1, 'Rosa Martínez Ríos', '12345678-9', 'Jefa de Hogar', 48),
-            (1, 'Carlos Martínez Ríos', '11222333-5', 'Cónyuge', 45),
-            (1, 'Sofía Martínez Ríos', '20111222-6', 'Hija', 15)
+            INSERT INTO integrantes (id_familia, nombre_completo, rut, parentesco, fecha_nacimiento) VALUES 
+            (1, 'Rosa Martínez Ríos', '12345678-9', 'Jefa de Hogar', '1978-03-12'),
+            (1, 'Carlos Martínez Ríos', '11222333-5', 'Cónyuge', '1981-07-25'),
+            (1, 'Sofía Martínez Ríos', '20111222-6', 'Hija', '2009-11-05')
         `);
         console.log("- Integrantes creados.");
 
@@ -47,9 +47,9 @@ const insertarDatosPrueba = async () => {
 
         // 5. Simular cargas de fondos (La Asistente Social le carga a la familia 1)
         await pool.query(`
-            INSERT INTO cargas_fondos (id_familia, id_admin, monto, fecha) VALUES 
-            (1, 1, 50000, CURRENT_TIMESTAMP - INTERVAL '2 days'),
-            (1, 1, 40000, CURRENT_TIMESTAMP - INTERVAL '1 month')
+            INSERT INTO cargas_fondos (id_familia, id_admin, monto, motivo, detalles, fecha) VALUES 
+            (1, 1, 50000, 'Alimentación', 'Familia en situación de vulnerabilidad. Requiere apoyo para adquirir alimentos básicos del hogar.', CURRENT_TIMESTAMP - INTERVAL '2 days'),
+            (1, 1, 40000, 'Construcción', 'Reparación urgente de techo en riesgo de colapso. Peligro para la integridad física de los habitantes.', CURRENT_TIMESTAMP - INTERVAL '1 month')
         `);
         console.log("- Historial de cargas registrado.");
 

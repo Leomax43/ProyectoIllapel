@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const bcrypt = require('bcrypt');
 
 // Función para el Login del sistema municipal
 const loginAdmin = async (req, res) => {
@@ -15,8 +16,9 @@ const loginAdmin = async (req, res) => {
 
         const admin = result.rows[0];
 
-        // 2. Verificar la contraseña (En el futuro implementaremos bcrypt para mayor seguridad)
-        if (admin.clave !== clave) {
+        // 2. Verificar la contraseña usando bcrypt
+        const passwordMatch = await bcrypt.compare(clave, admin.clave);
+        if (!passwordMatch) {
             return res.status(401).json({ status: 'Error', mensaje: 'Contraseña incorrecta' });
         }
 

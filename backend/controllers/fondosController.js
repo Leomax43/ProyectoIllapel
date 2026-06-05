@@ -3,7 +3,7 @@ const pool = require('../config/db');
 const cargarFondos = async (req, res) => {
     // Ahora el id_familia viene por la URL (:id_familia) y el resto por el body (Form-Data)
     const { id_familia } = req.params;
-    const { id_admin, monto } = req.body;
+    const { id_admin, monto, motivo, observaciones } = req.body;
 
     try {
         await pool.query('BEGIN'); // Transacción segura
@@ -36,25 +36,19 @@ const cargarFondos = async (req, res) => {
         }
         */
 
-
         
-        // voy a dejar esto tambien comentado para no necesitar de un pdf para añadir dinero
+        // Guardar PDF si se adjunta
         let pdfResolucionPath = null;
 
-        /*
         if (req.file) {
             pdfResolucionPath = `/archivosDocumentos/familias/${id_familia}/${req.file.filename}`;
-        } else {
-            await pool.query('ROLLBACK');
-            return res.status(400).json({ status: 'Error', mensaje: 'No se adjuntó el PDF de la resolución municipal' });
         }
-        */
         
 
-        // 2. Registrar la carga en el historial (incluyendo la columna del PDF)
+        // 2. Registrar la carga en el historial (incluyendo detalles, motivo y PDF)
         await pool.query(
-            'INSERT INTO cargas_fondos (id_familia, id_admin, monto, pdf_resolucion) VALUES ($1, $2, $3, $4)',
-            [id_familia, id_admin, monto, pdfResolucionPath]
+            'INSERT INTO cargas_fondos (id_familia, id_admin, monto, motivo, detalles, pdf_resolucion) VALUES ($1, $2, $3, $4, $5, $6)',
+            [id_familia, id_admin, monto, motivo || null, observaciones || null, pdfResolucionPath]
         );
 
         // 3. Actualizar el saldo de la familia
@@ -69,7 +63,7 @@ const cargarFondos = async (req, res) => {
             status: 'Éxito', 
             mensaje: 'Fondos cargados correctamente', 
             nuevo_saldo: parseInt(familia.saldo) + parseInt(monto),
-            documento_adjunto: pdfResolucionPath ? 'Guardado' : 'Ninguno (Modo Prueba)'
+            documento_adjunto: pdfResolucionPath ? 'Guardado' : 'Ninguno'
         });
 
     } catch (error) {
