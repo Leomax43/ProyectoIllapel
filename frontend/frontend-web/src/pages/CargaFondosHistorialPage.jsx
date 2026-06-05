@@ -425,6 +425,31 @@ const CargaFondosHistorialPage = ({ onNavigate }) => {
                     <div style={saldoValStyle}>${formatCurrency(detalle.saldo)}</div>
                   </div>
                 </div>
+                {detalle.pdf_resolucion && (
+                  <div style={{ marginTop: '12px' }}>
+                    <div style={detailTitleStyle}>Documento adjunto</div>
+                    <a 
+                      href={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${detalle.pdf_resolucion}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-block',
+                        background: '#2563a0',
+                        color: '#fff',
+                        padding: '8px 14px',
+                        borderRadius: '3px',
+                        textDecoration: 'none',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        marginTop: '6px'
+                      }}
+                      onMouseEnter={(e) => e.target.style.background = '#1e4a8b'}
+                      onMouseLeave={(e) => e.target.style.background = '#2563a0'}
+                    >
+                      📄 Descargar PDF
+                    </a>
+                  </div>
+                )}
               </div>
 
               <div style={detailSectionStyle}>
@@ -451,31 +476,6 @@ const CargaFondosHistorialPage = ({ onNavigate }) => {
                   <div style={motivoBoxStyle}>
                     {detalle.detalles}
                   </div>
-                </div>
-              )}
-
-              {detalle.pdf_resolucion && (
-                <div style={detailSectionStyle}>
-                  <div style={detailTitleStyle}>Documentación</div>
-                  <a 
-                    href={detalle.pdf_resolucion}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'inline-block',
-                      background: '#2563a0',
-                      color: '#fff',
-                      padding: '8px 14px',
-                      borderRadius: '3px',
-                      textDecoration: 'none',
-                      fontSize: '12px',
-                      fontWeight: 'bold'
-                    }}
-                    onMouseEnter={(e) => e.target.style.background = '#1e4a8b'}
-                    onMouseLeave={(e) => e.target.style.background = '#2563a0'}
-                  >
-                    📄 Descargar PDF
-                  </a>
                 </div>
               )}
             </div>

@@ -170,7 +170,7 @@ const CargaFondosPage = ({ onNavigate }) => {
         type: 'success' 
       });
 
-      // Limpiar formulario después de 2 segundos
+      // Limpiar formulario después de 2 segundos y redirigir a historial
       setTimeout(() => {
         setSearchTerm('');
         setSelectedBeneficiario(null);
@@ -180,6 +180,7 @@ const CargaFondosPage = ({ onNavigate }) => {
         setPdfFile(null);
         setPdfFileName('');
         setMessage(null);
+        onNavigate('fondos'); // Redirigir a CargaFondosHistorialPage
       }, 2000);
     } catch (error) {
       console.error('❌ Error:', error);

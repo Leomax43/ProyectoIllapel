@@ -37,17 +37,12 @@ const cargarFondos = async (req, res) => {
         */
 
         
-        // voy a dejar esto tambien comentado para no necesitar de un pdf para añadir dinero
+        // Guardar PDF si se adjunta
         let pdfResolucionPath = null;
 
-        /*
         if (req.file) {
             pdfResolucionPath = `/archivosDocumentos/familias/${id_familia}/${req.file.filename}`;
-        } else {
-            await pool.query('ROLLBACK');
-            return res.status(400).json({ status: 'Error', mensaje: 'No se adjuntó el PDF de la resolución municipal' });
         }
-        */
         
 
         // 2. Registrar la carga en el historial (incluyendo detalles, motivo y PDF)
@@ -68,7 +63,7 @@ const cargarFondos = async (req, res) => {
             status: 'Éxito', 
             mensaje: 'Fondos cargados correctamente', 
             nuevo_saldo: parseInt(familia.saldo) + parseInt(monto),
-            documento_adjunto: pdfResolucionPath ? 'Guardado' : 'Ninguno (Modo Prueba)'
+            documento_adjunto: pdfResolucionPath ? 'Guardado' : 'Ninguno'
         });
 
     } catch (error) {

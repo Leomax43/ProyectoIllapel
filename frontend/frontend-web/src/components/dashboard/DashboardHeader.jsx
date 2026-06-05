@@ -31,8 +31,16 @@ function DashboardHeader({ currentPage = 'inicio', onLogout, onNavigate }) {
     { label: 'Comercios', page: 'comercios' },
     { label: 'Carga de Fondos', page: 'fondos' },
     { label: 'Transacciones', page: 'transacciones' },
-    { label: 'Aprobaciones', page: 'aprobaciones' },
+    { label: 'Aprobaciones', page: 'aprobaciones', requiereJefatura: true },
   ];
+
+  // Filtrar items según el rol
+  const navItemsVisibles = NAV_ITEMS.filter(item => {
+    if (item.requiereJefatura) {
+      return adminRol === 'JEFATURA';
+    }
+    return true;
+  });
 
   return (
     <>
@@ -79,7 +87,7 @@ function DashboardHeader({ currentPage = 'inicio', onLogout, onNavigate }) {
 
       {/* Nav bar */}
       <nav style={{ background: '#2563a0', display: 'flex', alignItems: 'center', gap: '0' }}>
-        {NAV_ITEMS.map((item, idx) => (
+        {navItemsVisibles.map((item, idx) => (
           <div
             key={idx}
             onClick={() => handleNavigation(item.page)}

@@ -6,6 +6,8 @@ import ComerciosPage from './pages/ComerciosPage.jsx';
 import NewComercioPage from './pages/NewComercioPage.jsx';
 import CargaFondosHistorialPage from './pages/CargaFondosHistorialPage.jsx';
 import CargaFondosPage from './pages/CargaFondosPage.jsx';
+import TransaccionesPage from './pages/TransaccionesPage.jsx';
+import AprobacionesPage from './pages/AprobacionesPage.jsx';
 import Login from './pages/Login.jsx';
 import { useAuth } from './hooks/useAuth.js';
 
@@ -35,6 +37,10 @@ function App() {
     <CargaFondosHistorialPage onNavigate={handleNavigation} />
   ) : currentPage === 'nueva-carga' ? (
     <CargaFondosPage onNavigate={handleNavigation} />
+  ) : currentPage === 'transacciones' ? (
+    <TransaccionesPage onNavigate={handleNavigation} />
+  ) : currentPage === 'aprobaciones' ? (
+    <AprobacionesPage onNavigate={handleNavigation} />
   ) : (
     <AdminDashboardNew onNavigate={handleNavigation} />
   );
