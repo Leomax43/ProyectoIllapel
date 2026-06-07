@@ -36,22 +36,26 @@ const insertarDatosPrueba = async () => {
         `);
         console.log("- Integrantes creados.");
 
-        // 4. Insertar Comercios
+        // 4. Insertar Comercios (Ahora con fechas simuladas en el pasado)
         await pool.query(`
-            INSERT INTO comercios (rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, saldo_acumulado, estado) VALUES 
-            ('76111222-3', 'Minimarket Don Jorge', 'Alimentación', 'Av. Arturo Prat 210, Illapel', 'Jorge Fuentes Mora', '+56976543210', 284500, 'ACTIVO'),
-            ('76333444-5', 'Ferretería El Clavo', 'Construcción', 'Calle Independencia 100, Illapel', 'Pedro Soto', '+56988889999', 142000, 'ACTIVO')
+            INSERT INTO comercios (rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, saldo_acumulado, estado, fecha_registro) VALUES 
+            ('76111222-3', 'Minimarket Don Jorge', 'Alimentación', 'Av. Arturo Prat 210, Illapel', 'Jorge Fuentes Mora', '+56976543210', 284500, 'ACTIVO', CURRENT_TIMESTAMP - INTERVAL '6 months'),
+            ('76333444-5', 'Ferretería El Clavo', 'Construcción', 'Calle Independencia 100, Illapel', 'Pedro Soto', '+56988889999', 142000, 'ACTIVO', CURRENT_TIMESTAMP - INTERVAL '2 weeks')
             ON CONFLICT DO NOTHING;
         `);
-        console.log("- Comercios creados.");
+        console.log("- Comercios creados con fechas históricas.");
 
-        // 5. Simular cargas de fondos (La Asistente Social le carga a la familia 1)
+        // 5. Simular cargas de fondos (Con el nuevo sistema de estados)
         await pool.query(`
-            INSERT INTO cargas_fondos (id_familia, id_admin, monto, motivo, detalles, fecha) VALUES 
-            (1, 1, 50000, 'Alimentación', 'Familia en situación de vulnerabilidad. Requiere apoyo para adquirir alimentos básicos del hogar.', CURRENT_TIMESTAMP - INTERVAL '2 days'),
-            (1, 1, 40000, 'Construcción', 'Reparación urgente de techo en riesgo de colapso. Peligro para la integridad física de los habitantes.', CURRENT_TIMESTAMP - INTERVAL '1 month')
+            INSERT INTO cargas_fondos (id_familia, id_admin, id_jefatura, monto, motivo, detalles, estado, fecha) VALUES 
+            -- Dos cargas antiguas que ya fueron APROBADAS por la jefatura (id_jefatura = 2)
+            (1, 1, 2, 50000, 'Alimentación', 'Familia en situación de vulnerabilidad...', 'APROBADO', CURRENT_TIMESTAMP - INTERVAL '2 days'),
+            (1, 1, 2, 40000, 'Construcción', 'Reparación urgente de techo...', 'APROBADO', CURRENT_TIMESTAMP - INTERVAL '1 month'),
+            
+            -- Una solicitud NUEVA, hecha hoy por la Asistente (id_admin = 1), que está PENDIENTE de revisión
+            (2, 1, NULL, 30000, 'Salud', 'Compra de medicamentos urgentes.', 'PENDIENTE', CURRENT_TIMESTAMP)
         `);
-        console.log("- Historial de cargas registrado.");
+        console.log("- Historial de cargas y solicitudes registrado.");
 
         // 6. Simular Transacciones (La Familia 1 compra en el Minimarket)
         await pool.query(`

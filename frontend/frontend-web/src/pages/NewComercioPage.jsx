@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // <-- IMPORTADO
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import { useAuth } from '../hooks/useAuth';
 import comerciosService from '../services/comerciosService';
 
-const NewComercioPage = ({ onNavigate }) => {
+const NewComercioPage = () => { // <-- QUITADA LA PROP
   const { logout } = useAuth();
+  const navigate = useNavigate(); // <-- INICIALIZADO
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -57,7 +60,7 @@ const NewComercioPage = ({ onNavigate }) => {
           direccion: '',
           clave_acceso: ''
         });
-        onNavigate('comercios');
+        navigate('/comercios'); // <-- REGRESA A LA TABLA
       }, 2000);
 
     } catch (error) {
@@ -68,139 +71,31 @@ const NewComercioPage = ({ onNavigate }) => {
   };
 
   const handleCancel = () => {
-    onNavigate('comercios');
+    navigate('/comercios'); // <-- REGRESA A LA TABLA AL CANCELAR
   };
 
   // Estilos
-  const mainStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-    background: '#f5f5f2'
-  };
-
-  const contentStyle = {
-    padding: '16px',
-    flex: 1
-  };
-
-  const sectionTitleStyle = {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    color: '#1a3a5c',
-    marginBottom: '4px'
-  };
-
-  const sectionDescStyle = {
-    fontSize: '12px',
-    color: '#666',
-    marginBottom: '16px'
-  };
-
-  const alertStyle = (type) => ({
-    background: type === 'error' ? '#ffebee' : '#e8f5e9',
-    border: `1px solid ${type === 'error' ? '#ffcdd2' : '#c8e6c9'}`,
-    borderRadius: '3px',
-    padding: '8px 12px',
-    fontSize: '12px',
-    color: type === 'error' ? '#c62828' : '#2e7d32',
-    marginBottom: '14px'
-  });
-
-  const formCardStyle = {
-    background: '#fff',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    overflow: 'hidden',
-    marginBottom: '14px'
-  };
-
-  const formCardHeaderStyle = {
-    background: '#2563a0',
-    color: '#fff',
-    fontSize: '13px',
-    fontWeight: 'bold',
-    padding: '8px 14px'
-  };
-
-  const formCardBodyStyle = {
-    padding: '16px'
-  };
-
-  const fieldsGridStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '12px',
-    marginBottom: '12px'
-  };
-
-  const fieldStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px'
-  };
-
-  const labelStyle = {
-    fontSize: '11px',
-    color: '#444',
-    fontWeight: 'bold'
-  };
-
-  const requiredStyle = {
-    color: '#b52b2b'
-  };
-
-  const inputStyle = {
-    border: '1px solid #ccc',
-    borderRadius: '3px',
-    padding: '6px 9px',
-    fontSize: '12px',
-    color: '#333',
-    fontFamily: 'Arial, sans-serif'
-  };
-
-  const selectStyle = {
-    border: '1px solid #ccc',
-    borderRadius: '3px',
-    padding: '6px 9px',
-    fontSize: '12px',
-    color: '#333',
-    fontFamily: 'Arial, sans-serif',
-    background: '#fff'
-  };
-
-  const btnRowStyle = {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '8px',
-    marginTop: '16px'
-  };
-
-  const btnCancelStyle = {
-    background: '#fff',
-    border: '1px solid #aaa',
-    color: '#555',
-    borderRadius: '3px',
-    padding: '7px 16px',
-    fontSize: '12px',
-    cursor: 'pointer',
-    fontWeight: 'normal'
-  };
-
-  const btnSubmitStyle = {
-    background: '#2563a0',
-    border: 'none',
-    color: '#fff',
-    borderRadius: '3px',
-    padding: '7px 18px',
-    fontSize: '12px',
-    fontWeight: 'bold',
-    cursor: 'pointer'
-  };
+  const mainStyle = { display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f5f5f2' };
+  const contentStyle = { padding: '16px', flex: 1 };
+  const sectionTitleStyle = { fontSize: '16px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '4px' };
+  const sectionDescStyle = { fontSize: '12px', color: '#666', marginBottom: '16px' };
+  const alertStyle = (type) => ({ background: type === 'error' ? '#ffebee' : '#e8f5e9', border: `1px solid ${type === 'error' ? '#ffcdd2' : '#c8e6c9'}`, borderRadius: '3px', padding: '8px 12px', fontSize: '12px', color: type === 'error' ? '#c62828' : '#2e7d32', marginBottom: '14px' });
+  const formCardStyle = { background: '#fff', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden', marginBottom: '14px' };
+  const formCardHeaderStyle = { background: '#2563a0', color: '#fff', fontSize: '13px', fontWeight: 'bold', padding: '8px 14px' };
+  const formCardBodyStyle = { padding: '16px' };
+  const fieldsGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' };
+  const fieldStyle = { display: 'flex', flexDirection: 'column', gap: '4px' };
+  const labelStyle = { fontSize: '11px', color: '#444', fontWeight: 'bold' };
+  const requiredStyle = { color: '#b52b2b' };
+  const inputStyle = { border: '1px solid #ccc', borderRadius: '3px', padding: '6px 9px', fontSize: '12px', color: '#333', fontFamily: 'Arial, sans-serif' };
+  const selectStyle = { border: '1px solid #ccc', borderRadius: '3px', padding: '6px 9px', fontSize: '12px', color: '#333', fontFamily: 'Arial, sans-serif', background: '#fff' };
+  const btnRowStyle = { display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' };
+  const btnCancelStyle = { background: '#fff', border: '1px solid #aaa', color: '#555', borderRadius: '3px', padding: '7px 16px', fontSize: '12px', cursor: 'pointer', fontWeight: 'normal' };
+  const btnSubmitStyle = { background: '#2563a0', border: 'none', color: '#fff', borderRadius: '3px', padding: '7px 18px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' };
 
   return (
     <div style={mainStyle}>
-      <DashboardHeader currentPage="comercios" onNavigate={onNavigate} />
+      <DashboardHeader onLogout={logout} /> {/* <-- Actualizado */}
       <div style={contentStyle}>
         <div style={sectionTitleStyle}>Registrar nuevo comercio</div>
         <div style={sectionDescStyle}>

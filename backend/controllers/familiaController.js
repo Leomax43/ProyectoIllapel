@@ -13,8 +13,8 @@ const crearFamilia = async (req, res) => {
 
         const result = await pool.query(
             `INSERT INTO familias (rut_representante, nombre_familia, direccion, telefono, clave_acceso, estado, saldo) 
-             VALUES ($1, $2, $3, $4, $5, 'PENDIENTE', 0) RETURNING *`,
-            [rut_representante, nombre_familia, direccion, telefono, claveHasheada] // <-- GUARDAMOS EL HASH
+             VALUES ($1, $2, $3, $4, $5, 'ACTIVO', 0) RETURNING *`, // <-- Cambiado a ACTIVO
+            [rut_representante, nombre_familia, direccion, telefono, claveHasheada]
         );
 
         res.status(201).json({ status: 'Éxito', mensaje: 'Familia registrada correctamente', familia: result.rows[0] });

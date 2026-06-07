@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Importar
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import { useAuth } from '../hooks/useAuth';
 import solicitudesService from '../services/solicitudesService';
 
-const NewSolicitudPage = ({ onNavigate }) => {
+const NewSolicitudPage = () => { // 2. Eliminar onNavigate
   const { logout } = useAuth();
+  const navigate = useNavigate(); // 3. Inicializar
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -156,8 +159,8 @@ const NewSolicitudPage = ({ onNavigate }) => {
         setPdfFile(null);
         setPdfFileName('');
         // Volver a beneficiarios
-        onNavigate('beneficiarios');
-      }, 2000);
+        navigate('/beneficiarios'); // 4. Navegación real
+    }, 2000);
 
     } catch (error) {
       setMessage({ text: `❌ Error: ${error.message}`, type: 'error' });
@@ -166,8 +169,8 @@ const NewSolicitudPage = ({ onNavigate }) => {
     }
   };
 
-  const handleCancel = () => {
-    onNavigate('beneficiarios');
+ const handleCancel = () => {
+    navigate('/beneficiarios'); // 4. Navegación real
   };
 
   // Estilos
@@ -343,7 +346,7 @@ const NewSolicitudPage = ({ onNavigate }) => {
 
   return (
     <div style={mainStyle}>
-      <DashboardHeader currentPage="beneficiarios" onLogout={logout} onNavigate={onNavigate} />
+     <DashboardHeader onLogout={logout} /> {/* 5. Header limpio */}
 
       <div style={contentStyle}>
         <div style={sectionTitleStyle}>Ingresar nueva solicitud</div>

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import { useAuth } from '../hooks/useAuth';
 import comerciosService from '../services/comerciosService';
 
-const ComerciosPage = ({ onNavigate }) => {
+const ComerciosPage = () => { 
   const { logout } = useAuth();
+  const navigate = useNavigate(); 
+  
   const [comercios, setComercios] = useState([]);
   const [selectedComercio, setSelectedComercio] = useState(null);
   const [comercioDetalle, setComercioDetalle] = useState(null);
@@ -14,6 +17,13 @@ const ComerciosPage = ({ onNavigate }) => {
   const [loading, setLoading] = useState(false);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
 
+  // --- FUNCIÓN SEGURA PARA LA FECHA ---
+  const formatFechaRegistro = (dateString) => {
+    if (!dateString) return 'No registrada';
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? 'No registrada' : date.toLocaleDateString('es-CL');
+  };
+  
   useEffect(() => {
     fetchComercios();
   }, []);
@@ -58,7 +68,7 @@ const ComerciosPage = ({ onNavigate }) => {
   });
 
   const handleNewComercio = () => {
-    onNavigate('nuevo-comercio');
+    navigate('/comercios/nuevo'); // <-- Navegación a la URL real
   };
 
   const handleComercioSelect = (comercio) => {
@@ -75,216 +85,39 @@ const ComerciosPage = ({ onNavigate }) => {
   };
 
   // Estilos
-  const mainStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-    background: '#f5f5f2'
-  };
-
-  const contentStyle = {
-    padding: '16px',
-    flex: 1
-  };
-
-  const sectionTitleStyle = {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    color: '#1a3a5c',
-    marginBottom: '4px'
-  };
-
-  const sectionDescStyle = {
-    fontSize: '12px',
-    color: '#666',
-    marginBottom: '16px'
-  };
-
-  const layoutStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1.3fr 1fr',
-    gap: '14px',
-    alignItems: 'start'
-  };
-
-  const panelStyle = {
-    background: '#fff',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    overflow: 'hidden',
-    marginBottom: '14px'
-  };
-
-  const panelHeaderStyle = {
-    background: '#2563a0',
-    color: '#fff',
-    fontSize: '13px',
-    fontWeight: 'bold',
-    padding: '8px 14px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  };
-
-  const btnNuevoStyle = {
-    background: '#1e7a3e',
-    border: 'none',
-    color: '#fff',
-    borderRadius: '3px',
-    padding: '4px 12px',
-    fontSize: '12px',
-    cursor: 'pointer',
-    fontWeight: 'bold'
-  };
-
-  const controlsRowStyle = {
-    padding: '8px 12px',
-    borderBottom: '1px solid #eee',
-    display: 'flex',
-    gap: '8px',
-    alignItems: 'center'
-  };
-
-  const inputStyle = {
-    flex: 1,
-    border: '1px solid #ccc',
-    borderRadius: '3px',
-    padding: '5px 9px',
-    fontSize: '12px'
-  };
-
-  const selectStyle = {
-    border: '1px solid #ccc',
-    borderRadius: '3px',
-    padding: '5px 8px',
-    fontSize: '12px',
-    color: '#555'
-  };
-
-  const tableStyle = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '12px'
-  };
-
-  const thStyle = {
-    background: '#2563a0',
-    color: '#fff',
-    padding: '7px 10px',
-    textAlign: 'left',
-    fontWeight: 'normal',
-    borderBottom: '1px solid #ddd'
-  };
-
-  const tdStyle = {
-    padding: '7px 10px',
-    borderBottom: '1px solid #f0f0f0',
-    color: '#333'
-  };
-
-  const rowSelectedStyle = {
-    background: '#e0edff'
-  };
-
-  const badgeStyle = (estado) => ({
-    padding: '2px 8px',
-    borderRadius: '10px',
-    fontSize: '11px',
-    fontWeight: 'bold',
-    display: 'inline-block',
-    background: estado === 'ACTIVO' ? '#d1e7dd' : '#f8d7da',
-    color: estado === 'ACTIVO' ? '#0f5132' : '#842029'
-  });
-
-  const actionBtnStyle = {
-    padding: '3px 9px',
-    borderRadius: '3px',
-    fontSize: '11px',
-    border: 'none',
-    cursor: 'pointer',
-    color: '#fff',
-    marginRight: '3px'
-  };
-
-  const btnVerStyle = {
-    ...actionBtnStyle,
-    background: '#2563a0'
-  };
-
-  const btnBajaStyle = {
-    ...actionBtnStyle,
-    background: '#b52b2b'
-  };
-
-  const pagerStyle = {
-    padding: '7px 12px',
-    fontSize: '12px',
-    color: '#555',
-    display: 'flex',
-    justifyContent: 'space-between',
-    borderTop: '1px solid #eee'
-  };
-
-  const detailSectionStyle = {
-    padding: '13px 14px',
-    borderBottom: '1px solid #eee'
-  };
-
-  const detailTitleStyle = {
-    fontSize: '11px',
-    fontWeight: 'bold',
-    color: '#2563a0',
-    marginBottom: '8px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px'
-  };
-
-  const detailGridStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '7px'
-  };
-
-  const detailFieldStyle = {
-    fontSize: '12px'
-  };
-
-  const detailLblStyle = {
-    fontSize: '11px',
-    color: '#888',
-    marginBottom: '3px'
-  };
-
-  const detailValStyle = {
-    fontSize: '12px',
-    color: '#222',
-    fontWeight: 'bold'
-  };
-
-  const saldoBoxStyle = {
-    background: '#e0edff',
-    border: '1px solid #2563a0',
-    borderRadius: '4px',
-    padding: '10px 14px',
-    textAlign: 'center',
-    marginTop: '10px'
-  };
-
-  const saldoLabelStyle = {
-    fontSize: '11px',
-    color: '#5580aa',
-    marginBottom: '3px'
-  };
-
-  const saldoValorStyle = {
-    fontSize: '22px',
-    fontWeight: 'bold',
-    color: '#1a3a5c'
-  };
+  const mainStyle = { display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f5f5f2' };
+  const contentStyle = { padding: '16px', flex: 1 };
+  const sectionTitleStyle = { fontSize: '16px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '4px' };
+  const sectionDescStyle = { fontSize: '12px', color: '#666', marginBottom: '16px' };
+  const layoutStyle = { display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '14px', alignItems: 'start' };
+  const panelStyle = { background: '#fff', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden', marginBottom: '14px' };
+  const panelHeaderStyle = { background: '#2563a0', color: '#fff', fontSize: '13px', fontWeight: 'bold', padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
+  const btnNuevoStyle = { background: '#1e7a3e', border: 'none', color: '#fff', borderRadius: '3px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' };
+  const controlsRowStyle = { padding: '8px 12px', borderBottom: '1px solid #eee', display: 'flex', gap: '8px', alignItems: 'center' };
+  const inputStyle = { flex: 1, border: '1px solid #ccc', borderRadius: '3px', padding: '5px 9px', fontSize: '12px' };
+  const selectStyle = { border: '1px solid #ccc', borderRadius: '3px', padding: '5px 8px', fontSize: '12px', color: '#555' };
+  const tableStyle = { width: '100%', borderCollapse: 'collapse', fontSize: '12px' };
+  const thStyle = { background: '#2563a0', color: '#fff', padding: '7px 10px', textAlign: 'left', fontWeight: 'normal', borderBottom: '1px solid #ddd' };
+  const tdStyle = { padding: '7px 10px', borderBottom: '1px solid #f0f0f0', color: '#333' };
+  const rowSelectedStyle = { background: '#e0edff' };
+  const badgeStyle = (estado) => ({ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 'bold', display: 'inline-block', background: estado === 'ACTIVO' ? '#d1e7dd' : '#f8d7da', color: estado === 'ACTIVO' ? '#0f5132' : '#842029' });
+  const actionBtnStyle = { padding: '3px 9px', borderRadius: '3px', fontSize: '11px', border: 'none', cursor: 'pointer', color: '#fff', marginRight: '3px' };
+  const btnVerStyle = { ...actionBtnStyle, background: '#2563a0' };
+  const btnBajaStyle = { ...actionBtnStyle, background: '#b52b2b' };
+  const pagerStyle = { padding: '7px 12px', fontSize: '12px', color: '#555', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #eee' };
+  const detailSectionStyle = { padding: '13px 14px', borderBottom: '1px solid #eee' };
+  const detailTitleStyle = { fontSize: '11px', fontWeight: 'bold', color: '#2563a0', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' };
+  const detailGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7px' };
+  const detailFieldStyle = { fontSize: '12px' };
+  const detailLblStyle = { fontSize: '11px', color: '#888', marginBottom: '3px' };
+  const detailValStyle = { fontSize: '12px', color: '#222', fontWeight: 'bold' };
+  const saldoBoxStyle = { background: '#e0edff', border: '1px solid #2563a0', borderRadius: '4px', padding: '10px 14px', textAlign: 'center', marginTop: '10px' };
+  const saldoLabelStyle = { fontSize: '11px', color: '#5580aa', marginBottom: '3px' };
+  const saldoValorStyle = { fontSize: '22px', fontWeight: 'bold', color: '#1a3a5c' };
 
   return (
     <div style={mainStyle}>
-      <DashboardHeader currentPage="comercios" onNavigate={onNavigate} />
+      <DashboardHeader onLogout={logout} /> {/* <-- Actualizado */}
       <div style={contentStyle}>
         <div style={sectionTitleStyle}>Gestión de comercios</div>
         <div style={sectionDescStyle}>
@@ -423,7 +256,7 @@ const ComerciosPage = ({ onNavigate }) => {
                     </div>
                     <div style={detailFieldStyle}>
                       <div style={detailLblStyle}>Fecha de registro</div>
-                      <div style={detailValStyle}>{formatDate(selectedComercio.fecha_registro)}</div>
+                      <div style={detailValStyle}>{formatFechaRegistro(selectedComercio.fecha_registro)}</div> {/* <-- Actualizado a método seguro */}
                     </div>
                   </div>
                   <div style={saldoBoxStyle}>

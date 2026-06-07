@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Importar
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import BeneficiariesStats from '../components/dashboard/BeneficiariesStats';
 import BeneficiariesList from '../components/dashboard/BeneficiariesList';
@@ -6,8 +7,10 @@ import BeneficiaryDetail from '../components/dashboard/BeneficiaryDetail';
 import { useBeneficiaries } from '../hooks/useBeneficiaries';
 import { useAuth } from '../hooks/useAuth';
 
-const BeneficiariesPage = ({ onNavigate }) => {
+const BeneficiariesPage = () => { // 2. Eliminar onNavigate
   const { logout } = useAuth();
+  const navigate = useNavigate(); // 3. Inicializar
+  
   const {
     beneficiaries,
     stats,
@@ -25,41 +28,15 @@ const BeneficiariesPage = ({ onNavigate }) => {
 
   const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
 
-  const mainStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-    background: '#f5f5f2'
-  };
-
-  const contentStyle = {
-    padding: '16px',
-    flex: 1
-  };
-
-  const sectionTitleStyle = {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    color: '#1a3a5c',
-    marginBottom: '4px'
-  };
-
-  const sectionDescStyle = {
-    fontSize: '12px',
-    color: '#666',
-    marginBottom: '14px'
-  };
-
-  const layoutStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1.3fr 1fr',
-    gap: '14px',
-    alignItems: 'start'
-  };
+  const mainStyle = { display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f5f5f2' };
+  const contentStyle = { padding: '16px', flex: 1 };
+  const sectionTitleStyle = { fontSize: '16px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '4px' };
+  const sectionDescStyle = { fontSize: '12px', color: '#666', marginBottom: '14px' };
+  const layoutStyle = { display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '14px', alignItems: 'start' };
 
   return (
     <div style={mainStyle}>
-      <DashboardHeader currentPage="beneficiarios" onLogout={logout} onNavigate={onNavigate} />
+      <DashboardHeader onLogout={logout} /> {/* 4. Header limpio */}
 
       <div style={contentStyle}>
         <div style={sectionTitleStyle}>Gestión de beneficiarios</div>
@@ -82,10 +59,13 @@ const BeneficiariesPage = ({ onNavigate }) => {
             totalPages={totalPages}
             onNextPage={nextPage}
             onPrevPage={prevPage}
-            onNewSolicitud={() => onNavigate('nueva-solicitud')}
+            onNewSolicitud={() => navigate('/beneficiarios/nueva')} // 5. Ruta real
           />
 
-          <BeneficiaryDetail beneficiary={selectedBeneficiary} />
+          <BeneficiaryDetail 
+            beneficiary={selectedBeneficiary} 
+            onClose={() => setSelectedBeneficiary(null)} 
+          />
         </div>
       </div>
     </div>
