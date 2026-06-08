@@ -23,8 +23,7 @@ const obtenerResumen = async (req, res) => {
             pool.query("SELECT COUNT(*) FROM familias WHERE estado = 'PENDIENTE'"),
             pool.query("SELECT COUNT(*) FROM comercios WHERE estado = 'ACTIVO'"),
             // COALESCE evita que dé error si aún no hay cargas de fondos (devuelve 0 en vez de null)
-            pool.query("SELECT COALESCE(SUM(monto), 0) as total FROM cargas_fondos"),
-            // Contar familias con el filtro de búsqueda
+            pool.query("SELECT COALESCE(SUM(monto), 0) as total FROM cargas_fondos WHERE estado = 'APROBADO'"),            // Contar familias con el filtro de búsqueda
             pool.query(`SELECT COUNT(*) FROM familias ${whereClause}`, queryParams),
             // Traemos las familias con paginación y búsqueda
             pool.query(

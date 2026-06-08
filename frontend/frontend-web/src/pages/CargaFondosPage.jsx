@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import { useAuth } from '../hooks/useAuth';
 import beneficiariesService from '../services/beneficiariesService';
-import fondosService from '../services/fondosService';
 
 const CargaFondosPage = ({ onNavigate }) => {
   const { logout } = useAuth();
@@ -19,25 +18,6 @@ const CargaFondosPage = ({ onNavigate }) => {
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfFileName, setPdfFileName] = useState('');
 
-  // Datos ficticios para demo
-  const beneficiarioDemo = {
-    nombre: 'Rosa Martínez Ríos',
-    rut: '12.345.678-9',
-    ficha: 'FSH-2026-004',
-    nucleo: 'Fam. Martínez #04',
-    saldo_actual: 45000,
-    estado: 'ACTIVO',
-    historial: [
-      { fecha: '2026-04-10', monto: 50000, tipo: 'Alimentación', pdf: 'doc-001.pdf' },
-      { fecha: '2026-02-05', monto: 40000, tipo: 'Construcción', pdf: 'doc-002.pdf' },
-      { fecha: '2025-11-18', monto: 35000, tipo: 'Alimentación', pdf: 'doc-003.pdf' }
-    ],
-    nucleo_info: [
-      { integrante: 'Rosa Martínez Ríos', ultima_carga: '2026-04-10', monto: 50000, estado: 'Habilitado' },
-      { integrante: 'Carlos Martínez', ultima_carga: '2026-04-10', monto: null, estado: 'Habilitado' }
-    ]
-  };
-
   // Búsqueda dinámica de beneficiarios
   useEffect(() => {
     if (searchTerm.trim()) {
@@ -50,12 +30,9 @@ const CargaFondosPage = ({ onNavigate }) => {
   const fetchBeneficiarios = async () => {
     setLoadingSearch(true);
     try {
-      console.log('🔍 Buscando beneficiarios con:', searchTerm);
       const results = await beneficiariesService.search(searchTerm);
-      console.log('✅ Resultados:', results);
       setBeneficiariosList(results);
     } catch (error) {
-      console.error('❌ Error al buscar beneficiarios:', error);
       setMessage({ text: '❌ Error al buscar beneficiarios', type: 'error' });
       setBeneficiariosList([]);
     } finally {
@@ -72,7 +49,6 @@ const CargaFondosPage = ({ onNavigate }) => {
       setBeneficiariosList([]);
       setSearchTerm('');
     } catch (error) {
-      console.error('Error al obtener detalle del beneficiario:', error);
       setMessage({ text: '❌ Error al cargar detalle del beneficiario', type: 'error' });
     } finally {
       setLoadingSearch(false);
@@ -122,55 +98,51 @@ const CargaFondosPage = ({ onNavigate }) => {
   };
 
   const handleConfirmar = async () => {
+    if (!selectedBeneficiario || !montoInput || tipoAyuda === 'Seleccione...') {
+      setMessage({ type: 'error', text: 'Faltan campos obligatorios para procesar la solicitud.' });
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
 
     try {
-      if (!selectedBeneficiario) {
-        throw new Error('Debe seleccionar un beneficiario');
-      }
-      if (!montoInput) {
-        throw new Error('Debe ingresar un monto');
-      }
-      if (tipoAyuda === 'Seleccione...') {
-        throw new Error('Debe seleccionar un tipo de ayuda');
-      }
-
-      // Obtener id_admin del usuario autenticado
       const userStr = localStorage.getItem('illapel_token');
-      if (!userStr) {
-        throw new Error('No hay usuario autenticado');
-      }
+      if (!userStr) throw new Error('No hay usuario autenticado');
+      
       const user = JSON.parse(userStr);
       const id_admin = user.id_admin;
+      const id_familia = selectedBeneficiario.datos_personales?.id_familia;
 
-      if (!id_admin) {
-        throw new Error('No se encontró el ID del administrador');
+      // Preparamos el Form-Data para enviar texto y el archivo PDF
+      const formData = new FormData();
+      formData.append('id_admin', id_admin);
+      formData.append('monto', parseInt(montoInput));
+      formData.append('motivo', tipoAyuda);
+      formData.append('observaciones', observaciones || 'N/A');
+      if (pdfFile) {
+        formData.append('pdf_resolucion', pdfFile);
       }
 
-      // Llamar a la API para cargar fondos
-      const id_familia = selectedBeneficiario.datos_personales?.id_familia;
-      const monto = parseInt(montoInput);
-
-      console.log('📤 Enviando carga de fondos:', {
-        id_familia,
-        id_admin,
-        monto,
-        motivo: tipoAyuda,
-        observaciones: observaciones || 'N/A',
-        archivo: pdfFile?.name || 'Ninguno'
+      // Hacemos el llamado a tu backend usando fetch
+      const response = await fetch(`http://localhost:3000/api/fondos/${id_familia}/cargar`, {
+        method: 'POST',
+        body: formData
       });
 
-      const result = await fondosService.cargarFondos(id_familia, id_admin, monto, tipoAyuda, observaciones, pdfFile);
+      const data = await response.json();
 
-      console.log('✅ Respuesta:', result);
+      if (!response.ok) {
+        throw new Error(data.mensaje || 'Error al procesar la solicitud de fondos.');
+      }
 
+      // Mensaje de éxito de SOLICITUD ENVIADA
       setMessage({ 
-        text: `✅ Carga realizada exitosamente. Nuevo saldo: ${formatCurrency(result.nuevo_saldo || 0)}`, 
+        text: '✅ ¡Solicitud enviada! Queda en bandeja de revisión de Jefatura.', 
         type: 'success' 
       });
 
-      // Limpiar formulario después de 2 segundos y redirigir a historial
+      // Limpiar formulario y redirigir al historial
       setTimeout(() => {
         setSearchTerm('');
         setSelectedBeneficiario(null);
@@ -180,8 +152,9 @@ const CargaFondosPage = ({ onNavigate }) => {
         setPdfFile(null);
         setPdfFileName('');
         setMessage(null);
-        onNavigate('fondos'); // Redirigir a CargaFondosHistorialPage
-      }, 2000);
+        onNavigate('fondos');
+      }, 2500);
+
     } catch (error) {
       console.error('❌ Error:', error);
       setMessage({ text: `❌ Error: ${error.message}`, type: 'error' });
@@ -197,227 +170,43 @@ const CargaFondosPage = ({ onNavigate }) => {
   const formatCurrency = (value) => `$${value.toLocaleString('es-CL')}`;
   const formatDate = (date) => new Date(date).toLocaleDateString('es-CL');
 
-  // Estilos
-  const mainStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-    background: '#f5f5f2'
-  };
-
-  const contentStyle = {
-    padding: '16px',
-    flex: 1
-  };
-
-  const sectionTitleStyle = {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    color: '#1a3a5c',
-    marginBottom: '4px'
-  };
-
-  const sectionDescStyle = {
-    fontSize: '12px',
-    color: '#666',
-    marginBottom: '16px'
-  };
-
-  const layoutStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1.2fr 1fr',
-    gap: '14px',
-    alignItems: 'start'
-  };
-
-  const panelStyle = {
-    background: '#fff',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    overflow: 'hidden',
-    marginBottom: '14px'
-  };
-
-  const panelHeaderStyle = {
-    background: '#2563a0',
-    color: '#fff',
-    fontSize: '13px',
-    fontWeight: 'bold',
-    padding: '8px 14px'
-  };
-
-  const panelBodyStyle = {
-    padding: '16px'
-  };
-
-  const fieldStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    marginBottom: '13px'
-  };
-
-  const labelStyle = {
-    fontSize: '11px',
-    color: '#444',
-    fontWeight: 'bold'
-  };
-
-  const requiredStyle = {
-    color: '#b52b2b'
-  };
-
-  const inputStyle = {
-    border: '1px solid #ccc',
-    borderRadius: '3px',
-    padding: '7px 9px',
-    fontSize: '12px',
-    color: '#333',
-    fontFamily: 'Arial, sans-serif'
-  };
-
-  const selectStyle = {
-    border: '1px solid #ccc',
-    borderRadius: '3px',
-    padding: '7px 9px',
-    fontSize: '12px',
-    color: '#333',
-    fontFamily: 'Arial, sans-serif',
-    background: '#fff'
-  };
-
-  const beneficiarioCardStyle = {
-    background: '#e0edff',
-    border: '1px solid #2563a0',
-    borderRadius: '4px',
-    padding: '12px 14px',
-    marginTop: '4px'
-  };
-
-  const bcNameStyle = {
-    fontSize: '14px',
-    fontWeight: 'bold',
-    color: '#1a3a5c',
-    marginBottom: '4px'
-  };
-
-  const badgeStyle = (estado) => ({
-    padding: '2px 8px',
-    borderRadius: '10px',
-    fontSize: '11px',
-    fontWeight: 'bold',
-    display: 'inline-block',
-    background: estado === 'Activo' || estado === 'Habilitado' ? '#d1e7dd' : '#f8d7da',
-    color: estado === 'Activo' || estado === 'Habilitado' ? '#0f5132' : '#842029'
-  });
-
-  const alertStyle = (type) => ({
-    background: type === 'ok' ? '#d1e7dd' : type === 'warn' ? '#fff3cd' : '#f8d7da',
-    border: `1px solid ${type === 'ok' ? '#0f5132' : type === 'warn' ? '#ffc107' : '#b52b2b'}`,
-    borderRadius: '3px',
-    padding: '8px 12px',
-    fontSize: '12px',
-    color: type === 'ok' ? '#0f5132' : type === 'warn' ? '#856404' : '#842029',
-    marginBottom: '14px'
-  });
-
-  const montoDisplayStyle = {
-    background: '#f0f6ff',
-    border: '2px solid #2563a0',
-    borderRadius: '4px',
-    padding: '12px 14px',
-    textAlign: 'center',
-    marginTop: '8px'
-  };
-
-  const montoLabelStyle = {
-    fontSize: '11px',
-    color: '#5580aa',
-    marginBottom: '4px'
-  };
-
-  const montoValorStyle = {
-    fontSize: '26px',
-    fontWeight: 'bold',
-    color: '#1a3a5c'
-  };
-
-  const tableStyle = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '11px',
-    marginTop: '6px'
-  };
-
-  const thStyle = {
-    background: '#e8f0f8',
-    color: '#1a3a5c',
-    padding: '5px 8px',
-    textAlign: 'left',
-    border: '1px solid #ddd'
-  };
-
-  const tdStyle = {
-    padding: '5px 8px',
-    border: '1px solid #eee',
-    color: '#333'
-  };
-
-  const uploadAreaStyle = {
-    border: '2px dashed #2563a0',
-    borderRadius: '4px',
-    padding: '16px',
-    textAlign: 'center',
-    background: '#f0f6ff',
-    cursor: 'pointer',
-    marginTop: '4px'
-  };
-
-  const btnRowStyle = {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '8px',
-    marginTop: '6px'
-  };
-
-  const btnCancelStyle = {
-    background: '#fff',
-    border: '1px solid #aaa',
-    color: '#555',
-    borderRadius: '3px',
-    padding: '8px 20px',
-    fontSize: '13px',
-    cursor: 'pointer'
-  };
-
-  const btnSubmitStyle = {
-    background: '#1e7a3e',
-    border: 'none',
-    color: '#fff',
-    borderRadius: '3px',
-    padding: '8px 22px',
-    fontSize: '13px',
-    fontWeight: 'bold',
-    cursor: 'pointer'
-  };
-
-  const msgStyle = (type) => ({
-    background: type === 'error' ? '#ffebee' : '#e8f5e9',
-    border: `1px solid ${type === 'error' ? '#ffcdd2' : '#c8e6c9'}`,
-    borderRadius: '3px',
-    padding: '8px 12px',
-    fontSize: '12px',
-    color: type === 'error' ? '#c62828' : '#2e7d32',
-    marginBottom: '14px'
-  });
+  // --- ESTILOS ---
+  const mainStyle = { display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f5f5f2' };
+  const contentStyle = { padding: '16px', flex: 1 };
+  const sectionTitleStyle = { fontSize: '16px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '4px' };
+  const sectionDescStyle = { fontSize: '12px', color: '#666', marginBottom: '16px' };
+  const layoutStyle = { display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', alignItems: 'start' };
+  const panelStyle = { background: '#fff', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden', marginBottom: '14px' };
+  const panelHeaderStyle = { background: '#2563a0', color: '#fff', fontSize: '13px', fontWeight: 'bold', padding: '8px 14px' };
+  const panelBodyStyle = { padding: '16px' };
+  const fieldStyle = { display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '13px' };
+  const labelStyle = { fontSize: '11px', color: '#444', fontWeight: 'bold' };
+  const requiredStyle = { color: '#b52b2b' };
+  const inputStyle = { border: '1px solid #ccc', borderRadius: '3px', padding: '7px 9px', fontSize: '12px', color: '#333', fontFamily: 'Arial, sans-serif' };
+  const selectStyle = { border: '1px solid #ccc', borderRadius: '3px', padding: '7px 9px', fontSize: '12px', color: '#333', fontFamily: 'Arial, sans-serif', background: '#fff' };
+  const beneficiarioCardStyle = { background: '#e0edff', border: '1px solid #2563a0', borderRadius: '4px', padding: '12px 14px', marginTop: '4px' };
+  const bcNameStyle = { fontSize: '14px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '4px' };
+  const badgeStyle = (estado) => ({ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 'bold', display: 'inline-block', background: estado === 'Activo' || estado === 'ACTIVO' || estado === 'Habilitado' ? '#d1e7dd' : '#f8d7da', color: estado === 'Activo' || estado === 'ACTIVO' || estado === 'Habilitado' ? '#0f5132' : '#842029' });
+  const alertStyle = (type) => ({ background: type === 'ok' ? '#d1e7dd' : type === 'warn' ? '#fff3cd' : '#f8d7da', border: `1px solid ${type === 'ok' ? '#0f5132' : type === 'warn' ? '#ffc107' : '#b52b2b'}`, borderRadius: '3px', padding: '8px 12px', fontSize: '12px', color: type === 'ok' ? '#0f5132' : type === 'warn' ? '#856404' : '#842029', marginBottom: '14px' });
+  const montoDisplayStyle = { background: '#f0f6ff', border: '2px solid #2563a0', borderRadius: '4px', padding: '12px 14px', textAlign: 'center', marginTop: '8px' };
+  const montoLabelStyle = { fontSize: '11px', color: '#5580aa', marginBottom: '4px' };
+  const montoValorStyle = { fontSize: '26px', fontWeight: 'bold', color: '#1a3a5c' };
+  const tableStyle = { width: '100%', borderCollapse: 'collapse', fontSize: '11px', marginTop: '6px' };
+  const thStyle = { background: '#e8f0f8', color: '#1a3a5c', padding: '5px 8px', textAlign: 'left', border: '1px solid #ddd' };
+  const tdStyle = { padding: '5px 8px', border: '1px solid #eee', color: '#333' };
+  const uploadAreaStyle = { border: '2px dashed #2563a0', borderRadius: '4px', padding: '16px', textAlign: 'center', background: '#f0f6ff', cursor: 'pointer', marginTop: '4px' };
+  const btnRowStyle = { display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '6px' };
+  const btnCancelStyle = { background: '#fff', border: '1px solid #aaa', color: '#555', borderRadius: '3px', padding: '8px 20px', fontSize: '13px', cursor: 'pointer' };
+  const btnSubmitStyle = { background: '#1e7a3e', border: 'none', color: '#fff', borderRadius: '3px', padding: '8px 22px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' };
+  const msgStyle = (type) => ({ background: type === 'error' ? '#ffebee' : type === 'success' ? '#e8f5e9' : '#e8f5e9', border: `1px solid ${type === 'error' ? '#ffcdd2' : '#c8e6c9'}`, borderRadius: '3px', padding: '8px 12px', fontSize: '12px', color: type === 'error' ? '#c62828' : '#2e7d32', marginBottom: '14px' });
 
   return (
     <div style={mainStyle}>
-      <DashboardHeader currentPage="fondos" onNavigate={onNavigate} />
+      <DashboardHeader currentPage="fondos" onLogout={logout} onNavigate={onNavigate} />
       <div style={contentStyle}>
         <div style={sectionTitleStyle}>Carga de fondos</div>
         <div style={sectionDescStyle}>
-          Asigne saldo a un beneficiario activo. El sistema verificará automáticamente la regla de los 30 días por núcleo familiar antes de confirmar la operación.
+          Eleve una solicitud de asignación de saldo a un beneficiario activo. Quedará en estado pendiente hasta ser aprobada por Jefatura.
         </div>
 
         {message && (
@@ -566,18 +355,6 @@ const CargaFondosPage = ({ onNavigate }) => {
                       ))}
                     </tbody>
                   </table>
-                  <div style={{
-                    background: '#f9f9f9',
-                    borderLeft: '3px solid #ffc107',
-                    borderRadius: '0 3px 3px 0',
-                    padding: '8px 12px',
-                    fontSize: '11px',
-                    color: '#555',
-                    marginTop: '6px',
-                    lineHeight: '1.6'
-                  }}>
-                    ℹ La carga se bloqueará si cualquier integrante del núcleo recibió fondos en los últimos 30 días (RF03).
-                  </div>
                 </div>
               </div>
             )}
@@ -630,7 +407,7 @@ const CargaFondosPage = ({ onNavigate }) => {
                   </div>
 
                   <div style={montoDisplayStyle}>
-                    <div style={montoLabelStyle}>Nuevo saldo del beneficiario tras la carga</div>
+                    <div style={montoLabelStyle}>Nuevo saldo (Aproximado si se aprueba)</div>
                     <div style={montoValorStyle}>{formatCurrency(getNuevoSaldo())}</div>
                   </div>
                 </div>
@@ -681,39 +458,10 @@ const CargaFondosPage = ({ onNavigate }) => {
               </div>
             )}
 
-            {/* Historial del beneficiario */}
-            {selectedBeneficiario && (
-              <div style={panelStyle}>
-                <div style={panelHeaderStyle}>Historial de cargas del beneficiario</div>
-                <div style={{ padding: '12px' }}>
-                  <table style={tableStyle}>
-                    <thead>
-                      <tr>
-                        <th style={thStyle}>Fecha</th>
-                        <th style={thStyle}>Monto</th>
-                        <th style={thStyle}>Motivo</th>
-                        <th style={thStyle}>PDF</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedBeneficiario.historial_cargas?.map((item, idx) => (
-                        <tr key={idx}>
-                          <td style={tdStyle}>{formatDate(item.fecha)}</td>
-                          <td style={tdStyle}>{formatCurrency(item.monto)}</td>
-                          <td style={tdStyle}>{item.motivo || '—'}</td>
-                          <td style={{ ...tdStyle, color: '#2563a0', cursor: 'pointer' }}>📄 Ver</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
             {/* Resumen de operación */}
             {selectedBeneficiario && (
               <div style={panelStyle}>
-                <div style={{ ...panelHeaderStyle, background: '#1e7a3e' }}>Resumen de la operación</div>
+                <div style={{ ...panelHeaderStyle, background: '#e67e1a' }}>Resumen de la solicitud</div>
                 <div style={panelBodyStyle}>
                   <table style={tableStyle}>
                     <tbody>
@@ -722,23 +470,9 @@ const CargaFondosPage = ({ onNavigate }) => {
                         <td style={{ ...tdStyle, fontWeight: 'bold' }}>{selectedBeneficiario.datos_personales?.nombre_familia}</td>
                       </tr>
                       <tr>
-                        <td style={{ ...tdStyle, color: '#888' }}>Núcleo familiar</td>
-                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>ID {selectedBeneficiario.datos_personales?.id_familia}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ ...tdStyle, color: '#888' }}>Saldo actual</td>
-                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>{formatCurrency(selectedBeneficiario.datos_personales?.saldo || 0)}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ ...tdStyle, color: '#888' }}>Monto a cargar</td>
-                        <td style={{ ...tdStyle, fontWeight: 'bold', color: '#1e7a3e' }}>
-                          + {montoInput ? formatCurrency(parseInt(montoInput)) : '$0'}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style={{ ...tdStyle, color: '#888' }}>Saldo resultante</td>
-                        <td style={{ ...tdStyle, fontWeight: 'bold', color: '#1a3a5c', fontSize: '14px' }}>
-                          {formatCurrency(getNuevoSaldo())}
+                        <td style={{ ...tdStyle, color: '#888' }}>Monto a solicitar</td>
+                        <td style={{ ...tdStyle, fontWeight: 'bold', color: '#e67e1a' }}>
+                          {montoInput ? formatCurrency(parseInt(montoInput)) : '$0'}
                         </td>
                       </tr>
                       <tr>
@@ -766,7 +500,7 @@ const CargaFondosPage = ({ onNavigate }) => {
                       onMouseEnter={(e) => { if (!loading) e.target.style.background = '#157a3e'; }}
                       onMouseLeave={(e) => { if (!loading) e.target.style.background = '#1e7a3e'; }}
                     >
-                      {loading ? 'Procesando...' : 'Confirmar carga →'}
+                      {loading ? 'Procesando...' : 'Enviar Solicitud a Jefatura →'}
                     </button>
                   </div>
                 </div>

@@ -3,381 +3,154 @@ import DashboardHeader from '../components/dashboard/DashboardHeader';
 import { useAuth } from '../hooks/useAuth';
 
 const AprobacionesPage = ({ onNavigate }) => {
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
   const adminRol = localStorage.getItem('adminRol');
+  
+  // Obtenemos el ID de la jefatura para registrar quién aprueba/rechaza
+  const userStr = localStorage.getItem('illapel_token');
+  const idJefatura = userStr ? JSON.parse(userStr).id_admin : localStorage.getItem('id_admin') || 2; 
+
   const [solicitudes, setSolicitudes] = useState([]);
   const [selectedSolicitud, setSelectedSolicitud] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
+  const [btnLoading, setBtnLoading] = useState(false);
+  
   const [searchTerm, setSearchTerm] = useState('');
-  const [estadoFiltro, setEstadoFiltro] = useState('todos');
   const [motivoRechazo, setMotivoRechazo] = useState('');
   const [showRechazoInput, setShowRechazoInput] = useState(false);
 
-  // Protección: Si no es JEFATURA, redirigir al dashboard
+  // Protección: Si no es JEFATURA, redirigir
   if (adminRol !== 'JEFATURA') {
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100vh',
-        background: '#f5f5f2'
-      }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f5f5f2' }}>
         <DashboardHeader currentPage="dashboard" onLogout={logout} onNavigate={onNavigate} />
-        <div style={{
-          padding: '16px',
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <div style={{
-            background: '#fff',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            padding: '40px',
-            textAlign: 'center',
-            maxWidth: '500px'
-          }}>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: 'bold',
-              color: '#d32f2f',
-              marginBottom: '16px'
-            }}>
-              🔒 Acceso denegado
-            </div>
-            <div style={{
-              fontSize: '14px',
-              color: '#666',
-              marginBottom: '24px',
-              lineHeight: '1.6'
-            }}>
-              La sección de <strong>Aprobaciones</strong> es exclusiva para administradores con rol <strong>JEFATURA</strong>.
-              <br /><br />
-              Tu rol actual: <strong>{adminRol || 'No especificado'}</strong>
-            </div>
-            <button
-              onClick={() => onNavigate('dashboard')}
-              style={{
-                background: '#2563a0',
-                color: '#fff',
-                border: 'none',
-                padding: '10px 24px',
-                borderRadius: '3px',
-                fontSize: '13px',
-                fontWeight: 'bold',
-                cursor: 'pointer'
-              }}
-            >
-              Volver al inicio
-            </button>
-          </div>
+        <div style={{ padding: '40px', textAlign: 'center', color: '#b52b2b', fontWeight: 'bold' }}>
+          Acceso denegado. Solo Jefatura puede acceder a la bandeja de aprobaciones de fondos.
         </div>
       </div>
     );
   }
 
+  // Cargar solicitudes pendientes al entrar a la página
   useEffect(() => {
-    // Simular carga de solicitudes pendientes
-    const mockSolicitudes = [
-      {
-        id_familia: 1,
-        nombre_familia: 'Rosa Martínez Ríos',
-        rut_representante: '12.345.678-9',
-        estado: 'PENDIENTE',
-        integrantes: 3,
-        fecha_ingreso: '2026-05-16',
-        nombre_responsable: 'Rosa Martínez Ríos',
-        direccion: 'Los Aromos 432, Villa El Sauce, Illapel',
-        fecha_nacimiento: '1978-03-12',
-        telefono: '+56 9 8765 4321',
-        detalles: 'Familia en situación de vulnerabilidad socioeconómica. Requiere apoyo para adquirir alimentos y materiales básicos del hogar. El jefe de hogar se encuentra desempleado desde enero de 2026.'
-      },
-      {
-        id_familia: 2,
-        nombre_familia: 'Juan Pérez Fuentes',
-        rut_representante: '9.876.543-2',
-        estado: 'PENDIENTE',
-        integrantes: 5,
-        fecha_ingreso: '2026-05-15',
-        nombre_responsable: 'Juan Pérez Fuentes',
-        direccion: 'Avenida Principal 123',
-        fecha_nacimiento: '1975-06-20',
-        telefono: '+56 9 1234 5678',
-        detalles: 'Solicitud para apoyo alimentario y escolar de los hijos.'
-      }
-    ];
-    
+    fetchSolicitudes();
+  }, []);
+
+  const fetchSolicitudes = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      setSolicitudes(mockSolicitudes);
-      if (mockSolicitudes.length > 0) {
-        setSelectedSolicitud(mockSolicitudes[0]);
+      const response = await fetch('http://localhost:3000/api/aprobaciones/fondos/pendientes');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSolicitudes(data.solicitudes || []);
+        if (data.solicitudes && data.solicitudes.length > 0) {
+          setSelectedSolicitud(data.solicitudes[0]);
+        } else {
+          setSelectedSolicitud(null);
+        }
+      } else {
+        throw new Error(data.mensaje);
       }
-    } catch (err) {
-      console.error('Error cargando solicitudes:', err);
-      setError(err.message);
+    } catch (error) {
+      console.error('Error al obtener solicitudes:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const mainStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-    background: '#f5f5f2'
   };
 
-  const contentStyle = {
-    padding: '16px',
-    flex: 1
+  // Procesar Aprobación
+  const handleAprobar = async (idCarga) => {
+    setBtnLoading(true);
+    setMessage(null);
+    try {
+      const response = await fetch(`http://localhost:3000/api/aprobaciones/fondos/${idCarga}/aprobar`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_jefatura: idJefatura })
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: '✅ Solicitud aprobada. Los fondos han sido transferidos a la cuenta de la familia.' });
+        setTimeout(() => {
+          setMessage(null);
+          fetchSolicitudes(); // Recargar la lista
+        }, 2000);
+      } else {
+        throw new Error(data.mensaje);
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: `❌ Error: ${error.message}` });
+    } finally {
+      setBtnLoading(false);
+    }
   };
 
-  const sectionTitleStyle = {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    color: '#1a3a5c',
-    marginBottom: '4px'
-  };
-
-  const sectionDescStyle = {
-    fontSize: '12px',
-    color: '#666',
-    marginBottom: '14px'
-  };
-
-  const alertStyle = {
-    background: '#fff3cd',
-    border: '1px solid #ffc107',
-    borderRadius: '3px',
-    padding: '7px 12px',
-    fontSize: '12px',
-    color: '#856404',
-    marginBottom: '14px'
-  };
-
-  const layoutStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1.1fr',
-    gap: '14px',
-    alignItems: 'start'
-  };
-
-  const panelStyle = {
-    background: '#fff',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    overflow: 'hidden'
-  };
-
-  const panelHeaderStyle = {
-    background: '#2563a0',
-    color: '#fff',
-    fontSize: '13px',
-    fontWeight: 'bold',
-    padding: '8px 14px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  };
-
-  const badgeCountStyle = {
-    background: '#e67e1a',
-    color: '#fff',
-    borderRadius: '20px',
-    fontSize: '11px',
-    padding: '2px 9px',
-    fontWeight: 'bold'
-  };
-
-  const searchBarStyle = {
-    padding: '8px 12px',
-    borderBottom: '1px solid #eee',
-    display: 'flex',
-    gap: '8px'
-  };
-
-  const inputStyle = {
-    flex: 1,
-    border: '1px solid #ccc',
-    borderRadius: '3px',
-    padding: '5px 9px',
-    fontSize: '12px'
-  };
-
-  const selectStyle = {
-    border: '1px solid #ccc',
-    borderRadius: '3px',
-    padding: '5px 8px',
-    fontSize: '12px',
-    color: '#555'
-  };
-
-  const solicitudItemStyle = (isSelected) => ({
-    padding: '10px 14px',
-    borderBottom: '1px solid #f0f0f0',
-    cursor: 'pointer',
-    background: isSelected ? '#e0edff' : 'transparent',
-    borderLeft: isSelected ? '3px solid #2563a0' : '3px solid transparent',
-    transition: 'background 0.1s'
-  });
-
-  const badgeStyle = (estado) => {
-    const estilos = {
-      'PENDIENTE': { background: '#fff3cd', color: '#856404' },
-      'ACTIVO': { background: '#d1e7dd', color: '#0f5132' },
-      'RECHAZADO': { background: '#f8d7da', color: '#842029' }
-    };
-    const estilo = estilos[estado] || estilos['PENDIENTE'];
-    return {
-      padding: '2px 8px',
-      borderRadius: '10px',
-      fontSize: '11px',
-      fontWeight: 'bold',
-      display: 'inline-block',
-      background: estilo.background,
-      color: estilo.color
-    };
-  };
-
-  const detailSectionStyle = {
-    padding: '14px',
-    borderBottom: '1px solid #eee'
-  };
-
-  const detailTitleStyle = {
-    fontSize: '12px',
-    fontWeight: 'bold',
-    color: '#2563a0',
-    marginBottom: '8px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px'
-  };
-
-  const detailGridStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '8px'
-  };
-
-  const detailFieldStyle = {
-    fontSize: '12px'
-  };
-
-  const labelStyle = {
-    color: '#888',
-    fontSize: '11px',
-    marginBottom: '2px'
-  };
-
-  const valueStyle = {
-    color: '#222',
-    fontWeight: 'bold'
-  };
-
-  const motivoBoxStyle = {
-    background: '#f9f9f9',
-    border: '1px solid #eee',
-    borderRadius: '3px',
-    padding: '8px 10px',
-    fontSize: '12px',
-    color: '#444',
-    marginTop: '4px',
-    lineHeight: '1.5'
-  };
-
-  const actionAreaStyle = {
-    padding: '14px',
-    background: '#f9f9f9',
-    borderTop: '2px solid #ddd'
-  };
-
-  const actionLabelStyle = {
-    fontSize: '12px',
-    fontWeight: 'bold',
-    color: '#444',
-    marginBottom: '8px'
-  };
-
-  const actionButtonsStyle = {
-    display: 'flex',
-    gap: '10px'
-  };
-
-  const btnAprobadoStyle = {
-    flex: 1,
-    background: '#1e7a3e',
-    border: 'none',
-    color: '#fff',
-    borderRadius: '3px',
-    padding: '9px',
-    fontSize: '13px',
-    fontWeight: 'bold',
-    cursor: 'pointer'
-  };
-
-  const btnRechazarStyle = {
-    flex: 1,
-    background: '#b52b2b',
-    border: 'none',
-    color: '#fff',
-    borderRadius: '3px',
-    padding: '9px',
-    fontSize: '13px',
-    fontWeight: 'bold',
-    cursor: 'pointer'
-  };
-
-  const rechazoInputStyle = {
-    width: '100%',
-    border: '1px solid #ccc',
-    borderRadius: '3px',
-    padding: '6px 9px',
-    fontSize: '12px',
-    marginTop: '8px'
-  };
-
-  const footerStyle = {
-    textAlign: 'center',
-    padding: '10px',
-    fontSize: '11px',
-    color: '#999',
-    background: '#f5f5f2'
-  };
-
-  const handleAprobar = () => {
-    if (!selectedSolicitud) return;
-    console.log('✔ Aprobando solicitud:', selectedSolicitud.id_familia);
-    // Aquí iría la llamada al backend para aprobar
-    alert(`✔ Solicitud de ${selectedSolicitud.nombre_familia} aprobada correctamente.`);
-    setShowRechazoInput(false);
-    setMotivoRechazo('');
-  };
-
-  const handleRechazar = () => {
-    if (!selectedSolicitud) return;
+  // Procesar Rechazo
+  const handleRechazar = async (idCarga) => {
     if (!motivoRechazo.trim()) {
-      alert('Debe especificar el motivo del rechazo');
+      alert('Debe ingresar un motivo para rechazar la solicitud.');
       return;
     }
-    console.log('✖ Rechazando solicitud:', selectedSolicitud.id_familia, 'Motivo:', motivoRechazo);
-    // Aquí iría la llamada al backend para rechazar
-    alert(`✖ Solicitud de ${selectedSolicitud.nombre_familia} rechazada.\nMotivo: ${motivoRechazo}`);
-    setShowRechazoInput(false);
-    setMotivoRechazo('');
+    
+    setBtnLoading(true);
+    setMessage(null);
+    try {
+      const response = await fetch(`http://localhost:3000/api/aprobaciones/fondos/${idCarga}/rechazar`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_jefatura: idJefatura }) // Podríamos pasar el motivo también al backend si agregas la columna
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: '❌ Solicitud rechazada correctamente. Los saldos no se alteraron.' });
+        setShowRechazoInput(false);
+        setMotivoRechazo('');
+        setTimeout(() => {
+          setMessage(null);
+          fetchSolicitudes(); // Recargar la lista
+        }, 2000);
+      } else {
+        throw new Error(data.mensaje);
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: `❌ Error: ${error.message}` });
+    } finally {
+      setBtnLoading(false);
+    }
   };
 
+  // Estilos y utilidades
   const filteredSolicitudes = solicitudes.filter(sol => {
-    const matchSearch = sol.nombre_familia.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       sol.rut_representante.includes(searchTerm);
-    const matchEstado = estadoFiltro === 'todos' || sol.estado === estadoFiltro;
-    return matchSearch && matchEstado;
+    return sol.nombre_familia.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           sol.rut_representante.includes(searchTerm);
   });
 
-  const pendientes = solicitudes.filter(s => s.estado === 'PENDIENTE').length;
-
+  const mainStyle = { display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f5f5f2' };
+  const contentStyle = { padding: '16px', flex: 1 };
+  const sectionTitleStyle = { fontSize: '16px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '4px' };
+  const sectionDescStyle = { fontSize: '12px', color: '#666', marginBottom: '14px' };
+  const layoutStyle = { display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '14px', alignItems: 'start' };
+  const panelStyle = { background: '#fff', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' };
+  const panelHeaderStyle = { background: '#2563a0', color: '#fff', fontSize: '13px', fontWeight: 'bold', padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
+  const badgeCountStyle = { background: '#e67e1a', color: '#fff', borderRadius: '20px', fontSize: '11px', padding: '2px 9px', fontWeight: 'bold' };
+  const searchBarStyle = { padding: '8px 12px', borderBottom: '1px solid #eee', display: 'flex', gap: '8px' };
+  const inputStyle = { flex: 1, border: '1px solid #ccc', borderRadius: '3px', padding: '5px 9px', fontSize: '12px' };
+  const solicitudItemStyle = (isSelected) => ({ padding: '10px 14px', borderBottom: '1px solid #f0f0f0', cursor: 'pointer', background: isSelected ? '#e0edff' : 'transparent', borderLeft: isSelected ? '3px solid #2563a0' : '3px solid transparent', transition: 'background 0.1s' });
+  const detailSectionStyle = { padding: '14px', borderBottom: '1px solid #eee' };
+  const detailTitleStyle = { fontSize: '12px', fontWeight: 'bold', color: '#2563a0', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' };
+  const detailGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' };
+  const detailFieldStyle = { fontSize: '12px' };
+  const labelStyle = { color: '#888', fontSize: '11px', marginBottom: '2px' };
+  const valueStyle = { color: '#222', fontWeight: 'bold' };
+  const motivoBoxStyle = { background: '#f9f9f9', border: '1px solid #eee', borderRadius: '3px', padding: '8px 10px', fontSize: '12px', color: '#444', marginTop: '4px', lineHeight: '1.5' };
+  const actionAreaStyle = { padding: '14px', background: '#f9f9f9', borderTop: '2px solid #ddd' };
+  const actionLabelStyle = { fontSize: '12px', fontWeight: 'bold', color: '#444', marginBottom: '8px' };
+  const actionButtonsStyle = { display: 'flex', gap: '10px' };
+  
   return (
     <div style={mainStyle}>
       <DashboardHeader currentPage="aprobaciones" onLogout={logout} onNavigate={onNavigate} />
@@ -385,19 +158,26 @@ const AprobacionesPage = ({ onNavigate }) => {
       <div style={contentStyle}>
         <div style={sectionTitleStyle}>Bandeja de aprobaciones</div>
         <div style={sectionDescStyle}>
-          Revise las solicitudes ingresadas por la Asistente Social. Puede aprobar o rechazar cada cuenta tras verificar la documentación adjunta.
+          Revise las solicitudes de fondos ingresadas por las Asistentes Sociales. Puede autorizar o rechazar cada petición.
         </div>
 
-        <div style={alertStyle}>
-          🔒 Esta sección es de acceso exclusivo para Jefatura. Solo usted puede cambiar el estado de una solicitud a "Activo".
-        </div>
+        {message && (
+          <div style={{ 
+            background: message.type === 'error' ? '#ffebee' : '#e8f5e9',
+            border: `1px solid ${message.type === 'error' ? '#ffcdd2' : '#c8e6c9'}`,
+            color: message.type === 'error' ? '#c62828' : '#2e7d32',
+            padding: '10px', borderRadius: '4px', marginBottom: '14px', fontSize: '12px'
+          }}>
+            {message.text}
+          </div>
+        )}
 
         <div style={layoutStyle}>
-          {/* Panel izquierdo: Lista de solicitudes */}
+          {/* Panel izquierdo: Lista de solicitudes reales */}
           <div style={panelStyle}>
             <div style={panelHeaderStyle}>
               Solicitudes pendientes
-              <span style={badgeCountStyle}>{pendientes} pendientes</span>
+              <span style={badgeCountStyle}>{solicitudes.length} en espera</span>
             </div>
             <div style={searchBarStyle}>
               <input
@@ -407,151 +187,133 @@ const AprobacionesPage = ({ onNavigate }) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={inputStyle}
               />
-              <select
-                value={estadoFiltro}
-                onChange={(e) => setEstadoFiltro(e.target.value)}
-                style={selectStyle}
-              >
-                <option value="todos">Todos</option>
-                <option value="PENDIENTE">Pendiente</option>
-                <option value="ACTIVO">Aprobado</option>
-                <option value="RECHAZADO">Rechazado</option>
-              </select>
             </div>
 
             {loading ? (
               <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-                Cargando solicitudes...
+                Conectando con servidor...
               </div>
             ) : filteredSolicitudes.length === 0 ? (
-              <div style={{ padding: '20px', textAlign: 'center', color: '#aaa' }}>
-                No hay solicitudes disponibles
+              <div style={{ padding: '20px', textAlign: 'center', color: '#aaa', fontSize: '13px' }}>
+                No hay solicitudes pendientes en este momento.
               </div>
             ) : (
-              filteredSolicitudes.map((sol) => (
-                <div
-                  key={sol.id_familia}
-                  style={solicitudItemStyle(selectedSolicitud?.id_familia === sol.id_familia)}
-                  onClick={() => setSelectedSolicitud(sol)}
-                  onMouseEnter={(e) => {
-                    if (selectedSolicitud?.id_familia !== sol.id_familia) {
-                      e.currentTarget.style.background = '#f0f6ff';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (selectedSolicitud?.id_familia !== sol.id_familia) {
-                      e.currentTarget.style.background = 'transparent';
-                    }
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#1a3a5c' }}>
-                      {sol.nombre_familia}
-                    </span>
-                    <span style={badgeStyle(sol.estado)}>
-                      {sol.estado === 'ACTIVO' ? 'Aprobado' : sol.estado === 'RECHAZADO' ? 'Rechazado' : 'Pendiente'}
-                    </span>
+              <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                {filteredSolicitudes.map((sol) => (
+                  <div
+                    key={sol.id_carga}
+                    style={solicitudItemStyle(selectedSolicitud?.id_carga === sol.id_carga)}
+                    onClick={() => setSelectedSolicitud(sol)}
+                    onMouseEnter={(e) => {
+                      if (selectedSolicitud?.id_carga !== sol.id_carga) e.currentTarget.style.background = '#f0f6ff';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedSolicitud?.id_carga !== sol.id_carga) e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#1a3a5c' }}>
+                        {sol.nombre_familia}
+                      </span>
+                      <span style={{ fontWeight: 'bold', color: '#1e7a3e', fontSize: '12px' }}>
+                        ${parseInt(sol.monto).toLocaleString('es-CL')}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#666', marginBottom: '3px' }}>
+                      RUT: {sol.rut_representante}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '3px' }}>
+                      <span style={{ fontSize: '11px', color: '#444' }}>
+                        Solicitante: {sol.nombre_asistente || 'Asistente'}
+                      </span>
+                      <span style={{ fontSize: '11px', color: '#888' }}>
+                        {new Date(sol.fecha).toLocaleDateString('es-CL')}
+                      </span>
+                    </div>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#666', marginBottom: '3px' }}>
-                    RUT: {sol.rut_representante}
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '3px' }}>
-                    <span style={{ fontSize: '11px', color: '#444' }}>
-                      Fam. · {sol.integrantes} integrantes
-                    </span>
-                    <span style={{ fontSize: '11px', color: '#888' }}>
-                      Ingresada: {new Date(sol.fecha_ingreso).toLocaleDateString('es-CL')}
-                    </span>
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
 
-          {/* Panel derecho: Detalle de solicitud */}
+          {/* Panel derecho: Detalle de solicitud seleccionada de la base de datos */}
           <div style={panelStyle}>
-            <div style={panelHeaderStyle}>Detalle de solicitud seleccionada</div>
+            <div style={panelHeaderStyle}>Auditoría de Caso Social</div>
 
             {!selectedSolicitud ? (
               <div style={{ padding: '20px', textAlign: 'center', color: '#aaa' }}>
-                Seleccione una solicitud para ver los detalles
+                Seleccione una solicitud para proceder con la auditoría
               </div>
             ) : (
               <>
                 <div style={detailSectionStyle}>
-                  <div style={detailTitleStyle}>Datos del beneficiario</div>
+                  <div style={detailTitleStyle}>Datos de la Carga de Fondos</div>
                   <div style={detailGridStyle}>
                     <div style={detailFieldStyle}>
-                      <div style={labelStyle}>Nombre completo</div>
-                      <div style={valueStyle}>{selectedSolicitud.nombre_responsable}</div>
+                      <div style={labelStyle}>Núcleo Familiar</div>
+                      <div style={valueStyle}>{selectedSolicitud.nombre_familia}</div>
                     </div>
                     <div style={detailFieldStyle}>
-                      <div style={labelStyle}>RUT</div>
+                      <div style={labelStyle}>RUT Representante</div>
                       <div style={valueStyle}>{selectedSolicitud.rut_representante}</div>
                     </div>
                     <div style={detailFieldStyle}>
-                      <div style={labelStyle}>Fecha de nacimiento</div>
-                      <div style={valueStyle}>{new Date(selectedSolicitud.fecha_nacimiento).toLocaleDateString('es-CL')}</div>
+                      <div style={labelStyle}>Monto Solicitado</div>
+                      <div style={{...valueStyle, color: '#1e7a3e', fontSize: '14px'}}>${parseInt(selectedSolicitud.monto).toLocaleString('es-CL')}</div>
                     </div>
                     <div style={detailFieldStyle}>
-                      <div style={labelStyle}>Teléfono</div>
-                      <div style={valueStyle}>{selectedSolicitud.telefono}</div>
+                      <div style={labelStyle}>Línea de Ayuda (Motivo)</div>
+                      <div style={valueStyle}>{selectedSolicitud.motivo || 'No especificado'}</div>
                     </div>
-                    <div style={{ ...detailFieldStyle, gridColumn: '1/-1' }}>
-                      <div style={labelStyle}>Dirección</div>
-                      <div style={valueStyle}>{selectedSolicitud.direccion}</div>
+                    <div style={detailFieldStyle}>
+                      <div style={labelStyle}>Asistente a cargo</div>
+                      <div style={valueStyle}>{selectedSolicitud.nombre_asistente || 'N/A'}</div>
                     </div>
                   </div>
                 </div>
 
                 <div style={detailSectionStyle}>
-                  <div style={detailTitleStyle}>Motivo de la solicitud</div>
+                  <div style={detailTitleStyle}>Justificación y Observaciones</div>
                   <div style={motivoBoxStyle}>
-                    {selectedSolicitud.detalles}
+                    {selectedSolicitud.detalles || 'No se registraron observaciones adicionales al momento de crear la solicitud.'}
                   </div>
                 </div>
 
                 <div style={actionAreaStyle}>
-                  <div style={actionLabelStyle}>Resolución de la solicitud:</div>
+                  <div style={actionLabelStyle}>Resolución Técnica:</div>
                   <div style={actionButtonsStyle}>
-                    <button style={btnAprobadoStyle} onClick={handleAprobar}>
-                      ✔ Aprobar cuenta
+                    <button 
+                      style={{ flex: 1, background: '#1e7a3e', border: 'none', color: '#fff', borderRadius: '3px', padding: '9px', fontSize: '13px', fontWeight: 'bold', cursor: btnLoading ? 'not-allowed' : 'pointer' }} 
+                      onClick={() => handleAprobar(selectedSolicitud.id_carga)}
+                      disabled={btnLoading}
+                    >
+                      {btnLoading ? 'Procesando...' : '✔ Aprobar y Transferir'}
                     </button>
-                    <button style={btnRechazarStyle} onClick={() => setShowRechazoInput(!showRechazoInput)}>
-                      ✖ Rechazar solicitud
+                    <button 
+                      style={{ flex: 1, background: '#b52b2b', border: 'none', color: '#fff', borderRadius: '3px', padding: '9px', fontSize: '13px', fontWeight: 'bold', cursor: btnLoading ? 'not-allowed' : 'pointer' }} 
+                      onClick={() => setShowRechazoInput(!showRechazoInput)}
+                      disabled={btnLoading}
+                    >
+                      ✖ Rechazar
                     </button>
                   </div>
+                  
                   {showRechazoInput && (
                     <input
                       type="text"
-                      style={rechazoInputStyle}
-                      placeholder="Motivo del rechazo (obligatorio al rechazar)..."
+                      style={{ width: '100%', border: '1px solid #ccc', borderRadius: '3px', padding: '6px 9px', fontSize: '12px', marginTop: '8px' }}
+                      placeholder="Escriba el motivo del rechazo (obligatorio)..."
                       value={motivoRechazo}
                       onChange={(e) => setMotivoRechazo(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && motivoRechazo.trim()) {
-                          handleRechazar();
-                        }
-                      }}
                     />
                   )}
                   {showRechazoInput && (
                     <button
-                      style={{
-                        width: '100%',
-                        marginTop: '8px',
-                        background: '#b52b2b',
-                        border: 'none',
-                        color: '#fff',
-                        borderRadius: '3px',
-                        padding: '6px',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        cursor: 'pointer'
-                      }}
-                      onClick={handleRechazar}
+                      style={{ width: '100%', marginTop: '8px', background: '#b52b2b', border: 'none', color: '#fff', borderRadius: '3px', padding: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                      onClick={() => handleRechazar(selectedSolicitud.id_carga)}
+                      disabled={btnLoading}
                     >
-                      Confirmar rechazo
+                      Confirmar rechazo de solicitud
                     </button>
                   )}
                 </div>
@@ -560,8 +322,6 @@ const AprobacionesPage = ({ onNavigate }) => {
           </div>
         </div>
       </div>
-
-      <div style={footerStyle}>Illapel te ayuda · Municipalidad de Illapel · Universidad Católica del Norte</div>
     </div>
   );
 };

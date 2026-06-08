@@ -23,7 +23,7 @@ const obtenerMetricas = async (req, res) => {
         // 2. Total fondos cargados este mes (desde cargas_fondos)
         const fondosCargadosRes = await pool.query(
             `SELECT COALESCE(SUM(monto), 0) as total FROM cargas_fondos 
-             WHERE fecha >= $1 AND fecha <= $2`,
+            WHERE fecha >= $1 AND fecha <= $2 AND estado = 'APROBADO'`,
             [primerDiaMes, ultimoDiaMes]
         );
         const totalFondosCargados = parseInt(fondosCargadosRes.rows[0].total);

@@ -3,6 +3,7 @@ const router = express.Router();
 const { cargarFondos } = require('../controllers/fondosController');
 const upload = require('../middlewares/uploadMiddleware');
 
-router.post('/cargar/:id_familia', upload.single('archivo'), cargarFondos);
+router.post('/:id_familia/cargar', upload.single('pdf_resolucion'), cargarFondos);
+
 
 module.exports = router;
