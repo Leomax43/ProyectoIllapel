@@ -32,6 +32,7 @@ function DashboardHeader({ currentPage = 'inicio', onLogout, onNavigate }) {
     { label: 'Carga de Fondos', page: 'fondos' },
     { label: 'Transacciones', page: 'transacciones' },
     { label: 'Aprobaciones', page: 'aprobaciones', requiereJefatura: true },
+    { label: 'Funcionarios', page: 'funcionarios', requiereJefatura: true },
   ];
 
   // Filtrar items según el rol

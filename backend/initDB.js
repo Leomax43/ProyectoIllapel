@@ -36,8 +36,8 @@ const crearTablas = async () => {
                 telefono VARCHAR(20),
                 clave_acceso VARCHAR(255) NOT NULL,
                 saldo INT DEFAULT 0,
-                estado VARCHAR(20) DEFAULT 'PENDIENTE', -- PENDIENTE, ACTIVO, RECHAZADO, BAJA
-                pdf_ficha_social VARCHAR(255) -- Ruta donde guardaremos el PDF
+                estado VARCHAR(20) DEFAULT 'ACTIVO', -- <-- AHORA ES ACTIVO POR DEFECTO
+                pdf_ficha_social VARCHAR(255) 
             );
         `);
 
@@ -63,19 +63,22 @@ const crearTablas = async () => {
                 responsable VARCHAR(100),
                 telefono VARCHAR(20),
                 saldo_acumulado INT DEFAULT 0,
-                estado VARCHAR(20) DEFAULT 'ACTIVO'
+                estado VARCHAR(20) DEFAULT 'ACTIVO',
+                fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- <-- ¡NUEVA COLUMNA!
             );
         `);
 
-        // 5. Historial de Cargas de Fondos
+        // 5. Historial de Cargas de Fondos (AHORA CON ESTADOS)
         await pool.query(`
             CREATE TABLE cargas_fondos (
                 id_carga SERIAL PRIMARY KEY,
                 id_familia INT REFERENCES familias(id_familia),
-                id_admin INT REFERENCES admin(id_admin), -- Funcionario que cargó la plata
+                id_admin INT REFERENCES admin(id_admin), -- Asistente que solicita
+                id_jefatura INT REFERENCES admin(id_admin), -- Jefatura que aprueba (puede ser NULL al inicio)
                 monto INT NOT NULL,
-                motivo VARCHAR(50), -- 'Alimento', 'Construcción', etc
-                detalles VARCHAR(500), -- Descripción extensa del caso
+                motivo VARCHAR(50), 
+                detalles VARCHAR(500), 
+                estado VARCHAR(20) DEFAULT 'PENDIENTE', -- <-- ESTADO DE LA SOLICITUD
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 pdf_resolucion VARCHAR(255)
             );

@@ -10,6 +10,8 @@ import TransaccionesPage from './pages/TransaccionesPage.jsx';
 import AprobacionesPage from './pages/AprobacionesPage.jsx';
 import Login from './pages/Login.jsx';
 import { useAuth } from './hooks/useAuth.js';
+import FuncionariosPage from './pages/FuncionariosPage.jsx';
+
 
 function App() {
   const { isAuthenticated, logout, login, error, loading } = useAuth();
@@ -41,6 +43,8 @@ function App() {
     <TransaccionesPage onNavigate={handleNavigation} />
   ) : currentPage === 'aprobaciones' ? (
     <AprobacionesPage onNavigate={handleNavigation} />
+  ) : currentPage === 'funcionarios' ? (
+    <FuncionariosPage onNavigate={handleNavigation} />
   ) : (
     <AdminDashboardNew onNavigate={handleNavigation} />
   );
