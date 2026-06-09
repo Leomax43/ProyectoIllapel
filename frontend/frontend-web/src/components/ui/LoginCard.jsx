@@ -10,11 +10,11 @@ export default function LoginCard({ onSubmit, loading, error }) {
   };
 
   return (
-    <div className="border border-[#bbb] rounded-[4px] overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-[#f5f5f2]">
       {/* TOP-BAR */}
       <div className="bg-[#1a3a5c] p-[10px_16px] flex items-center">
         <div className="flex items-center gap-[10px]">
-          <div className="w-[40px] h-[40px] bg-[#ffffff] rounded-[4px] flex items-center justify-center">
+          <div className="w-[44px] h-[44px] bg-[#ffffff] rounded-[4px] flex items-center justify-center">
             <svg width="32" height="32" viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="16" fill="#1a3a5c" />
               <text x="18" y="23" textAnchor="middle" fill="#ffffff" fontSize="11" fontWeight="bold">

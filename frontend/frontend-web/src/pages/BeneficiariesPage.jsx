@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Importamos el hook de navegación real
 import DashboardHeader from '../components/dashboard/DashboardHeader';
-import BeneficiariesStats from '../components/dashboard/BeneficiariesStats';
-import BeneficiariesList from '../components/dashboard/BeneficiariesList';
-import BeneficiaryDetail from '../components/dashboard/BeneficiaryDetail';
+import BeneficiariesStats from '../components/beneficiarios/BeneficiariesStats';
+import BeneficiariesList from '../components/beneficiarios/BeneficiariesList';
+import BeneficiaryDetail from '../components/beneficiarios/BeneficiaryDetail';
 import { useBeneficiaries } from '../hooks/useBeneficiaries';
 import { useAuth } from '../hooks/useAuth';
 
-const BeneficiariesPage = ({ onNavigate }) => {
+const BeneficiariesPage = () => {
   const { logout } = useAuth();
+  const navigate = useNavigate();
+  
   const {
     beneficiaries,
     stats,
@@ -25,51 +28,22 @@ const BeneficiariesPage = ({ onNavigate }) => {
 
   const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
 
-  const mainStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-    background: '#f5f5f2'
-  };
-
-  const contentStyle = {
-    padding: '16px',
-    flex: 1
-  };
-
-  const sectionTitleStyle = {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    color: '#1a3a5c',
-    marginBottom: '4px'
-  };
-
-  const sectionDescStyle = {
-    fontSize: '12px',
-    color: '#666',
-    marginBottom: '14px'
-  };
-
-  const layoutStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1.3fr 1fr',
-    gap: '14px',
-    alignItems: 'start'
-  };
-
   return (
-    <div style={mainStyle}>
-      <DashboardHeader currentPage="beneficiarios" onLogout={logout} onNavigate={onNavigate} />
+    <div className="flex flex-col min-h-screen bg-[#f5f5f2]">
+      {/* Le inyectamos el navigate real de React Router */}
+      <DashboardHeader currentPage="beneficiarios" onLogout={logout} onNavigate={navigate} />
 
-      <div style={contentStyle}>
-        <div style={sectionTitleStyle}>Gestión de beneficiarios</div>
-        <div style={sectionDescStyle}>
+      <div className="p-[16px] flex-1">
+        <div className="text-[16px] font-bold text-[#1a3a5c] mb-[4px]">
+          Gestión de beneficiarios
+        </div>
+        <div className="text-[12px] text-[#666666] mb-[14px]">
           Consulte y administre los perfiles de todos los beneficiarios registrados en el sistema. Haga clic en una fila para ver el detalle completo.
         </div>
 
         <BeneficiariesStats stats={stats} />
 
-        <div style={layoutStyle}>
+        <div className="grid grid-cols-[1.3fr_1fr] gap-[14px] items-start">
           <BeneficiariesList
             beneficiaries={beneficiaries}
             searchTerm={searchTerm}
@@ -82,7 +56,7 @@ const BeneficiariesPage = ({ onNavigate }) => {
             totalPages={totalPages}
             onNextPage={nextPage}
             onPrevPage={prevPage}
-            onNewSolicitud={() => onNavigate('nueva-solicitud')}
+            onNewSolicitud={() => navigate('/nueva-solicitud')}
           />
 
           <BeneficiaryDetail beneficiary={selectedBeneficiary} />

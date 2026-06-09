@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useDashboardPaginado } from '../hooks/useDashboardPaginado.js';
 import DashboardHeader from '../components/dashboard/DashboardHeader.jsx';
@@ -6,8 +7,9 @@ import MetricsCards from '../components/dashboard/MetricsCards.jsx';
 import QuickAlerts from '../components/dashboard/QuickAlerts.jsx';
 import BeneficiariesTable from '../components/dashboard/BeneficiariesTable.jsx';
 
-function AdminDashboard({ onNavigate }) {
+function AdminDashboard() {
   const { logout } = useAuth();
+  const navigate = useNavigate(); // Hook moderno para cambiar de página
   const [searchTerm, setSearchTerm] = useState('');
   const { data, loading, error, currentPage, nextPage, prevPage } = useDashboardPaginado(searchTerm);
 
@@ -28,23 +30,24 @@ function AdminDashboard({ onNavigate }) {
   } = data || {};
 
   return (
-    <div style={{ border: '1px solid #bbb', borderRadius: '4px', overflow: 'hidden', background: '#fff' }}>
-      <DashboardHeader onLogout={logout} onNavigate={onNavigate} currentPage="dashboard" />
+    <div className="flex flex-col min-h-screen bg-[#f5f5f2]">
+      {/* Le pasamos navigate en lugar del viejo onNavigate */}
+      <DashboardHeader onLogout={logout} onNavigate={navigate} currentPage="dashboard" />
 
-      <div style={{ padding: '16px', background: '#f5f5f2', minHeight: '400px' }}>
-        <h1 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '4px' }}>Resumen del sistema</h1>
-        <p style={{ fontSize: '12px', color: '#666', marginBottom: '14px' }}>
+      <div className="p-[16px] bg-[#f5f5f2] min-h-[400px]">
+        <h1 className="text-[16px] font-bold text-[#1a3a5c] mb-[4px]">Resumen del sistema</h1>
+        <p className="text-[12px] text-[#666666] mb-[14px]">
           Panel principal de gestión de ayudas sociales. Aquí se muestran los indicadores generales y las solicitudes recientes.
         </p>
 
         {error && (
-          <div style={{ marginBottom: '16px', borderRadius: '4px', background: '#ffebee', border: '1px solid #ffcdd2', padding: '8px', fontSize: '12px', color: '#c62828' }}>
+          <div className="mb-[16px] rounded-[4px] bg-[#ffebee] border border-[#ffcdd2] p-[8px] text-[12px] text-[#c62828]">
             {error}
           </div>
         )}
 
         {loading ? (
-          <div style={{ textAlign: 'center', paddingTop: '32px', paddingBottom: '32px', fontSize: '12px', color: '#999' }}>
+          <div className="text-center py-[32px] text-[12px] text-[#999999]">
             Cargando dashboard...
           </div>
         ) : (
@@ -66,7 +69,7 @@ function AdminDashboard({ onNavigate }) {
         )}
       </div>
 
-      <div style={{ textAlign: 'center', padding: '12px', fontSize: '11px', color: '#999', marginTop: '16px' }}>
+      <div className="text-center padding-[12px] text-[11px] text-[#999999] mt-[16px] mb-[12px]">
         Illapel te ayuda · Municipalidad de Illapel · Universidad Católica del Norte
       </div>
     </div>

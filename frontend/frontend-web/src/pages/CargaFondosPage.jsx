@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
+import BuscarBeneficiarioPanel from '../components/dashboard/BuscarBeneficiarioPanel';
+import ValidacionFamiliarPanel from '../components/dashboard/ValidacionFamiliarPanel';
+import FormularioMontoPanel from '../components/dashboard/FormularioMontoPanel';
+import DocumentacionRespaldoPanel from '../components/dashboard/DocumentacionRespaldoPanel';
+import ResumenOperacionPanel from '../components/dashboard/ResumenOperacionPanel';
 import { useAuth } from '../hooks/useAuth';
 import beneficiariesService from '../services/beneficiariesService';
 
-const CargaFondosPage = ({ onNavigate }) => {
+const CargaFondosPage = () => {
   const { logout } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [message, setMessage] = useState(null);
@@ -18,7 +25,6 @@ const CargaFondosPage = ({ onNavigate }) => {
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfFileName, setPdfFileName] = useState('');
 
-  // Búsqueda dinámica de beneficiarios
   useEffect(() => {
     if (searchTerm.trim()) {
       fetchBeneficiarios();
@@ -31,7 +37,7 @@ const CargaFondosPage = ({ onNavigate }) => {
     setLoadingSearch(true);
     try {
       const results = await beneficiariesService.search(searchTerm);
-      setBeneficiariosList(results);
+      setBeneficiariosList(results || []);
     } catch (error) {
       setMessage({ text: '❌ Error al buscar beneficiarios', type: 'error' });
       setBeneficiariosList([]);
@@ -43,8 +49,7 @@ const CargaFondosPage = ({ onNavigate }) => {
   const handleSelectBeneficiario = async (beneficiario) => {
     setLoadingSearch(true);
     try {
-      // Obtener detalle completo del beneficiario
-      const detail = await beneficiariesService.getBeneficiaryDetail(beneficiario.rut_representante);
+      const detail = await beneficiariesService.getBeneficiaryDetail(beneficiario.rut_principal || beneficiario.rut_representante);
       setSelectedBeneficiario(detail);
       setBeneficiariosList([]);
       setSearchTerm('');
@@ -57,37 +62,18 @@ const CargaFondosPage = ({ onNavigate }) => {
 
   const handlePdfChange = (file) => {
     if (!file) return;
-    
     if (file.type !== 'application/pdf') {
       setMessage({ text: '❌ Solo se aceptan archivos PDF', type: 'error' });
       return;
     }
-
     const maxSizeMB = 10;
-    const fileSizeMB = file.size / (1024 * 1024);
-    if (fileSizeMB > maxSizeMB) {
+    if (file.size / (1024 * 1024) > maxSizeMB) {
       setMessage({ text: `❌ El archivo excede el tamaño máximo de ${maxSizeMB} MB`, type: 'error' });
       return;
     }
-
     setPdfFile(file);
     setPdfFileName(file.name);
     setMessage(null);
-  };
-
-  const handleFileInputChange = (e) => {
-    handlePdfChange(e.target.files[0]);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDragDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handlePdfChange(e.dataTransfer.files[0]);
   };
 
   const getNuevoSaldo = () => {
@@ -102,410 +88,110 @@ const CargaFondosPage = ({ onNavigate }) => {
       setMessage({ type: 'error', text: 'Faltan campos obligatorios para procesar la solicitud.' });
       return;
     }
-
     setLoading(true);
     setMessage(null);
-
     try {
       const userStr = localStorage.getItem('illapel_token');
       if (!userStr) throw new Error('No hay usuario autenticado');
-      
       const user = JSON.parse(userStr);
-      const id_admin = user.id_admin;
-      const id_familia = selectedBeneficiario.datos_personales?.id_familia;
-
-      // Preparamos el Form-Data para enviar texto y el archivo PDF
+      
       const formData = new FormData();
-      formData.append('id_admin', id_admin);
+      formData.append('id_admin', user.id_admin);
       formData.append('monto', parseInt(montoInput));
       formData.append('motivo', tipoAyuda);
       formData.append('observaciones', observaciones || 'N/A');
-      if (pdfFile) {
-        formData.append('pdf_resolucion', pdfFile);
-      }
+      if (pdfFile) formData.append('pdf_resolucion', pdfFile);
 
-      // Hacemos el llamado a tu backend usando fetch
-      const response = await fetch(`http://localhost:3000/api/fondos/${id_familia}/cargar`, {
+      const response = await fetch(`http://localhost:3000/api/fondos/${selectedBeneficiario.datos_personales?.id_familia}/cargar`, {
         method: 'POST',
         body: formData
       });
-
       const data = await response.json();
+      if (!response.ok) throw new Error(data.mensaje || 'Error al procesar la solicitud.');
 
-      if (!response.ok) {
-        throw new Error(data.mensaje || 'Error al procesar la solicitud de fondos.');
-      }
-
-      // Mensaje de éxito de SOLICITUD ENVIADA
-      setMessage({ 
-        text: '✅ ¡Solicitud enviada! Queda en bandeja de revisión de Jefatura.', 
-        type: 'success' 
-      });
-
-      // Limpiar formulario y redirigir al historial
+      setMessage({ text: '✅ ¡Solicitud enviada! Queda en bandeja de revisión de Jefatura.', type: 'success' });
       setTimeout(() => {
-        setSearchTerm('');
-        setSelectedBeneficiario(null);
-        setMontoInput('');
-        setTipoAyuda('Seleccione...');
-        setObservaciones('');
-        setPdfFile(null);
-        setPdfFileName('');
-        setMessage(null);
-        onNavigate('fondos');
+        navigate('/fondos');
       }, 2500);
-
     } catch (error) {
-      console.error('❌ Error:', error);
       setMessage({ text: `❌ Error: ${error.message}`, type: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    onNavigate('dashboard');
+  const formatCurrency = (value) => `$${value.toLocaleString('es-CL')}`;
+  const badgeStyle = (estado) => {
+    const isActive = estado === 'Activo' || estado === 'ACTIVO' || estado === 'Habilitado';
+    return `inline-block p-[2px_8px] rounded-[10px] text-[11px] font-bold ${
+      isActive ? 'bg-[#d1e7dd] text-[#0f5132]' : 'bg-[#f8d7da] text-[#842029]'
+    }`;
   };
 
-  const formatCurrency = (value) => `$${value.toLocaleString('es-CL')}`;
-  const formatDate = (date) => new Date(date).toLocaleDateString('es-CL');
-
-  // --- ESTILOS ---
-  const mainStyle = { display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f5f5f2' };
-  const contentStyle = { padding: '16px', flex: 1 };
-  const sectionTitleStyle = { fontSize: '16px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '4px' };
-  const sectionDescStyle = { fontSize: '12px', color: '#666', marginBottom: '16px' };
-  const layoutStyle = { display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', alignItems: 'start' };
-  const panelStyle = { background: '#fff', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden', marginBottom: '14px' };
-  const panelHeaderStyle = { background: '#2563a0', color: '#fff', fontSize: '13px', fontWeight: 'bold', padding: '8px 14px' };
-  const panelBodyStyle = { padding: '16px' };
-  const fieldStyle = { display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '13px' };
-  const labelStyle = { fontSize: '11px', color: '#444', fontWeight: 'bold' };
-  const requiredStyle = { color: '#b52b2b' };
-  const inputStyle = { border: '1px solid #ccc', borderRadius: '3px', padding: '7px 9px', fontSize: '12px', color: '#333', fontFamily: 'Arial, sans-serif' };
-  const selectStyle = { border: '1px solid #ccc', borderRadius: '3px', padding: '7px 9px', fontSize: '12px', color: '#333', fontFamily: 'Arial, sans-serif', background: '#fff' };
-  const beneficiarioCardStyle = { background: '#e0edff', border: '1px solid #2563a0', borderRadius: '4px', padding: '12px 14px', marginTop: '4px' };
-  const bcNameStyle = { fontSize: '14px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '4px' };
-  const badgeStyle = (estado) => ({ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 'bold', display: 'inline-block', background: estado === 'Activo' || estado === 'ACTIVO' || estado === 'Habilitado' ? '#d1e7dd' : '#f8d7da', color: estado === 'Activo' || estado === 'ACTIVO' || estado === 'Habilitado' ? '#0f5132' : '#842029' });
-  const alertStyle = (type) => ({ background: type === 'ok' ? '#d1e7dd' : type === 'warn' ? '#fff3cd' : '#f8d7da', border: `1px solid ${type === 'ok' ? '#0f5132' : type === 'warn' ? '#ffc107' : '#b52b2b'}`, borderRadius: '3px', padding: '8px 12px', fontSize: '12px', color: type === 'ok' ? '#0f5132' : type === 'warn' ? '#856404' : '#842029', marginBottom: '14px' });
-  const montoDisplayStyle = { background: '#f0f6ff', border: '2px solid #2563a0', borderRadius: '4px', padding: '12px 14px', textAlign: 'center', marginTop: '8px' };
-  const montoLabelStyle = { fontSize: '11px', color: '#5580aa', marginBottom: '4px' };
-  const montoValorStyle = { fontSize: '26px', fontWeight: 'bold', color: '#1a3a5c' };
-  const tableStyle = { width: '100%', borderCollapse: 'collapse', fontSize: '11px', marginTop: '6px' };
-  const thStyle = { background: '#e8f0f8', color: '#1a3a5c', padding: '5px 8px', textAlign: 'left', border: '1px solid #ddd' };
-  const tdStyle = { padding: '5px 8px', border: '1px solid #eee', color: '#333' };
-  const uploadAreaStyle = { border: '2px dashed #2563a0', borderRadius: '4px', padding: '16px', textAlign: 'center', background: '#f0f6ff', cursor: 'pointer', marginTop: '4px' };
-  const btnRowStyle = { display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '6px' };
-  const btnCancelStyle = { background: '#fff', border: '1px solid #aaa', color: '#555', borderRadius: '3px', padding: '8px 20px', fontSize: '13px', cursor: 'pointer' };
-  const btnSubmitStyle = { background: '#1e7a3e', border: 'none', color: '#fff', borderRadius: '3px', padding: '8px 22px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' };
-  const msgStyle = (type) => ({ background: type === 'error' ? '#ffebee' : type === 'success' ? '#e8f5e9' : '#e8f5e9', border: `1px solid ${type === 'error' ? '#ffcdd2' : '#c8e6c9'}`, borderRadius: '3px', padding: '8px 12px', fontSize: '12px', color: type === 'error' ? '#c62828' : '#2e7d32', marginBottom: '14px' });
-
   return (
-    <div style={mainStyle}>
-      <DashboardHeader currentPage="fondos" onLogout={logout} onNavigate={onNavigate} />
-      <div style={contentStyle}>
-        <div style={sectionTitleStyle}>Carga de fondos</div>
-        <div style={sectionDescStyle}>
+    <div className="flex flex-col min-h-screen bg-[#f5f5f2]">
+      <DashboardHeader currentPage="fondos" onLogout={logout} onNavigate={navigate} />
+      
+      <div className="p-[16px] flex-1">
+        <div className="text-[16px] font-bold text-[#1a3a5c] mb-[4px]">Carga de fondos</div>
+        <div className="text-[12px] text-[#666666] mb-[16px]">
           Eleve una solicitud de asignación de saldo a un beneficiario activo. Quedará en estado pendiente hasta ser aprobada por Jefatura.
         </div>
 
         {message && (
-          <div style={msgStyle(message.type)}>
+          <div className={`border rounded-[3px] p-[8px_12px] text-[12px] mb-[14px] ${
+            message.type === 'error' ? 'bg-[#ffebee] border-[#ffcdd2] text-[#c62828]' : 'bg-[#e8f5e9] border-[#c8e6c9] text-[#2e7d32]'
+          }`}>
             {message.text}
           </div>
         )}
 
-        <div style={layoutStyle}>
-          {/* Columna izquierda */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {/* Panel 1: Buscar beneficiario */}
-            <div style={panelStyle}>
-              <div style={panelHeaderStyle}>1. Buscar beneficiario</div>
-              <div style={panelBodyStyle}>
-                <div style={fieldStyle}>
-                  <label style={labelStyle}>Buscar por RUT o nombre <span style={requiredStyle}>*</span></label>
-                  <input
-                    type="text"
-                    placeholder="Ej: 12.345.678-9 o Rosa Martínez..."
-                    style={{ ...inputStyle, flex: 1 }}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  {loadingSearch && (
-                    <div style={{ fontSize: '12px', color: '#2563a0', marginTop: '4px' }}>
-                      Buscando...
-                    </div>
-                  )}
-                </div>
-
-                {/* Lista de resultados de búsqueda */}
-                {beneficiariosList.length > 0 && (
-                  <div style={{
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    maxHeight: '250px',
-                    overflowY: 'auto',
-                    marginTop: '4px'
-                  }}>
-                    <table style={{ ...tableStyle, margin: 0, marginTop: 0 }}>
-                      <thead>
-                        <tr>
-                          <th style={thStyle}>Nombre</th>
-                          <th style={thStyle}>RUT</th>
-                          <th style={thStyle}>Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {beneficiariosList.map((beneficiario) => (
-                          <tr 
-                            key={beneficiario.id_familia}
-                            onClick={() => handleSelectBeneficiario(beneficiario)}
-                            style={{
-                              cursor: 'pointer',
-                              transition: 'background-color 0.2s',
-                              background: '#fff'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = '#f0f6ff'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}
-                          >
-                            <td style={tdStyle}>{beneficiario.nombre_familia}</td>
-                            <td style={tdStyle}>{beneficiario.rut_representante}</td>
-                            <td style={tdStyle}>
-                              <span style={badgeStyle(beneficiario.estado)}>{beneficiario.estado}</span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {searchTerm.trim() && !loadingSearch && beneficiariosList.length === 0 && (
-                  <div style={{
-                    padding: '12px',
-                    background: '#fff3cd',
-                    border: '1px solid #ffc107',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    color: '#856404',
-                    marginTop: '4px'
-                  }}>
-                    No se encontraron beneficiarios con ese término
-                  </div>
-                )}
-
-                {selectedBeneficiario && (
-                  <div style={beneficiarioCardStyle}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={bcNameStyle}>{selectedBeneficiario.datos_personales?.nombre_familia}</div>
-                      <span style={badgeStyle(selectedBeneficiario.datos_personales?.estado)}>{selectedBeneficiario.datos_personales?.estado}</span>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginTop: '6px' }}>
-                      <div style={{ fontSize: '11px' }}>
-                        <span style={{ color: '#5580aa' }}>RUT: </span>
-                        <span style={{ color: '#1a3a5c', fontWeight: 'bold' }}>{selectedBeneficiario.datos_personales?.rut_representante}</span>
-                      </div>
-                      <div style={{ fontSize: '11px' }}>
-                        <span style={{ color: '#5580aa' }}>ID Familia: </span>
-                        <span style={{ color: '#1a3a5c', fontWeight: 'bold' }}>{selectedBeneficiario.datos_personales?.id_familia}</span>
-                      </div>
-                      <div style={{ fontSize: '11px' }}>
-                        <span style={{ color: '#5580aa' }}>Integrantes: </span>
-                        <span style={{ color: '#1a3a5c', fontWeight: 'bold' }}>{selectedBeneficiario.nucleo_familiar?.length || 0}</span>
-                      </div>
-                      <div style={{ fontSize: '11px' }}>
-                        <span style={{ color: '#5580aa' }}>Saldo actual: </span>
-                        <span style={{ color: '#1a3a5c', fontWeight: 'bold' }}>
-                          {formatCurrency(selectedBeneficiario.datos_personales?.saldo || 0)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Panel 2: Validación familiar */}
-            {selectedBeneficiario && (
-              <div style={panelStyle}>
-                <div style={panelHeaderStyle}>2. Validación familiar (regla 30 días)</div>
-                <div style={panelBodyStyle}>
-                  <div style={alertStyle('ok')}>
-                    ✔ El núcleo familiar de {selectedBeneficiario.datos_personales?.nombre_familia} no ha recibido fondos en los últimos 30 días. La carga puede proceder.
-                  </div>
-                  <table style={tableStyle}>
-                    <thead>
-                      <tr>
-                        <th style={thStyle}>Integrante</th>
-                        <th style={thStyle}>RUT</th>
-                        <th style={thStyle}>Parentesco</th>
-                        <th style={thStyle}>Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedBeneficiario.nucleo_familiar?.map((integrante, idx) => (
-                        <tr key={idx}>
-                          <td style={tdStyle}>{integrante.nombre_completo}</td>
-                          <td style={tdStyle}>{integrante.rut}</td>
-                          <td style={tdStyle}>{integrante.parentesco || '—'}</td>
-                          <td style={tdStyle}>
-                            <span style={badgeStyle('Activo')}>Activo</span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* Panel 3: Monto a asignar */}
-            {selectedBeneficiario && (
-              <div style={panelStyle}>
-                <div style={panelHeaderStyle}>3. Monto a asignar</div>
-                <div style={panelBodyStyle}>
-                  <div style={fieldStyle}>
-                    <label style={labelStyle}>Monto <span style={requiredStyle}>*</span></label>
-                    <input
-                      type="number"
-                      placeholder="Ej: 50000"
-                      style={inputStyle}
-                      value={montoInput}
-                      onChange={(e) => setMontoInput(e.target.value)}
-                      min="1000"
-                    />
-                  </div>
-
-                  <div style={fieldStyle}>
-                    <label style={labelStyle}>Motivo de la carga <span style={requiredStyle}>*</span></label>
-                    <select
-                      style={selectStyle}
-                      value={tipoAyuda}
-                      onChange={(e) => setTipoAyuda(e.target.value)}
-                    >
-                      <option>Seleccione...</option>
-                      <option>Alimentación</option>
-                      <option>Materiales de construcción</option>
-                      <option>Útiles escolares</option>
-                      <option>Otro</option>
-                    </select>
-                  </div>
-
-                  <div style={fieldStyle}>
-                    <label style={labelStyle}>Observaciones</label>
-                    <textarea
-                      placeholder="Información adicional sobre esta asignación..."
-                      style={{
-                        ...inputStyle,
-                        resize: 'vertical',
-                        minHeight: '55px',
-                        fontFamily: 'Arial, sans-serif'
-                      }}
-                      value={observaciones}
-                      onChange={(e) => setObservaciones(e.target.value)}
-                    />
-                  </div>
-
-                  <div style={montoDisplayStyle}>
-                    <div style={montoLabelStyle}>Nuevo saldo (Aproximado si se aprueba)</div>
-                    <div style={montoValorStyle}>{formatCurrency(getNuevoSaldo())}</div>
-                  </div>
-                </div>
-              </div>
-            )}
+        <div className="grid grid-cols-[1.2fr_1fr] gap-[14px] items-start">
+          <div className="flex flex-col gap-[14px]">
+            <BuscarBeneficiarioPanel
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              loadingSearch={loadingSearch}
+              beneficiariosList={beneficiariosList}
+              onSelectBeneficiario={handleSelectBeneficiario}
+              selectedBeneficiario={selectedBeneficiario}
+              formatCurrency={formatCurrency}
+              badgeStyle={badgeStyle}
+            />
+            <ValidacionFamiliarPanel
+              selectedBeneficiario={selectedBeneficiario}
+              badgeStyle={badgeStyle}
+            />
+            <FormularioMontoPanel
+              selectedBeneficiario={selectedBeneficiario}
+              montoInput={montoInput}
+              onMontoChange={setMontoInput}
+              tipoAyuda={tipoAyuda}
+              onTipoAyudaChange={setTipoAyuda}
+              observaciones={observaciones}
+              onObservacionesChange={setObservaciones}
+              getNuevoSaldo={getNuevoSaldo}
+              formatCurrency={formatCurrency}
+            />
           </div>
 
-          {/* Columna derecha */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {/* Panel 4: Documentación */}
-            {selectedBeneficiario && (
-              <div style={panelStyle}>
-                <div style={panelHeaderStyle}>4. Documentación de respaldo</div>
-                <div style={panelBodyStyle}>
-                  <div style={fieldStyle}>
-                    <label style={labelStyle}>Adjuntar resolución / solicitud en PDF <span style={requiredStyle}>*</span></label>
-                    <input
-                      id="pdfInput"
-                      type="file"
-                      accept="application/pdf"
-                      style={{ display: 'none' }}
-                      onChange={handleFileInputChange}
-                    />
-                    <div
-                      style={uploadAreaStyle}
-                      onDragOver={handleDragOver}
-                      onDrop={handleDragDrop}
-                      onClick={() => document.getElementById('pdfInput').click()}
-                    >
-                      <div style={{ fontSize: '26px', marginBottom: '8px' }}>📄</div>
-                      {pdfFileName ? (
-                        <>
-                          <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#2563a0', marginBottom: '4px' }}>
-                            {pdfFileName}
-                          </div>
-                          <div style={{ fontSize: '11px', color: '#888' }}>Haz clic para cambiar</div>
-                        </>
-                      ) : (
-                        <>
-                          <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#2563a0' }}>Haga clic para adjuntar el PDF</div>
-                          <div style={{ fontSize: '11px', color: '#888', marginTop: '3px' }}>o arrastre el archivo aquí</div>
-                          <div style={{ fontSize: '11px', color: '#b52b2b', marginTop: '5px' }}>* Obligatorio · Solo .PDF · Máximo 10 MB</div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Resumen de operación */}
-            {selectedBeneficiario && (
-              <div style={panelStyle}>
-                <div style={{ ...panelHeaderStyle, background: '#e67e1a' }}>Resumen de la solicitud</div>
-                <div style={panelBodyStyle}>
-                  <table style={tableStyle}>
-                    <tbody>
-                      <tr>
-                        <td style={{ ...tdStyle, color: '#888' }}>Beneficiario</td>
-                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>{selectedBeneficiario.datos_personales?.nombre_familia}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ ...tdStyle, color: '#888' }}>Monto a solicitar</td>
-                        <td style={{ ...tdStyle, fontWeight: 'bold', color: '#e67e1a' }}>
-                          {montoInput ? formatCurrency(parseInt(montoInput)) : '$0'}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style={{ ...tdStyle, color: '#888' }}>PDF adjunto</td>
-                        <td style={{ ...tdStyle, color: pdfFileName ? '#2e7d32' : '#b52b2b' }}>
-                          {pdfFileName ? '✓ ' + pdfFileName : 'Pendiente'}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  <div style={btnRowStyle} style={{ marginTop: '14px' }}>
-                    <button
-                      style={btnCancelStyle}
-                      onClick={handleCancel}
-                      disabled={loading}
-                      onMouseEnter={(e) => { if (!loading) e.target.style.background = '#f5f5f5'; }}
-                      onMouseLeave={(e) => { if (!loading) e.target.style.background = '#fff'; }}
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      style={btnSubmitStyle}
-                      onClick={handleConfirmar}
-                      disabled={loading}
-                      onMouseEnter={(e) => { if (!loading) e.target.style.background = '#157a3e'; }}
-                      onMouseLeave={(e) => { if (!loading) e.target.style.background = '#1e7a3e'; }}
-                    >
-                      {loading ? 'Procesando...' : 'Enviar Solicitud a Jefatura →'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+          <div className="flex flex-col gap-[14px]">
+            <DocumentacionRespaldoPanel
+              selectedBeneficiario={selectedBeneficiario}
+              pdfFileName={pdfFileName}
+              onFileInputChange={(e) => handlePdfChange(e.target.files[0])}
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onDragDrop={(e) => { e.preventDefault(); e.stopPropagation(); handlePdfChange(e.dataTransfer.files[0]); }}
+            />
+            <ResumenOperacionPanel
+              selectedBeneficiario={selectedBeneficiario}
+              montoInput={montoInput}
+              pdfFileName={pdfFileName}
+              onCancel={() => navigate('/dashboard')}
+              onConfirmar={handleConfirmar}
+              loading={loading}
+              formatCurrency={formatCurrency}
+            />
           </div>
         </div>
       </div>

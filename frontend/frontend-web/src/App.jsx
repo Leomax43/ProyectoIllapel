@@ -1,4 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './hooks/useAuth.js';
+
+// Páginas
+import Login from './pages/Login.jsx';
 import AdminDashboardNew from './pages/AdminDashboardNew.jsx';
 import BeneficiariesPage from './pages/BeneficiariesPage.jsx';
 import NewSolicitudPage from './pages/NewSolicitudPage.jsx';
@@ -8,45 +13,54 @@ import CargaFondosHistorialPage from './pages/CargaFondosHistorialPage.jsx';
 import CargaFondosPage from './pages/CargaFondosPage.jsx';
 import TransaccionesPage from './pages/TransaccionesPage.jsx';
 import AprobacionesPage from './pages/AprobacionesPage.jsx';
-import Login from './pages/Login.jsx';
-import { useAuth } from './hooks/useAuth.js';
 import FuncionariosPage from './pages/FuncionariosPage.jsx';
-
 
 function App() {
   const { isAuthenticated, logout, login, error, loading } = useAuth();
-  const [currentPage, setCurrentPage] = useState('dashboard');
 
-  const handleNavigation = (page) => {
-    setCurrentPage(page);
-  };
-
+  // Si no está autenticado, la única ruta accesible es el Login
   if (!isAuthenticated) {
-    return <Login login={login} error={error} loading={loading} />;
+    return (
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login login={login} error={error} loading={loading} />} />
+          {/* Cualquier otra URL redirige automáticamente al Login */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Router>
+    );
   }
 
-  return currentPage === 'dashboard' ? (
-    <AdminDashboardNew onNavigate={handleNavigation} />
-  ) : currentPage === 'beneficiarios' ? (
-    <BeneficiariesPage onNavigate={handleNavigation} />
-  ) : currentPage === 'nueva-solicitud' ? (
-    <NewSolicitudPage onNavigate={handleNavigation} />
-  ) : currentPage === 'comercios' ? (
-    <ComerciosPage onNavigate={handleNavigation} />
-  ) : currentPage === 'nuevo-comercio' ? (
-    <NewComercioPage onNavigate={handleNavigation} />
-  ) : currentPage === 'fondos' ? (
-    <CargaFondosHistorialPage onNavigate={handleNavigation} />
-  ) : currentPage === 'nueva-carga' ? (
-    <CargaFondosPage onNavigate={handleNavigation} />
-  ) : currentPage === 'transacciones' ? (
-    <TransaccionesPage onNavigate={handleNavigation} />
-  ) : currentPage === 'aprobaciones' ? (
-    <AprobacionesPage onNavigate={handleNavigation} />
-  ) : currentPage === 'funcionarios' ? (
-    <FuncionariosPage onNavigate={handleNavigation} />
-  ) : (
-    <AdminDashboardNew onNavigate={handleNavigation} />
+  // Si está autenticado, habilitamos el panel completo de rutas de Illapel
+  return (
+    <Router>
+      <Routes>
+        {/* Rutas Principales */}
+        <Route path="/dashboard" element={<AdminDashboardNew />} />
+        <Route path="/funcionarios" element={<FuncionariosPage />} />
+
+        {/* beneficiarios */}
+        <Route path="/beneficiarios" element={<BeneficiariesPage />} />
+        <Route path="/nueva-solicitud" element={<NewSolicitudPage />} />
+        
+        {/* Solicitudes y Aprobaciones */}
+        <Route path="/aprobaciones" element={<AprobacionesPage />} />
+        
+        {/* Comercios */}
+        <Route path="/comercios" element={<ComerciosPage />} />
+        <Route path="/nuevo-comercio" element={<NewComercioPage />} />
+        
+        {/* Fondos y Transacciones */}
+        <Route path="/fondos" element={<CargaFondosHistorialPage />} />
+        <Route path="/nueva-carga" element={<CargaFondosPage />} />
+        <Route path="/transacciones" element={<TransaccionesPage />} />
+
+        {/* Redirecciones de seguridad por si escriben una URL que no existe */}
+        <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </Router>
   );
 }
 
