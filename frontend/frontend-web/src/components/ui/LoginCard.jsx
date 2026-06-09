@@ -10,66 +10,45 @@ export default function LoginCard({ onSubmit, loading, error }) {
   };
 
   return (
-    <div style={{ border: '1px solid #bbb', borderRadius: '4px', overflow: 'hidden' }}>
+    <div className="border border-[#bbb] rounded-[4px] overflow-hidden">
       {/* TOP-BAR */}
-      <div style={{ background: '#1a3a5c', padding: '10px 16px', display: 'flex', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              background: '#fff',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+      <div className="bg-[#1a3a5c] p-[10px_16px] flex items-center">
+        <div className="flex items-center gap-[10px]">
+          <div className="w-[40px] h-[40px] bg-[#ffffff] rounded-[4px] flex items-center justify-center">
             <svg width="32" height="32" viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="16" fill="#1a3a5c" />
-              <text x="18" y="23" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="bold">
+              <text x="18" y="23" textAnchor="middle" fill="#ffffff" fontSize="11" fontWeight="bold">
                 UCN
               </text>
             </svg>
           </div>
           <div>
-            <div style={{ color: '#fff', fontSize: '15px', fontWeight: 'bold', lineHeight: '1.2' }}>iLLAPEL</div>
-            <div style={{ color: '#aac8e8', fontSize: '11px' }}>Municipalidad · Illapel te ayuda</div>
+            <div className="text-[#ffffff] text-[15px] font-bold leading-[1.2]">iLLAPEL</div>
+            <div className="text-[#aac8e8] text-[11px]">Municipalidad · Illapel te ayuda</div>
           </div>
         </div>
       </div>
 
       {/* PAGE-BG */}
-      <div style={{ background: '#f5f5f2', minHeight: '480px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 16px' }}>
+      <div className="bg-[#f5f5f2] min-h-[480px] flex items-center justify-center p-[32px_16px]">
         {/* LOGIN-CARD */}
-        <div style={{ background: '#fff', border: '1px solid #ccc', borderRadius: '6px', width: '100%', maxWidth: '380px', overflow: 'hidden' }}>
+        <div className="bg-[#ffffff] border border-[#ccc] rounded-[6px] w-full max-w-[380px] overflow-hidden">
           {/* CARD-HEADER */}
-          <div style={{ background: '#2563a0', padding: '18px 24px', textAlign: 'center' }}>
-            <div style={{ color: '#fff', fontSize: '16px', fontWeight: 'bold' }}>Iniciar sesión</div>
-            <div style={{ color: '#aac8e8', fontSize: '12px', marginTop: '3px' }}>Sistema de gestión de ayudas sociales</div>
+          <div className="bg-[#2563a0] p-[18px_24px] text-center">
+            <div className="text-[#ffffff] text-[16px] font-bold">Iniciar sesión</div>
+            <div className="text-[#aac8e8] text-[12px] mt-[3px]">Sistema de gestión de ayudas sociales</div>
           </div>
 
           {/* CARD-BODY */}
-          <form style={{ padding: '24px' }} onSubmit={handleSubmit}>
+          <form className="bg-[#ffffff] p-[24px]" onSubmit={handleSubmit}>
             {/* FIELD RUT */}
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '12px', color: '#444', marginBottom: '5px', fontWeight: 'bold' }}>
+            <div className="mb-[16px]">
+              <label className="block text-[12px] text-[#444444] mb-[5px] font-bold">
                 RUT
               </label>
               <input
                 type="text"
-                style={{
-                  width: '100%',
-                  border: '1px solid #ccc',
-                  borderRadius: '3px',
-                  padding: '8px 10px',
-                  fontSize: '13px',
-                  color: '#333',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
-                onFocus={(e) => (e.target.style.borderColor = '#2563a0')}
-                onBlur={(e) => (e.target.style.borderColor = '#ccc')}
+                className="w-full bg-[#ffffff] border border-[#ccc] rounded-[3px] p-[8px_10px] text-[13px] text-[#333333] outline-none box-border focus:border-[#2563a0]"
                 placeholder="Ej: 12.345.678-9"
                 value={rut}
                 onChange={(e) => setRut(e.target.value)}
@@ -78,24 +57,13 @@ export default function LoginCard({ onSubmit, loading, error }) {
             </div>
 
             {/* FIELD CLAVE */}
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '12px', color: '#444', marginBottom: '5px', fontWeight: 'bold' }}>
+            <div className="mb-[16px]">
+              <label className="block text-[12px] text-[#444444] mb-[5px] font-bold">
                 Contraseña
               </label>
               <input
                 type="password"
-                style={{
-                  width: '100%',
-                  border: '1px solid #ccc',
-                  borderRadius: '3px',
-                  padding: '8px 10px',
-                  fontSize: '13px',
-                  color: '#333',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
-                onFocus={(e) => (e.target.style.borderColor = '#2563a0')}
-                onBlur={(e) => (e.target.style.borderColor = '#ccc')}
+                className="w-full bg-[#ffffff] border border-[#ccc] rounded-[3px] p-[8px_10px] text-[13px] text-[#333333] outline-none box-border focus:border-[#2563a0]"
                 placeholder="Ingrese su contraseña"
                 value={clave}
                 onChange={(e) => setClave(e.target.value)}
@@ -106,49 +74,35 @@ export default function LoginCard({ onSubmit, loading, error }) {
             {/* BTN-LOGIN */}
             <button
               type="submit"
-              style={{
-                width: '100%',
-                background: '#2563a0',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '3px',
-                padding: '10px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                marginTop: '4px',
-                opacity: loading ? 0.6 : 1,
-              }}
-              onMouseOver={(e) => !loading && (e.target.style.background = '#1a4f80')}
-              onMouseOut={(e) => (e.target.style.background = '#2563a0')}
+              className="w-full bg-[#2563a0] text-[#ffffff] border-none rounded-[3px] p-[10px] text-[14px] font-bold mt-[4px] cursor-pointer transition-colors hover:enabled:bg-[#1a4f80] disabled:opacity-60"
               disabled={loading}
             >
               {loading ? 'Ingresando...' : 'Ingresar'}
             </button>
 
             {/* FORGOT */}
-            <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '12px', color: '#2563a0', cursor: 'pointer' }}>
+            <div className="text-center mt-[12px] text-[12px] text-[#2563a0] cursor-pointer">
               ¿Olvidó su contraseña? Contacte a su administrador
             </div>
 
             {/* DIVIDER */}
-            <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '4px 0 16px' }} />
+            <hr className="border-none border-t border-[#eeeeee] m-[4px_0_16px]" />
 
             {/* UCN-NOTE */}
-            <div style={{ textAlign: 'center', fontSize: '11px', color: '#aaa', marginTop: '16px' }}>
+            <div className="text-center text-[11px] text-[#aaaaaa] mt-[16px]">
               Acceso exclusivo para funcionarios municipales
             </div>
 
             {/* ERROR MESSAGE */}
             {error && (
-              <div style={{ textAlign: 'center', fontSize: '11px', color: '#d32f2f', marginTop: '12px', padding: '8px', background: '#ffebee', borderRadius: '3px' }}>
+              <div className="text-center text-[11px] text-[#d32f2f] mt-[12px] p-[8px] bg-[#ffebee] rounded-[3px]">
                 {error}
               </div>
             )}
           </form>
 
           {/* FOOTER */}
-          <div style={{ textAlign: 'center', padding: '12px', fontSize: '11px', color: '#999', background: '#f5f5f2', borderTop: '1px solid #eee' }}>
+          <div className="text-center p-[12px] text-[11px] text-[#999999] bg-[#f5f5f2] border-t border-[#eeeeee]">
             Universidad Católica del Norte · Escuela de Ingeniería
           </div>
         </div>
@@ -156,4 +110,3 @@ export default function LoginCard({ onSubmit, loading, error }) {
     </div>
   );
 }
-
