@@ -1,53 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import CargaFondosList from '../components/cargaFondos/CargaFondosList';
 import CargaFondosDetail from '../components/cargaFondos/CargaFondosDetail'; 
 import { useAuth } from '../hooks/useAuth';
-import fondosService from '../services/fondosService';
+import { useCargaFondosHistorial } from '../hooks/useCargaFondosHistorial';
 
 const CargaFondosHistorialPage = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCarga, setSelectedCarga] = useState(null);
-  const [cargas, setCargas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [estadoFilter, setEstadoFilter] = useState('TODOS'); // Estado local para controlar el dropdown de estados
 
-  useEffect(() => {
-    const fetchCargas = async () => {
-      try {
-        setLoading(true);
-        const data = await fondosService.obtenerTodasLasCargas();
-        setCargas(data);
-        if (data.length > 0) {
-          setSelectedCarga(data[0]);
-        }
-      } catch (err) {
-        console.error('❌ Error cargando cargas:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCargas();
-  }, []);
+  // Consumimos la lógica e indicadores calculados desde el hook modularizado original
+  const {
+    cargas,
+    cargasFiltradas: cargasFiltradasPorTexto, // Renombrado para no chocar con el filtro final
+    searchTerm,
+    setSearchTerm,
+    selectedCarga,
+    setSelectedCarga,
+    loading,
+    error,
+    metricas
+  } = useCargaFondosHistorial();
 
   const formatCurrency = (value) => parseInt(value).toLocaleString('es-CL');
   const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('es-CL') : '—';
 
-  const cargasFiltradas = cargas.filter(carga => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      carga.nombre_familia?.toLowerCase().includes(searchLower) ||
-      carga.rut_principal?.toLowerCase().includes(searchLower) ||
-      carga.motivo?.toLowerCase().includes(searchLower)
-    );
+  // Aplicamos el filtro secundario de Estado sobre las cargas ya filtradas por texto del hook
+  const cargasFiltradasFinal = cargasFiltradasPorTexto.filter(carga => {
+    if (estadoFilter === 'TODOS') return true;
+    return carga.estado && carga.estado.toUpperCase() === estadoFilter.toUpperCase();
   });
 
-  const detalle = selectedCarga || (cargas.length > 0 ? cargas[0] : null);
+  const detalle = selectedCarga || (cargasFiltradasFinal.length > 0 ? cargasFiltradasFinal[0] : null);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f5f5f2]">
@@ -59,38 +45,45 @@ const CargaFondosHistorialPage = () => {
           Historial de todas las cargas realizadas a beneficiarios. Seleccione una fila para ver el detalle, o presione "Nueva carga" para iniciar una nueva asignación.
         </div>
 
-        {/* Métricas */}
-        <div className="grid grid-cols-4 gap-[10px] mb-[14px]">
-          <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] p-[10px_14px]">
-            <div className="text-[11px] text-[#888888] mb-[3px]">Cargas este mes</div>
-            <div className="text-[20px] font-bold text-[#2563a0]">23</div>
-            <div className="text-[11px] text-[#aaaaaa] mt-[2px]">mayo 2026</div>
+        {/* Métricas Dinámicas Automatizadas Originales (Intactas) */}
+        {metricas && (
+          <div className="grid grid-cols-4 gap-[10px] mb-[14px]">
+            <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] p-[10px_14px]">
+              <div className="text-[11px] text-[#888888] mb-[3px]">Cargas este mes</div>
+              <div className="text-[20px] font-bold text-[#2563a0]">{metricas.cargasEsteMes}</div>
+              <div className="text-[11px] text-[#aaaaaa] mt-[2px] capitalize">{metricas.nombreMesAño}</div>
+            </div>
+            
+            <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] p-[10px_14px]">
+              <div className="text-[11px] text-[#888888] mb-[3px]">Total distribuido este mes</div>
+              <div className="text-[20px] font-bold text-[#1e7a3e]">${formatCurrency(metricas.totalDistribuidoMes)}</div>
+              <div className="text-[11px] text-[#aaaaaa] mt-[2px]">a {metricas.beneficiariosUnicosMes} beneficiarios</div>
+            </div>
+            
+            <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] p-[10px_14px]">
+              <div className="text-[11px] text-[#888888] mb-[3px]">Cargas bloqueadas</div>
+              <div className="text-[20px] font-bold text-[#c47f00]">{metricas.cargasBloqueadas}</div>
+              <div className="text-[11px] text-[#aaaaaa] mt-[2px]">por regla u omisión</div>
+            </div>
+            
+            <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] p-[10px_14px]">
+              <div className="text-[11px] text-[#888888] mb-[3px]">Beneficiarios habilitados</div>
+              <div className="text-[20px] font-bold text-[#2563a0]">{metricas.beneficiariosHabilitados}</div>
+              <div className="text-[11px] text-[#aaaaaa] mt-[2px]">pueden recibir fondos</div>
+            </div>
           </div>
-          <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] p-[10px_14px]">
-            <div className="text-[11px] text-[#888888] mb-[3px]">Total distribuido este mes</div>
-            <div className="text-[20px] font-bold text-[#1e7a3e]">$3.840.000</div>
-            <div className="text-[11px] text-[#aaaaaa] mt-[2px]">a 23 beneficiarios</div>
-          </div>
-          <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] p-[10px_14px]">
-            <div className="text-[11px] text-[#888888] mb-[3px]">Cargas bloqueadas</div>
-            <div className="text-[20px] font-bold text-[#c47f00]">4</div>
-            <div className="text-[11px] text-[#aaaaaa] mt-[2px]">por regla 30 días</div>
-          </div>
-          <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] p-[10px_14px]">
-            <div className="text-[11px] text-[#888888] mb-[3px]">Beneficiarios habilitados</div>
-            <div className="text-[20px] font-bold text-[#2563a0]">128</div>
-            <div className="text-[11px] text-[#aaaaaa] mt-[2px]">pueden recibir fondos</div>
-          </div>
-        </div>
+        )}
 
         {/* Layout de componentes modulares */}
         <div className="grid grid-cols-[1.4fr_1fr] gap-[14px] items-start">
           <CargaFondosList 
-            cargasFiltradas={cargasFiltradas}
+            cargasFiltradas={cargasFiltradasFinal}
             totalCargas={cargas.length}
             selectedCarga={selectedCarga}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
+            estadoFilter={estadoFilter}
+            onEstadoFilterChange={setEstadoFilter}
             onCargaSelect={setSelectedCarga}
             onNewCarga={() => navigate('/nueva-carga')}
             formatCurrency={formatCurrency}

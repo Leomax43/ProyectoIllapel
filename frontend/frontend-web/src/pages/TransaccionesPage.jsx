@@ -22,43 +22,67 @@ const TransaccionesPage = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const itemsPorPagina = 8;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        setPaginaActual(1);
-        
-        // Obtener métricas
-        const metricsData = await obtenerMetricas();
-        console.log('📊 Métricas obtenidas:', metricsData);
-        setMetricas(metricsData.metricas);
+  // Efecto para cargar datos desde la API cuando cambian los filtros principales
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setPaginaActual(1);
+      
+      // Obtener métricas
+      const metricsData = await obtenerMetricas();
+      setMetricas(metricsData.metricas);
 
-        // Obtener transacciones
-        const transData = await obtenerTransacciones({
-          fecha_inicio: fechaInicio,
-          fecha_fin: fechaFin,
-          tipo: tipoFiltro,
-          rut_comercio: comercioFiltro
-        });
-        console.log('📊 Transacciones obtenidas:', transData);
-        setTransacciones(transData.transacciones || []);
-      } catch (err) {
-        console.error('❌ Error cargando datos:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+      // CORRECCIÓN DE FECHAS: Ajustamos horas para cubrir el día completo
+      const fInicioParam = fechaInicio ? `${fechaInicio}T00:00:00` : '';
+      const fFinParam = fechaFin ? `${fechaFin}T23:59:59` : '';
 
-    fetchData();
-  }, [fechaInicio, fechaFin, tipoFiltro, comercioFiltro]);
+      // Obtener transacciones pasando los parámetros limpios
+      const transData = await obtenerTransacciones({
+        fecha_inicio: fInicioParam,
+        fecha_fin: fFinParam,
+        tipo: tipoFiltro === 'todos' ? '' : tipoFiltro,
+        rut_comercio: comercioFiltro === 'todos' ? '' : comercioFiltro
+      });
+      
+      setTransacciones(transData.transacciones || []);
+    } catch (err) {
+      console.error('❌ Error cargando datos:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Lógica de paginación
-  const totalPaginas = Math.ceil(transacciones.length / itemsPorPagina);
+  fetchData();
+}, [fechaInicio, fechaFin, tipoFiltro, comercioFiltro]);
+
+  // 1. FILTRADO LOCAL RECOGIENDO EL SEARCH TERM (Buscador por texto)
+  const transaccionesFiltradas = transacciones.filter(tx => {
+    if (!searchTerm.trim()) return true;
+    const searchLower = searchTerm.toLowerCase();
+    
+    return (
+      tx.nombre_familia?.toLowerCase().includes(searchLower) ||
+      tx.rut_representante?.toLowerCase().includes(searchLower) ||
+      tx.nombre_comercio?.toLowerCase().includes(searchLower) ||
+      tx.rut_comercio?.toLowerCase().includes(searchLower) ||
+      tx.id_transaccion?.toString().includes(searchLower)
+    );
+  });
+
+  // 2. LÓGICA DE PAGINACIÓN SOBRE LOS DATOS YA FILTRADOS
+  const totalPaginas = Math.ceil(transaccionesFiltradas.length / itemsPorPagina);
   const indexInicio = (paginaActual - 1) * itemsPorPagina;
   const indexFin = indexInicio + itemsPorPagina;
-  const transaccionesPaginadas = transacciones.slice(indexInicio, indexFin);
+  const transaccionesPaginadas = transaccionesFiltradas.slice(indexInicio, indexFin);
+
+  // Manejador para reiniciar la página si el usuario escribe en el buscador
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    setPaginaActual(1);
+  };
 
   const irAPagina = (pagina) => {
     if (pagina >= 1 && pagina <= totalPaginas) {
@@ -107,13 +131,11 @@ const TransaccionesPage = () => {
           Registro completo de todos los movimientos del sistema: cargas de fondos, pagos por QR y pagos por RUT+PIN. Filtre por fecha, beneficiario, comercio o tipo de operación.
         </div>
 
-        {/* Componente de Métricas */}
         <MetricasTransacciones metricas={metricas} />
 
-        {/* Componente de Filtros */}
         <FiltrosTransacciones
           searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
+          onSearchChange={handleSearchChange} // Usar el manejador que resetea la página
           fechaInicio={fechaInicio}
           onFechaInicioChange={setFechaInicio}
           fechaFin={fechaFin}
@@ -124,12 +146,11 @@ const TransaccionesPage = () => {
           onComercioFiltroChange={setComercioFiltro}
         />
 
-        {/* Componente de Tabla y Paginador */}
         <TablaTransacciones
           loading={loading}
           error={error}
-          transaccionesPaginadas={transaccionesPaginadas}
-          transaccionesTotales={transacciones}
+          transaccionesPaginadas={transaccionesPaginadas} // Pasa los datos filtrados y segmentados
+          transaccionesTotales={transaccionesFiltradas}   // Totales del subconjunto filtrado para contadores
           paginaActual={paginaActual}
           totalPaginas={totalPaginas}
           indexInicio={indexInicio}

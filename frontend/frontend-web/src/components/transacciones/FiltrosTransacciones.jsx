@@ -41,10 +41,10 @@ const FiltrosTransacciones = ({
           className="border border-[#cccccc] rounded-[3px] p-[5px_9px] text-[12px] text-[#333333] w-[92%] bg-[#ffffff] focus:outline-none"
         >
           <option value="todos">Todos los tipos</option>
-          <option value="carga">Carga de fondos</option>
-          <option value="pago-qr">Pago QR</option>
-          <option value="pago-pin">Pago RUT+PIN</option>
-          <option value="anulado">Anulado</option>
+          <option value="CARGA">Carga de fondos</option>
+          <option value="QR">Pago QR</option>
+          <option value="RUT+PIN">Pago RUT+PIN</option>
+          <option value="ANULADO">Anulado</option>
         </select>
         <select
           value={comercioFiltro}
@@ -52,10 +52,11 @@ const FiltrosTransacciones = ({
           className="border border-[#cccccc] rounded-[3px] p-[5px_9px] text-[12px] text-[#333333] w-[92%] bg-[#ffffff] focus:outline-none"
         >
           <option value="todos">Todos los comercios</option>
-          <option value="minimarket">Minimarket Don Jorge</option>
-          <option value="ferreteria">Ferretería El Clavo</option>
-          <option value="supermercado">Supermercado La Esperanza</option>
-          <option value="libreria">Librería Saber</option>
+          {/* NOTA: Aquí debes poner el RUT real de cada comercio como valor en lugar de su rubro */}
+          <option value="11.111.111-1">Minimarket Don Jorge</option>
+          <option value="22.222.222-2">Ferretería El Clavo</option>
+          <option value="33.333.333-3">Supermercado La Esperanza</option>
+          <option value="44.444.444-4">Librería Saber</option>
         </select>
         <button className="bg-[#2563a0] border-none text-[#ffffff] rounded-[3px] p-[6px_14px] text-[12px] cursor-pointer whitespace-nowrap transition-colors hover:bg-[#1a4f80]">
           Filtrar

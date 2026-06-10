@@ -67,7 +67,8 @@ const fondosService = {
                 pdf_resolucion: carga.pdf_resolucion,
                 nombre_familia: familia.nombre_familia,
                 rut_principal: familia.rut_representante,
-                saldo: familia.saldo
+                saldo: familia.saldo,
+                estado: carga.estado
               }));
               todasLasCargas = [...todasLasCargas, ...cargasConNombreFamilia];
             }

@@ -9,7 +9,8 @@ function BeneficiariesTable({
   onNextPage = () => {},
   onPrevPage = () => {},
   searchTerm = '',
-  onSearchChange = () => {}
+  onSearchChange = () => {},
+  onSearchSubmit = () => {} // Nueva prop recibida desde la página principal
 }) {
   const getActionButtons = (estado) => {
     const buttons = ['Ver'];
@@ -38,7 +39,15 @@ function BeneficiariesTable({
             PDF
           </button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#555' }}>
+        
+        {/* Formulario contenedor que controla el evento sin refrescar la página */}
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSearchSubmit();
+          }}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#555' }}
+        >
           Buscar:{' '}
           <input
             type="text"
@@ -48,13 +57,28 @@ function BeneficiariesTable({
             style={{
               border: '1px solid #ccc',
               borderRadius: '3px',
-              padding: '3px 8px',
+              padding: '4px 8px',
               fontSize: '12px',
               width: '130px',
               outline: 'none',
             }}
           />
-        </div>
+          <button
+            type="submit"
+            style={{
+              background: '#2563a0',
+              color: '#fff',
+              border: 'none',
+              padding: '4px 10px',
+              borderRadius: '3px',
+              fontSize: '11px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            Buscar
+          </button>
+        </form>
       </div>
 
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
@@ -73,7 +97,7 @@ function BeneficiariesTable({
           {beneficiarios.length === 0 ? (
             <tr>
               <td colSpan="7" style={{ textAlign: 'center', padding: '16px', color: '#999', fontSize: '12px' }}>
-                {searchTerm ? 'No hay resultados para tu búsqueda' : 'No hay beneficiarios para mostrar'}
+                No hay beneficiarios para mostrar
               </td>
             </tr>
           ) : (
@@ -160,9 +184,9 @@ function BeneficiariesTable({
               borderRadius: '3px',
               fontSize: '11px',
               border: '1px solid #ccc',
-              background: currentPage === totalPages ? '#e0e0e0' : '#fff',
-              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-              color: currentPage === totalPages ? '#999' : '#333',
+              background: currentPage >= totalPages ? '#e0e0e0' : '#fff',
+              cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
+              color: currentPage >= totalPages ? '#999' : '#333',
             }}
           >
             Siguiente

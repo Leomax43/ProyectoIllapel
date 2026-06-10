@@ -9,8 +9,14 @@ import BeneficiariesTable from '../components/dashboard/BeneficiariesTable.jsx';
 
 function AdminDashboard() {
   const { logout } = useAuth();
-  const navigate = useNavigate(); // Hook moderno para cambiar de página
+  const navigate = useNavigate();
+  
+  // Término definitivo que se envía a la API del backend
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Estado local para capturar el input del teclado sin re-renderizar todo
+  const [localSearchTerm, setLocalSearchTerm] = useState('');
+
   const { data, loading, error, currentPage, nextPage, prevPage } = useDashboardPaginado(searchTerm);
 
   const {
@@ -29,9 +35,13 @@ function AdminDashboard() {
     },
   } = data || {};
 
+  // Al presionar el botón "Buscar" o Enter, enviamos el estado local al hook de paginación
+  const handleEjecutarBusqueda = () => {
+    setSearchTerm(localSearchTerm);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-[#f5f5f2]">
-      {/* Le pasamos navigate en lugar del viejo onNavigate */}
       <DashboardHeader onLogout={logout} onNavigate={navigate} currentPage="dashboard" />
 
       <div className="p-[16px] bg-[#f5f5f2] min-h-[400px]">
@@ -62,8 +72,9 @@ function AdminDashboard() {
               recordsPerPage={paginacion.registrosPorPagina}
               onNextPage={nextPage}
               onPrevPage={prevPage}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
+              searchTerm={localSearchTerm}
+              onSearchChange={setLocalSearchTerm}
+              onSearchSubmit={handleEjecutarBusqueda}
             />
           </>
         )}
