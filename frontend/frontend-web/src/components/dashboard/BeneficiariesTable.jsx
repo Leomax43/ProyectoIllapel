@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function BeneficiariesTable({ 
   beneficiarios = [], 
@@ -10,14 +10,27 @@ function BeneficiariesTable({
   onPrevPage = () => {},
   searchTerm = '',
   onSearchChange = () => {},
-  onSearchSubmit = () => {} // Nueva prop recibida desde la página principal
+  onSearchSubmit = () => {},
+  onNavigate
 }) {
-  const getActionButtons = (estado) => {
-    const buttons = ['Ver'];
-    if (estado?.toUpperCase() === 'PENDIENTE') {
-      buttons.push('Aprobar');
-    } else if (estado?.toUpperCase() === 'ACTIVO') {
-      buttons.push('Fondos');
+  const navigate = onNavigate || useNavigate();
+
+  const badgeStyle = (estado) => {
+    const estadoUpper = (estado || '').toUpperCase();
+    if (estadoUpper === 'ACTIVO') return 'badge activo bg-[#e6f7f4] text-verde border border-[#b2e8de]';
+    if (estadoUpper === 'PENDIENTE') return 'badge pendiente bg-[#fff8e0] text-[#a07800] border border-[#f0d970]';
+    if (estadoUpper === 'BAJA') return 'badge baja bg-[#fde8e8] text-[#b52b2b] border border-[#f5b8b8]';
+    return 'bg-[#e9ecef] text-[#555] border border-[#ddd]';
+  };
+
+  const getActionButtons = (estado, beneficiario) => {
+    const estadoUpper = (estado || '').toUpperCase();
+    const buttons = [];
+    buttons.push({ label: 'Ver', style: 'btn-ver bg-azul', action: () => navigate(`/beneficiarios`) });
+    if (estadoUpper === 'PENDIENTE') {
+      buttons.push({ label: 'Aprobar', style: 'btn-aprobar bg-celeste', action: () => navigate(`/aprobaciones`) });
+    } else if (estadoUpper === 'ACTIVO') {
+      buttons.push({ label: 'Fondos', style: 'btn-fondos bg-verde', action: () => navigate(`/nueva-carga`) });
     }
     return buttons;
   };
@@ -26,27 +39,26 @@ function BeneficiariesTable({
   const endRecord = Math.min(currentPage * recordsPerPage, totalRecords);
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}>
-      <div style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee' }}>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <button style={{ background: '#2563a0', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: '3px', fontSize: '12px', cursor: 'pointer' }}>
-            Excel
-          </button>
-          <button style={{ background: '#2563a0', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: '3px', fontSize: '12px', cursor: 'pointer' }}>
-            CSV
-          </button>
-          <button style={{ background: '#2563a0', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: '3px', fontSize: '12px', cursor: 'pointer' }}>
-            PDF
-          </button>
+    <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden">
+      {/* PANEL HEADER */}
+      <div className="bg-azul text-white text-[13px] font-semibold px-[16px] py-[9px] flex justify-between items-center">
+        <div>
+          <span className="inline-block w-[3px] h-[16px] bg-amarillo rounded-[2px] mr-[8px] align-middle"></span>
+          Actividad reciente — Beneficiarios
         </div>
-        
-        {/* Formulario contenedor que controla el evento sin refrescar la página */}
+        <div className="flex gap-[5px]">
+          <button className="bg-azul text-white border-none px-[10px] py-[4px] rounded-[3px] text-[11px] cursor-pointer hover:brightness-110" style={{ background: 'rgba(255,255,255,0.15)', fontFamily: "'Exo 2', Arial, sans-serif" }}>Excel</button>
+          <button className="text-white border-none px-[10px] py-[4px] rounded-[3px] text-[11px] cursor-pointer hover:brightness-110" style={{ background: 'rgba(255,255,255,0.15)', fontFamily: "'Exo 2', Arial, sans-serif" }}>CSV</button>
+          <button className="text-white border-none px-[10px] py-[4px] rounded-[3px] text-[11px] cursor-pointer hover:brightness-110" style={{ background: 'rgba(255,255,255,0.15)', fontFamily: "'Exo 2', Arial, sans-serif" }}>PDF</button>
+        </div>
+      </div>
+
+      {/* TABLE CONTROLS */}
+      <div className="px-[14px] py-[8px] flex justify-between items-center border-b border-gris-borde bg-[#fafafa]">
+        <div className="text-[12px] text-gris-claro">Mostrando últimos registros</div>
         <form 
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSearchSubmit();
-          }}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#555' }}
+          onSubmit={(e) => { e.preventDefault(); onSearchSubmit(); }}
+          className="flex items-center gap-[6px] text-[12px] text-gris-texto"
         >
           Buscar:{' '}
           <input
@@ -54,98 +66,64 @@ function BeneficiariesTable({
             placeholder="Nombre, RUT..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            style={{
-              border: '1px solid #ccc',
-              borderRadius: '3px',
-              padding: '4px 8px',
-              fontSize: '12px',
-              width: '130px',
-              outline: 'none',
-            }}
+            className="border border-gris-borde rounded-[3px] px-[9px] py-[4px] text-[12px] w-[160px] outline-none focus:border-verde"
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
           />
           <button
             type="submit"
-            style={{
-              background: '#2563a0',
-              color: '#fff',
-              border: 'none',
-              padding: '4px 10px',
-              borderRadius: '3px',
-              fontSize: '11px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-            }}
+            className="bg-azul text-white border-none px-[10px] py-[4px] rounded-[3px] text-[11px] cursor-pointer font-bold"
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
           >
             Buscar
           </button>
         </form>
       </div>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+      {/* TABLE */}
+      <table className="w-full border-collapse text-[12px]">
         <thead>
           <tr>
-            <th style={{ background: '#2563a0', color: '#fff', padding: '8px 10px', textAlign: 'left', fontWeight: 'normal' }}>RUT</th>
-            <th style={{ background: '#2563a0', color: '#fff', padding: '8px 10px', textAlign: 'left', fontWeight: 'normal' }}>Beneficiario</th>
-            <th style={{ background: '#2563a0', color: '#fff', padding: '8px 10px', textAlign: 'left', fontWeight: 'normal' }}>Núcleo familiar</th>
-            <th style={{ background: '#2563a0', color: '#fff', padding: '8px 10px', textAlign: 'left', fontWeight: 'normal' }}>Saldo actual</th>
-            <th style={{ background: '#2563a0', color: '#fff', padding: '8px 10px', textAlign: 'left', fontWeight: 'normal' }}>Última carga</th>
-            <th style={{ background: '#2563a0', color: '#fff', padding: '8px 10px', textAlign: 'left', fontWeight: 'normal' }}>Estado</th>
-            <th style={{ background: '#2563a0', color: '#fff', padding: '8px 10px', textAlign: 'left', fontWeight: 'normal' }}>Acciones</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[8px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">RUT</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[8px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Beneficiario</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[8px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Núcleo familiar</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[8px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Saldo actual</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[8px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Última carga</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[8px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Estado</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[8px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {beneficiarios.length === 0 ? (
             <tr>
-              <td colSpan="7" style={{ textAlign: 'center', padding: '16px', color: '#999', fontSize: '12px' }}>
+              <td colSpan="7" className="text-center px-[12px] py-[16px] text-gris-claro text-[12px]">
                 No hay beneficiarios para mostrar
               </td>
             </tr>
           ) : (
-            beneficiarios.map((beneficiario) => (
-              <tr key={beneficiario.id_familia} style={{ cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.background = '#f0f6ff'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
-                <td style={{ padding: '7px 10px', borderBottom: '1px solid #f0f0f0', color: '#333' }}>{beneficiario.rut_representante}</td>
-                <td style={{ padding: '7px 10px', borderBottom: '1px solid #f0f0f0', color: '#333' }}>{beneficiario.nombre_familia}</td>
-                <td style={{ padding: '7px 10px', borderBottom: '1px solid #f0f0f0', color: '#333' }}>Fam. {beneficiario.nombre_familia?.split(' ')[0]}</td>
-                <td style={{ padding: '7px 10px', borderBottom: '1px solid #f0f0f0', color: '#333' }}>${(beneficiario.saldo || 0).toLocaleString('es-CL')}</td>
-                <td style={{ padding: '7px 10px', borderBottom: '1px solid #f0f0f0', color: '#333' }}>—</td>
-                <td style={{ padding: '7px 10px', borderBottom: '1px solid #f0f0f0', color: '#333' }}>
-                  <span style={{
-                    padding: '2px 8px',
-                    borderRadius: '10px',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                    ...(beneficiario.estado?.toUpperCase() === 'ACTIVO'
-                      ? { background: '#d1e7dd', color: '#0f5132' }
-                      : beneficiario.estado?.toUpperCase() === 'PENDIENTE'
-                        ? { background: '#fff3cd', color: '#856404' }
-                        : beneficiario.estado?.toUpperCase() === 'BAJA'
-                          ? { background: '#f8d7da', color: '#842029' }
-                          : { background: '#e9ecef', color: '#555' })
-                  }}>
+            beneficiarios.map((beneficiario, idx) => (
+              <tr 
+                key={beneficiario.id_familia || idx} 
+                className="hover:bg-[#f0f8f6] cursor-pointer"
+              >
+                <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">{beneficiario.rut_representante}</td>
+                <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">{beneficiario.nombre_familia}</td>
+                <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">Fam. {beneficiario.nombre_familia?.split(' ')[0]}</td>
+                <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">${(beneficiario.saldo || 0).toLocaleString('es-CL')}</td>
+                <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">—</td>
+                <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">
+                  <span className={`inline-block px-[9px] py-[3px] rounded-[12px] text-[11px] font-semibold ${badgeStyle(beneficiario.estado)}`}>
                     {beneficiario.estado?.charAt(0).toUpperCase() + beneficiario.estado?.slice(1).toLowerCase()}
                   </span>
                 </td>
-                <td style={{ padding: '7px 10px', borderBottom: '1px solid #f0f0f0', color: '#333' }}>
-                  {getActionButtons(beneficiario.estado).map((btn) => (
+                <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">
+                  {getActionButtons(beneficiario.estado, beneficiario).map((btn, i) => (
                     <button
-                      key={btn}
-                      style={{
-                        padding: '3px 10px',
-                        borderRadius: '3px',
-                        fontSize: '11px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: '#fff',
-                        marginRight: '3px',
-                        background:
-                          btn === 'Ver'
-                            ? '#2563a0'
-                            : btn === 'Aprobar'
-                              ? '#1e7a3e'
-                              : '#c47f00',
-                      }}
+                      key={i}
+                      onClick={btn.action}
+                      className={`px-[10px] py-[4px] rounded-[3px] text-[11px] border-none cursor-pointer text-white mr-[3px] font-medium ${btn.style}`}
+                      style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                     >
-                      {btn}
+                      {btn.label}
                     </button>
                   ))}
                 </td>
@@ -155,39 +133,28 @@ function BeneficiariesTable({
         </tbody>
       </table>
 
-      <div style={{ padding: '8px 12px', fontSize: '12px', color: '#555', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eee' }}>
+      {/* PAGER */}
+      <div className="px-[14px] py-[8px] text-[12px] text-gris-claro flex justify-between items-center border-t border-gris-borde bg-[#fafafa]">
         <span>Mostrando registros del {startRecord} al {endRecord} de un total de {totalRecords} registros</span>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className="flex gap-[8px] items-center">
           <button
             onClick={onPrevPage}
             disabled={currentPage === 1}
-            style={{
-              padding: '3px 8px',
-              borderRadius: '3px',
-              fontSize: '11px',
-              border: '1px solid #ccc',
-              background: currentPage === 1 ? '#e0e0e0' : '#fff',
-              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-              color: currentPage === 1 ? '#999' : '#333',
-            }}
+            className={`px-[8px] py-[3px] rounded-[3px] text-[11px] border border-gris-borde ${
+              currentPage === 1 ? 'bg-[#e0e0e0] text-gris-claro cursor-not-allowed' : 'bg-white text-[#333] cursor-pointer'
+            }`}
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
           >
             Anterior
           </button>
-          <span style={{ fontSize: '11px', fontWeight: 'bold' }}>
-            {currentPage} de {totalPages}
-          </span>
+          <span className="text-[11px] font-bold text-[#333]">{currentPage} de {totalPages}</span>
           <button
             onClick={onNextPage}
-            disabled={currentPage === totalPages}
-            style={{
-              padding: '3px 8px',
-              borderRadius: '3px',
-              fontSize: '11px',
-              border: '1px solid #ccc',
-              background: currentPage >= totalPages ? '#e0e0e0' : '#fff',
-              cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
-              color: currentPage >= totalPages ? '#999' : '#333',
-            }}
+            disabled={currentPage >= totalPages}
+            className={`px-[8px] py-[3px] rounded-[3px] text-[11px] border border-gris-borde ${
+              currentPage >= totalPages ? 'bg-[#e0e0e0] text-gris-claro cursor-not-allowed' : 'bg-white text-[#333] cursor-pointer'
+            }`}
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
           >
             Siguiente
           </button>

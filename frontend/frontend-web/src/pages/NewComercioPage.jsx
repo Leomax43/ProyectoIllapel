@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
-import ComercioForm from '../components/ui/ComercioForm'; // Importación añadida
+import DashboardFooter from '../components/dashboard/DashboardFooter';
+import ComercioForm from '../components/ui/ComercioForm';
 import { useAuth } from '../hooks/useAuth';
 import comerciosService from '../services/comerciosService';
 
@@ -70,13 +71,17 @@ const NewComercioPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f5f5f2]">
-      <DashboardHeader currentPage="comercios" onLogout={logout} onNavigate={navigate} />
+    <div className="flex flex-col min-h-screen bg-gris-bg">
+      <DashboardHeader currentPage="comercios" onLogout={logout} />
 
-      <div className="p-[16px] flex-1">
-        <div className="text-[16px] font-bold text-[#1a3a5c] mb-[4px]">Registrar nuevo comercio</div>
-        <div className="text-[12px] text-[#666666] mb-[16px]">
-          Ingrese los datos del establecimiento comercial local para habilitar su integración con el sistema de subsidios. Una vez registrado, podrá recibir pagos mediante la plataforma.
+      <div className="p-[18px_20px] flex-1">
+        <div className="flex justify-between items-start mb-[16px]">
+          <div>
+            <div className="text-[18px] font-bold text-azul">Registrar nuevo comercio</div>
+            <div className="text-[12px] text-gris-texto mt-[2px] font-light">
+              Ingrese los datos del establecimiento comercial local para habilitar su integración con el sistema de subsidios. Una vez registrado, podrá recibir pagos mediante la plataforma.
+            </div>
+          </div>
         </div>
 
         {message && (
@@ -96,24 +101,28 @@ const NewComercioPage = () => {
           <div className="flex justify-end gap-[8px] mt-[16px]">
             <button
               type="button"
-              className="bg-[#ffffff] border border-[#aaaaaa] text-[#555555] rounded-[3px] p-[8px_20px] text-[13px] cursor-pointer transition-colors hover:bg-[#f5f5f5]"
               onClick={() => navigate('/comercios')}
               disabled={loading}
+              className="bg-white border border-gris-borde text-gris-texto rounded-[3px] px-[20px] py-[8px] text-[13px] cursor-pointer hover:bg-[#f5f5f5]"
+              style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className={`bg-[#2563a0] border-none text-[#ffffff] rounded-[3px] p-[8px_20px] text-[13px] font-bold transition-colors ${
-                loading ? 'not-allowed opacity-60' : 'cursor-pointer hover:bg-[#1a4f80]'
-              }`}
               disabled={loading}
+              className={`bg-azul text-white border-none rounded-[3px] px-[20px] py-[8px] text-[13px] font-bold ${
+                loading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:brightness-110'
+              }`}
+              style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
             >
               {loading ? 'Guardando...' : 'Registrar comercio →'}
             </button>
           </div>
         </form>
       </div>
+
+      <DashboardFooter />
     </div>
   );
 };

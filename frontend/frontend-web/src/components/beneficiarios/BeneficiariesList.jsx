@@ -1,5 +1,3 @@
-import React from 'react';
-
 const BeneficiariesList = ({ 
   beneficiaries, 
   searchTerm, 
@@ -18,138 +16,46 @@ const BeneficiariesList = ({
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
   };
 
-  const formatRUT = (rut) => {
-    return rut;
-  };
-
-  const getStateBadgeStyle = (estado) => {
-    const badgeStyle = {
-      padding: '2px 8px',
-      borderRadius: '10px',
-      fontSize: '11px',
-      fontWeight: 'bold',
-      display: 'inline-block'
-    };
-
-    if (estado === 'ACTIVO') {
-      return { ...badgeStyle, background: '#d1e7dd', color: '#0f5132' };
-    } else if (estado === 'PENDIENTE') {
-      return { ...badgeStyle, background: '#fff3cd', color: '#856404' };
-    } else if (estado === 'BAJA') {
-      return { ...badgeStyle, background: '#f8d7da', color: '#842029' };
-    }
-    return badgeStyle;
-  };
-
-  const panelStyle = {
-    background: '#fff',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    overflow: 'hidden',
-    marginBottom: '14px'
-  };
-
-  const panelHeaderStyle = {
-    background: '#2563a0',
-    color: '#fff',
-    fontSize: '13px',
-    fontWeight: 'bold',
-    padding: '8px 14px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  };
-
-  const controlsRowStyle = {
-    padding: '8px 12px',
-    borderBottom: '1px solid #eee',
-    display: 'flex',
-    gap: '8px',
-    alignItems: 'center',
-    flexWrap: 'wrap'
-  };
-
-  const inputStyle = {
-    flex: '1',
-    minWidth: '120px',
-    border: '1px solid #ccc',
-    borderRadius: '3px',
-    padding: '5px 9px',
-    fontSize: '12px'
-  };
-
-  const selectStyle = {
-    border: '1px solid #ccc',
-    borderRadius: '3px',
-    padding: '5px 8px',
-    fontSize: '12px',
-    color: '#555'
-  };
-
-  const tableStyle = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '12px'
-  };
-
-  const thStyle = {
-    background: '#2563a0',
-    color: '#fff',
-    padding: '7px 10px',
-    textAlign: 'left',
-    fontWeight: 'normal'
-  };
-
-  const tdStyle = {
-    padding: '7px 10px',
-    borderBottom: '1px solid #f0f0f0',
-    color: '#333'
-  };
-
-  const actionBtnStyle = {
-    padding: '3px 9px',
-    borderRadius: '3px',
-    fontSize: '11px',
-    border: 'none',
-    cursor: 'pointer',
-    color: '#fff',
-    marginRight: '3px',
-    background: '#2563a0'
-  };
-
-  const pagerStyle = {
-    padding: '7px 12px',
-    fontSize: '12px',
-    color: '#555',
-    display: 'flex',
-    justifyContent: 'space-between',
-    borderTop: '1px solid #eee'
+  const badgeStyle = (estado) => {
+    if (estado === 'ACTIVO') return 'bg-[#e6f7f4] text-verde border border-[#b2e8de]';
+    if (estado === 'PENDIENTE') return 'bg-[#fff8e0] text-[#a07800] border border-[#f0d970]';
+    if (estado === 'BAJA') return 'bg-[#fde8e8] text-[#b52b2b] border border-[#f5b8b8]';
+    return 'bg-[#e9ecef] text-[#555] border border-[#ddd]';
   };
 
   return (
-    <div style={panelStyle}>
-      <div style={panelHeaderStyle}>
-        Listado de beneficiarios
-        <button 
-          type="button"
+    <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden mb-[14px]">
+      {/* PANEL HEADER */}
+      <div className="bg-azul text-white text-[13px] font-semibold px-[16px] py-[9px] flex justify-between items-center">
+        <div>
+          <span className="inline-block w-[3px] h-[16px] bg-amarillo rounded-[2px] mr-[8px] align-middle"></span>
+          Listado de beneficiarios
+        </div>
+        <button
           onClick={() => onNewSolicitud && onNewSolicitud()}
-          style={{ background: '#1e7a3e', border: 'none', color: '#fff', borderRadius: '3px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}
-          onMouseEnter={(e) => { e.target.style.background = '#165a2f'; }}
-          onMouseLeave={(e) => { e.target.style.background = '#1e7a3e'; }}
+          className="bg-verde border-none text-white rounded-[3px] px-[12px] py-[4px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
         >
           + Nueva solicitud
         </button>
       </div>
 
-      <div style={controlsRowStyle}>
+      {/* CONTROLS */}
+      <div className="px-[14px] py-[8px] flex gap-[8px] items-center flex-wrap border-b border-gris-borde bg-[#fafafa]">
         <input
           type="text"
           placeholder="Buscar por nombre, RUT o ficha..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          style={inputStyle}
+          className="flex-1 min-w-[120px] border border-gris-borde rounded-[3px] px-[9px] py-[5px] text-[12px] outline-none focus:border-verde"
+          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
         />
-        <select value={estadoFilter} onChange={(e) => onEstadoChange(e.target.value)} style={selectStyle}>
+        <select
+          value={estadoFilter}
+          onChange={(e) => onEstadoChange(e.target.value)}
+          className="border border-gris-borde rounded-[3px] px-[8px] py-[5px] text-[12px] text-gris-texto outline-none"
+          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
+        >
           <option value="">Todos los estados</option>
           <option value="ACTIVO">Activo</option>
           <option value="PENDIENTE">Pendiente</option>
@@ -157,40 +63,46 @@ const BeneficiariesList = ({
         </select>
       </div>
 
-      <table style={tableStyle}>
+      {/* TABLE */}
+      <table className="w-full border-collapse text-[12px]">
         <thead>
           <tr>
-            <th style={thStyle}>RUT</th>
-            <th style={thStyle}>Nombre</th>
-            <th style={thStyle}>Núcleo familiar</th>
-            <th style={thStyle}>Saldo</th>
-            <th style={thStyle}>Estado</th>
-            <th style={thStyle}>Acciones</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[7px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">RUT</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[7px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Nombre</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[7px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Núcleo familiar</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[7px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Saldo</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[7px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Estado</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[7px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {beneficiaries.map((ben) => (
-            <tr 
+            <tr
               key={ben.id_familia}
-              style={{
-                background: selectedBeneficiaryId === ben.id_familia ? '#e0edff' : 'transparent',
-                cursor: 'pointer'
-              }}
               onClick={() => onSelectBeneficiary(ben)}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#f0f6ff'}
-              onMouseLeave={(e) => e.currentTarget.style.background = selectedBeneficiaryId === ben.id_familia ? '#e0edff' : 'transparent'}
+              className={`hover:bg-[#f0f8f6] cursor-pointer ${
+                selectedBeneficiaryId === ben.id_familia ? 'bg-[#e0eaf0]' : ''
+              }`}
             >
-              <td style={tdStyle}>{formatRUT(ben.rut_representante)}</td>
-              <td style={tdStyle}>{ben.nombre_familia}</td>
-              <td style={tdStyle}>Fam. {ben.nombre_familia.split(' ')[1] || 'N/A'}</td>
-              <td style={tdStyle}>{formatMoney(ben.saldo)}</td>
-              <td style={tdStyle}>
-                <span style={getStateBadgeStyle(ben.estado)}>{ben.estado}</span>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{ben.rut_representante}</td>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{ben.nombre_familia}</td>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">Fam. {ben.nombre_familia?.split(' ')[1] || 'N/A'}</td>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{formatMoney(ben.saldo)}</td>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">
+                <span className={`inline-block px-[9px] py-[3px] rounded-[12px] text-[11px] font-semibold ${badgeStyle(ben.estado)}`}>
+                  {ben.estado}
+                </span>
               </td>
-              <td style={tdStyle}>
-                <button style={actionBtnStyle}>Ver</button>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">
+                <button className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white mr-[3px] bg-azul font-medium"
+                  style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+                  Ver
+                </button>
                 {ben.estado === 'ACTIVO' && (
-                  <button style={{ ...actionBtnStyle, background: '#c47f00' }}>Fondos</button>
+                  <button className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white bg-[#c49300] font-medium"
+                    style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+                    Fondos
+                  </button>
                 )}
               </td>
             </tr>
@@ -198,42 +110,32 @@ const BeneficiariesList = ({
         </tbody>
       </table>
 
-      <div style={pagerStyle}>
+      {/* PAGER */}
+      <div className="px-[14px] py-[7px] text-[12px] text-gris-claro flex justify-between items-center border-t border-gris-borde bg-[#fafafa]">
         <span>Mostrando {beneficiaries.length} registros (Página {currentPage} de {totalPages})</span>
-        <span>
+        <div className="flex gap-[8px] items-center">
           <button
             onClick={onPrevPage}
             disabled={currentPage === 1}
-            style={{
-              background: currentPage === 1 ? '#ccc' : '#2563a0',
-              color: '#fff',
-              border: 'none',
-              padding: '4px 8px',
-              borderRadius: '3px',
-              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-              fontSize: '11px',
-              marginRight: '8px'
-            }}
+            className={`px-[8px] py-[3px] rounded-[3px] text-[11px] border border-gris-borde ${
+              currentPage === 1 ? 'bg-[#e0e0e0] text-gris-claro cursor-not-allowed' : 'bg-white text-[#333] cursor-pointer'
+            }`}
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
           >
             Anterior
           </button>
-          <span style={{ marginRight: '8px' }}>{currentPage}</span>
+          <span className="text-[11px] font-bold text-[#333]">{currentPage}</span>
           <button
             onClick={onNextPage}
             disabled={currentPage >= totalPages}
-            style={{
-              background: currentPage >= totalPages ? '#ccc' : '#2563a0',
-              color: '#fff',
-              border: 'none',
-              padding: '4px 8px',
-              borderRadius: '3px',
-              cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
-              fontSize: '11px'
-            }}
+            className={`px-[8px] py-[3px] rounded-[3px] text-[11px] border border-gris-borde ${
+              currentPage >= totalPages ? 'bg-[#e0e0e0] text-gris-claro cursor-not-allowed' : 'bg-white text-[#333] cursor-pointer'
+            }`}
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
           >
             Siguiente
           </button>
-        </span>
+        </div>
       </div>
     </div>
   );

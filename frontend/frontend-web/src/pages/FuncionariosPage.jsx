@@ -1,7 +1,6 @@
-// src/pages/FuncionariosPage.jsx
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
+import DashboardFooter from '../components/dashboard/DashboardFooter';
 import { useAuth } from '../hooks/useAuth';
 import { useFuncionarios } from '../hooks/useFuncionarios';
 
@@ -10,7 +9,6 @@ const FuncionariosPage = () => {
   const navigate = useNavigate();
   const adminRol = localStorage.getItem('adminRol');
   
-  // Consumimos toda la lógica modularizada desde nuestro hook
   const { 
     funcionario, 
     loading, 
@@ -22,25 +20,41 @@ const FuncionariosPage = () => {
   // Protección de ruta
   if (adminRol !== 'JEFATURA') {
     return (
-      <div className="flex flex-col min-h-screen bg-[#f5f5f2]">
-        <DashboardHeader currentPage="funcionarios" onLogout={logout} onNavigate={navigate} />
-        <div className="p-[40px] text-center text-[#b52b2b] font-bold">
-          Acceso denegado. Solo Jefatura puede registrar funcionarios.
+      <div className="flex flex-col min-h-screen bg-gris-bg">
+        <DashboardHeader currentPage="funcionarios" onLogout={logout} />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="bg-white border border-gris-borde rounded-[6px] p-[40px] text-center max-w-[500px]">
+            <div className="text-[32px] mb-[10px]">🚫</div>
+            <div className="text-[16px] font-bold text-[#b52b2b] mb-[8px]">Acceso denegado</div>
+            <div className="text-[13px] text-gris-texto mb-[20px]">
+              Solo Jefatura puede registrar funcionarios.
+            </div>
+            <button 
+              onClick={() => navigate('/dashboard')}
+              className="bg-azul text-white border-none rounded-[3px] px-[20px] py-[8px] text-[13px] font-bold cursor-pointer hover:brightness-110"
+              style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
+            >
+              Volver al Panel Principal
+            </button>
+          </div>
         </div>
+        <DashboardFooter />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f5f5f2]">
-      <DashboardHeader currentPage="funcionarios" onLogout={logout} onNavigate={navigate} />
+    <div className="flex flex-col min-h-screen bg-gris-bg">
+      <DashboardHeader currentPage="funcionarios" onLogout={logout} />
       
-      <div className="p-[16px] flex-1 max-w-[800px] m-[0_auto] w-full">
-        <div className="text-[16px] font-bold text-[#1a3a5c] mb-[4px]">
-          Registrar Funcionario Municipal
-        </div>
-        <div className="text-[12px] text-[#666666] mb-[16px]">
-          Cree accesos para nuevos asistentes sociales o personal de jefatura.
+      <div className="p-[18px_20px] flex-1 max-w-[800px] mx-auto w-full">
+        <div className="flex justify-between items-start mb-[16px]">
+          <div>
+            <div className="text-[18px] font-bold text-azul">Registrar Funcionario Municipal</div>
+            <div className="text-[12px] text-gris-texto mt-[2px] font-light">
+              Cree accesos para nuevos asistentes sociales o personal de jefatura.
+            </div>
+          </div>
         </div>
 
         {message && (
@@ -54,62 +68,72 @@ const FuncionariosPage = () => {
         )}
 
         <form onSubmit={registrarFuncionario}>
-          <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] overflow-hidden mb-[14px]">
-            <div className="bg-[#2563a0] text-[#ffffff] text-[13px] font-bold p-[8px_14px]">
+          <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden mb-[14px]">
+            {/* HEADER */}
+            <div className="bg-azul text-white text-[13px] font-semibold px-[16px] py-[9px]">
+              <span className="inline-block w-[3px] h-[16px] bg-amarillo rounded-[2px] mr-[8px] align-middle"></span>
               Datos de acceso al sistema
             </div>
             
             <div className="p-[16px]">
-              
+              {/* RUT */}
               <div className="flex flex-col gap-[4px] mb-[12px]">
-                <label className="text-[11px] color-[#444444] font-bold">RUT del funcionario *</label>
+                <label className="text-[11px] text-gris-texto font-bold">RUT del funcionario *</label>
                 <input 
                   type="text" 
                   placeholder="Ej: 15.123.456-7" 
-                  className="border border-[#cccccc] rounded-[3px] p-[6px_9px] text-[12px] text-[#333333] font-sans focus:outline-none focus:border-[#2563a0]" 
                   value={funcionario.rut} 
                   onChange={(e) => handleChange('rut', e.target.value)} 
+                  className="border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] outline-none focus:border-verde"
+                  style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                 />
               </div>
 
+              {/* NOMBRE */}
               <div className="flex flex-col gap-[4px] mb-[12px]">
-                <label className="text-[11px] color-[#444444] font-bold">Nombre completo *</label>
+                <label className="text-[11px] text-gris-texto font-bold">Nombre completo *</label>
                 <input 
                   type="text" 
                   placeholder="Ej: Juan Pérez Gómez" 
-                  className="border border-[#cccccc] rounded-[3px] p-[6px_9px] text-[12px] text-[#333333] font-sans focus:outline-none focus:border-[#2563a0]" 
                   value={funcionario.nombre_completo} 
                   onChange={(e) => handleChange('nombre_completo', e.target.value)} 
+                  className="border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] outline-none focus:border-verde"
+                  style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                 />
               </div>
 
+              {/* ROL */}
               <div className="flex flex-col gap-[4px] mb-[12px]">
-                <label className="text-[11px] color-[#444444] font-bold">Nivel de Permisos *</label>
+                <label className="text-[11px] text-gris-texto font-bold">Nivel de Permisos *</label>
                 <select 
-                  className="border border-[#cccccc] rounded-[3px] p-[6px_9px] text-[12px] text-[#333333] bg-white font-sans focus:outline-none focus:border-[#2563a0]" 
                   value={funcionario.rol} 
                   onChange={(e) => handleChange('rol', e.target.value)}
+                  className="border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] text-gris-texto outline-none"
+                  style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                 >
                   <option value="ASISTENTE_SOCIAL">Asistente Social (Carga de datos y solicitudes)</option>
                   <option value="JEFATURA">Jefatura (Aprobaciones y control total)</option>
                 </select>
               </div>
 
+              {/* CONTRASEÑA */}
               <div className="flex flex-col gap-[4px] mb-[12px]">
-                <label className="text-[11px] color-[#444444] font-bold">Contraseña de acceso *</label>
+                <label className="text-[11px] text-gris-texto font-bold">Contraseña de acceso *</label>
                 <input 
                   type="password" 
                   placeholder="Establezca una contraseña inicial" 
-                  className="border border-[#cccccc] rounded-[3px] p-[6px_9px] text-[12px] text-[#333333] font-sans focus:outline-none focus:border-[#2563a0]" 
                   value={funcionario.clave} 
                   onChange={(e) => handleChange('clave', e.target.value)} 
+                  className="border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] outline-none focus:border-verde"
+                  style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                 />
               </div>
 
               <button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-[#1e7a3e] border-none text-[#ffffff] rounded-[3px] p-[8px_20px] text-[12px] font-bold cursor-pointer transition-colors hover:bg-[#156130] disabled:bg-[#cccccc] disabled:cursor-not-allowed"
+                className="w-full bg-verde text-white border-none rounded-[3px] px-[20px] py-[8px] text-[12px] font-bold cursor-pointer hover:brightness-110 disabled:bg-[#cccccc] disabled:cursor-not-allowed"
+                style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
               >
                 {loading ? 'Registrando...' : 'Crear cuenta de funcionario'}
               </button>
@@ -118,6 +142,8 @@ const FuncionariosPage = () => {
           </div>
         </form>
       </div>
+
+      <DashboardFooter />
     </div>
   );
 };

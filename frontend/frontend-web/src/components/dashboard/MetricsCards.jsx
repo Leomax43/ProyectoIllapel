@@ -4,42 +4,50 @@ function MetricsCards({ indicadores }) {
       label: 'Beneficiarios activos',
       value: indicadores.beneficiariosActivos || 0,
       sub: 'núcleos familiares',
-      color: 'blue',
+      icon: '👥',
+      barClass: 'from-verde to-verde',
+      valueClass: 'text-verde',
     },
     {
-      label: 'Fondos cargados este mes',
+      label: 'Fondos distribuidos este mes',
       value: `$${(indicadores.fondosCargadosTotales || 0).toLocaleString('es-CL')}`,
-      sub: 'asignaciones realizadas',
-      color: 'green',
+      sub: `${indicadores.solicitudesPendientes || 0} asignaciones`,
+      icon: '💰',
+      barClass: 'from-amarillo to-amber-500',
+      valueClass: 'text-[#c49300]',
     },
     {
       label: 'Solicitudes pendientes',
       value: indicadores.solicitudesPendientes || 0,
       sub: 'esperando aprobación',
-      color: 'orange',
+      icon: '📋',
+      barClass: 'from-celeste to-sky-400',
+      valueClass: 'text-[#1a8fb5]',
     },
     {
       label: 'Comercios registrados',
       value: indicadores.comerciosRegistrados || 0,
       sub: 'verificados y activos',
-      color: 'blue',
+      icon: '🏪',
+      barClass: 'from-azul to-blue-800',
+      valueClass: 'text-azul',
     },
   ];
 
-  const colorMap = {
-    blue: '#2563a0',
-    green: '#1e7a3e',
-    orange: '#c47f00',
-    red: '#b52b2b',
-  };
-
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '16px' }}>
+    <div className="grid grid-cols-4 gap-[12px] mb-[18px]">
       {cards.map((card, idx) => (
-        <div key={idx} style={{ background: '#fff', border: '1px solid #ddd', borderRadius: '4px', padding: '12px 14px' }}>
-          <div style={{ fontSize: '11px', color: '#888', marginBottom: '4px' }}>{card.label}</div>
-          <div style={{ fontSize: '22px', fontWeight: 'bold', color: colorMap[card.color] }}>{card.value}</div>
-          <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>{card.sub}</div>
+        <div
+          key={idx}
+          className="bg-white border border-gris-borde rounded-[6px] p-[14px_16px] relative overflow-hidden"
+        >
+          {/* Barra superior de color */}
+          <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${card.barClass}`}></div>
+          
+          <div className="text-[22px] mb-[6px]">{card.icon}</div>
+          <div className="text-[11px] text-gris-claro mb-[4px] font-normal">{card.label}</div>
+          <div className={`text-[24px] font-bold ${card.valueClass}`}>{card.value}</div>
+          <div className="text-[11px] text-[#bbb] mt-[3px] font-light">{card.sub}</div>
         </div>
       ))}
     </div>

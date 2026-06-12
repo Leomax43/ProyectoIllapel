@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import beneficiariesService from '../../services/beneficiariesService';
 
 const BeneficiaryDetail = ({ beneficiary, onClose }) => {
@@ -26,157 +26,11 @@ const BeneficiaryDetail = ({ beneficiary, onClose }) => {
 
   if (!beneficiary) {
     return (
-      <div style={{
-        background: '#fff',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
-        overflow: 'hidden',
-        padding: '20px',
-        textAlign: 'center',
-        color: '#999'
-      }}>
+      <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden p-[20px] text-center text-gris-claro">
         Selecciona un beneficiario para ver detalles
       </div>
     );
   }
-
-  const panelStyle = {
-    background: '#fff',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    overflow: 'hidden'
-  };
-
-  const panelHeaderStyle = {
-    background: '#2563a0',
-    color: '#fff',
-    fontSize: '13px',
-    fontWeight: 'bold',
-    padding: '8px 14px'
-  };
-
-  const tabsStyle = {
-    display: 'flex',
-    borderBottom: '2px solid #2563a0'
-  };
-
-  const tabStyle = (isActive) => ({
-    padding: '7px 14px',
-    fontSize: '12px',
-    color: isActive ? '#2563a0' : '#555',
-    cursor: 'pointer',
-    borderBottom: isActive ? '2px solid #2563a0' : '2px solid transparent',
-    marginBottom: isActive ? '-2px' : '-2px',
-    background: isActive ? '#f0f6ff' : 'transparent',
-    fontWeight: isActive ? 'bold' : 'normal'
-  });
-
-  const tabContentStyle = {
-    padding: '13px 14px'
-  };
-
-  const detailTitleStyle = {
-    fontSize: '11px',
-    fontWeight: 'bold',
-    color: '#2563a0',
-    marginBottom: '8px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px'
-  };
-
-  const detailGridStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '7px',
-    marginBottom: '10px'
-  };
-
-  const detailFieldStyle = {
-    fontSize: '12px'
-  };
-
-  const detailLblStyle = {
-    fontSize: '11px',
-    color: '#888',
-    marginBottom: '3px'
-  };
-
-  const detailValStyle = {
-    fontSize: '12px',
-    color: '#222',
-    fontWeight: 'bold'
-  };
-
-  const saldoRowStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '8px',
-    marginBottom: '10px'
-  };
-
-  const saldoCardStyle = (isGreen) => ({
-    border: '1px solid ' + (isGreen ? '#1e7a3e' : '#2563a0'),
-    borderRadius: '4px',
-    padding: '8px 12px',
-    textAlign: 'center',
-    background: isGreen ? '#d1e7dd' : '#e0edff'
-  });
-
-  const saldoLabelStyle = {
-    fontSize: '10px',
-    color: '#888',
-    marginBottom: '3px'
-  };
-
-  const saldoValueStyle = {
-    fontSize: '18px',
-    fontWeight: 'bold',
-    color: '#1a3a5c'
-  };
-
-  const actionBottomStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: '8px',
-    padding: '12px 14px',
-    borderTop: '1px solid #eee',
-    background: '#f9f9f9'
-  };
-
-  const btnStyle = (color) => ({
-    background: color,
-    border: 'none',
-    color: '#fff',
-    borderRadius: '3px',
-    padding: '7px 14px',
-    fontSize: '12px',
-    cursor: 'pointer',
-    fontWeight: color !== '#b52b2b' ? 'bold' : 'normal'
-  });
-
-  if (loading) {
-    return (
-      <div style={panelStyle}>
-        <div style={panelHeaderStyle}>Detalle del beneficiario seleccionado</div>
-        <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-          Cargando...
-        </div>
-      </div>
-    );
-  }
-
-  if (!detail) {
-    return (
-      <div style={panelStyle}>
-        <div style={panelHeaderStyle}>Detalle del beneficiario seleccionado</div>
-        <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-          Error al cargar datos
-        </div>
-      </div>
-    );
-  }
-
-  const representante = detail.nucleo_familiar?.[0] || {};
 
   const calculateAge = (birthDate) => {
     if (!birthDate) return 'N/A';
@@ -197,134 +51,148 @@ const BeneficiaryDetail = ({ beneficiary, onClose }) => {
   };
 
   const getFirstCargaDate = () => {
-    const cargas = detail.historial_cargas || [];
+    const cargas = detail?.historial_cargas || [];
     if (cargas.length === 0) return 'N/A';
     return formatDate(cargas[cargas.length - 1].fecha);
   };
 
   const getTotalRecibido = () => {
-    const cargas = detail.historial_cargas || [];
+    const cargas = detail?.historial_cargas || [];
     return cargas.reduce((sum, carga) => sum + carga.monto, 0);
   };
 
-  return (
-    <div style={panelStyle}>
-      <div style={panelHeaderStyle}>Detalle del beneficiario seleccionado</div>
+  const tabs = [
+    { id: 'datos-personales', label: 'Datos personales' },
+    { id: 'nucleo-familiar', label: 'Núcleo familiar' },
+    { id: 'historial', label: 'Historial' },
+    { id: 'pin', label: 'PIN' },
+    { id: 'documentos', label: 'Documentos' },
+  ];
 
-      <div style={tabsStyle}>
-        <div
-          style={tabStyle(activeTab === 'datos-personales')}
-          onClick={() => setActiveTab('datos-personales')}
-        >
-          Datos personales
-        </div>
-        <div
-          style={tabStyle(activeTab === 'nucleo-familiar')}
-          onClick={() => setActiveTab('nucleo-familiar')}
-        >
-          Núcleo familiar
-        </div>
-        <div
-          style={tabStyle(activeTab === 'historial')}
-          onClick={() => setActiveTab('historial')}
-        >
-          Historial
-        </div>
-        <div
-          style={tabStyle(activeTab === 'pin')}
-          onClick={() => setActiveTab('pin')}
-        >
-          PIN
-        </div>
-        <div
-          style={tabStyle(activeTab === 'documentos')}
-          onClick={() => setActiveTab('documentos')}
-        >
-          Documentos
-        </div>
+  const representante = detail?.nucleo_familiar?.[0] || {};
+
+  if (loading) {
+    return (
+      <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden">
+        <div className="bg-azul text-white text-[13px] font-semibold px-[16px] py-[9px]">Detalle del beneficiario seleccionado</div>
+        <div className="p-[20px] text-center text-gris-claro">Cargando...</div>
+      </div>
+    );
+  }
+
+  if (!detail) {
+    return (
+      <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden">
+        <div className="bg-azul text-white text-[13px] font-semibold px-[16px] py-[9px]">Detalle del beneficiario seleccionado</div>
+        <div className="p-[20px] text-center text-gris-claro">Error al cargar datos</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden">
+      {/* PANEL HEADER */}
+      <div className="bg-azul text-white text-[13px] font-semibold px-[16px] py-[9px]">
+        <span className="inline-block w-[3px] h-[16px] bg-amarillo rounded-[2px] mr-[8px] align-middle"></span>
+        Detalle del beneficiario seleccionado
       </div>
 
-      <div style={tabContentStyle}>
+      {/* TABS */}
+      <div className="flex border-b-2 border-azul">
+        {tabs.map((tab) => (
+          <div
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-[14px] py-[7px] text-[12px] cursor-pointer transition-colors ${
+              activeTab === tab.id
+                ? 'text-azul border-b-2 border-azul font-bold bg-[#f0f4f6]'
+                : 'text-gris-texto border-b-2 border-transparent hover:text-azul'
+            }`}
+          >
+            {tab.label}
+          </div>
+        ))}
+      </div>
+
+      {/* TAB CONTENT */}
+      <div className="p-[13px_14px]">
+        {/* DATOS PERSONALES */}
         {activeTab === 'datos-personales' && (
           <>
-            <div style={detailTitleStyle}>Información general</div>
-            <div style={detailGridStyle}>
-              <div style={detailFieldStyle}>
-                <div style={detailLblStyle}>Nombre completo</div>
-                <div style={detailValStyle}>{representante.nombre_completo || 'N/A'}</div>
+            <div className="text-[11px] font-bold text-azul mb-[8px] uppercase tracking-[0.5px]">Información general</div>
+            <div className="grid grid-cols-2 gap-[7px] mb-[10px]">
+              <div className="text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">Nombre completo</div>
+                <div className="text-[12px] text-[#222] font-bold">{representante.nombre_completo || 'N/A'}</div>
               </div>
-              <div style={detailFieldStyle}>
-                <div style={detailLblStyle}>RUT</div>
-                <div style={detailValStyle}>{beneficiary.rut_representante}</div>
+              <div className="text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">RUT</div>
+                <div className="text-[12px] text-[#222] font-bold">{beneficiary.rut_representante}</div>
               </div>
-              <div style={detailFieldStyle}>
-                <div style={detailLblStyle}>Fecha de nacimiento</div>
-                <div style={detailValStyle}>
+              <div className="text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">Fecha de nacimiento</div>
+                <div className="text-[12px] text-[#222] font-bold">
                   {formatDate(representante.fecha_nacimiento)} ({calculateAge(representante.fecha_nacimiento)} años)
                 </div>
               </div>
-              <div style={detailFieldStyle}>
-                <div style={detailLblStyle}>Teléfono</div>
-                <div style={detailValStyle}>{detail.datos_personales?.telefono || 'N/A'}</div>
+              <div className="text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">Teléfono</div>
+                <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.telefono || 'N/A'}</div>
               </div>
-              <div style={{ ...detailFieldStyle, gridColumn: '1/-1' }}>
-                <div style={detailLblStyle}>Dirección</div>
-                <div style={detailValStyle}>{detail.datos_personales?.direccion || 'N/A'}</div>
+              <div className="col-span-2 text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">Dirección</div>
+                <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.direccion || 'N/A'}</div>
               </div>
-              <div style={detailFieldStyle}>
-                <div style={detailLblStyle}>Estado de cuenta</div>
-                <div style={detailValStyle}>
-                  <span style={{
-                    background: detail.datos_personales?.estado === 'ACTIVO' ? '#d1e7dd' : '#f8d7da',
-                    color: detail.datos_personales?.estado === 'ACTIVO' ? '#0f5132' : '#842029',
-                    padding: '2px 8px',
-                    borderRadius: '10px',
-                    fontSize: '11px',
-                    fontWeight: 'bold'
-                  }}>
+              <div className="text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">Estado de cuenta</div>
+                <div className="text-[12px] text-[#222] font-bold">
+                  <span className={`inline-block px-[9px] py-[3px] rounded-[12px] text-[11px] font-semibold ${
+                    detail.datos_personales?.estado === 'ACTIVO'
+                      ? 'bg-[#e6f7f4] text-verde border border-[#b2e8de]'
+                      : 'bg-[#fde8e8] text-[#b52b2b] border border-[#f5b8b8]'
+                  }`}>
                     {detail.datos_personales?.estado}
                   </span>
                 </div>
               </div>
-              <div style={detailFieldStyle}>
-                <div style={detailLblStyle}>Fecha de registro</div>
-                <div style={detailValStyle}>{getFirstCargaDate()}</div>
+              <div className="text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">Fecha de registro</div>
+                <div className="text-[12px] text-[#222] font-bold">{getFirstCargaDate()}</div>
               </div>
             </div>
 
-            <div style={detailTitleStyle}>Saldos</div>
-            <div style={saldoRowStyle}>
-              <div style={saldoCardStyle(false)}>
-                <div style={saldoLabelStyle}>Saldo disponible</div>
-                <div style={saldoValueStyle}>${beneficiary.saldo.toLocaleString('es-CL')}</div>
+            <div className="text-[11px] font-bold text-azul mb-[8px] uppercase tracking-[0.5px]">Saldos</div>
+            <div className="grid grid-cols-2 gap-[8px] mb-[10px]">
+              <div className="border border-azul rounded-[4px] p-[8px_12px] text-center bg-[#e0eaf0]">
+                <div className="text-[10px] text-gris-claro mb-[3px]">Saldo disponible</div>
+                <div className="text-[18px] font-bold text-azul">${beneficiary.saldo.toLocaleString('es-CL')}</div>
               </div>
-              <div style={saldoCardStyle(true)}>
-                <div style={saldoLabelStyle}>Total recibido</div>
-                <div style={saldoValueStyle}>${getTotalRecibido().toLocaleString('es-CL')}</div>
+              <div className="border border-verde rounded-[4px] p-[8px_12px] text-center bg-[#e6f7f4]">
+                <div className="text-[10px] text-gris-claro mb-[3px]">Total recibido</div>
+                <div className="text-[18px] font-bold text-azul">${getTotalRecibido().toLocaleString('es-CL')}</div>
               </div>
             </div>
           </>
         )}
 
+        {/* NÚCLEO FAMILIAR */}
         {activeTab === 'nucleo-familiar' && (
           <>
-            <div style={detailTitleStyle}>Miembros del núcleo familiar</div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+            <div className="text-[11px] font-bold text-azul mb-[8px] uppercase tracking-[0.5px]">Miembros del núcleo familiar</div>
+            <table className="w-full border-collapse text-[11px]">
               <thead>
                 <tr>
-                  <th style={{ background: '#e8f0f8', color: '#1a3a5c', padding: '5px 8px', textAlign: 'left', border: '1px solid #ddd' }}>Nombre</th>
-                  <th style={{ background: '#e8f0f8', color: '#1a3a5c', padding: '5px 8px', textAlign: 'left', border: '1px solid #ddd' }}>Parentesco</th>
-                  <th style={{ background: '#e8f0f8', color: '#1a3a5c', padding: '5px 8px', textAlign: 'left', border: '1px solid #ddd' }}>Edad</th>
+                  <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Nombre</th>
+                  <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Parentesco</th>
+                  <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Edad</th>
                 </tr>
               </thead>
               <tbody>
                 {detail.nucleo_familiar && detail.nucleo_familiar.map((member, idx) => (
                   <tr key={idx}>
-                    <td style={{ padding: '5px 8px', border: '1px solid #eee', color: '#333' }}>{member.nombre_completo}</td>
-                    <td style={{ padding: '5px 8px', border: '1px solid #eee', color: '#333' }}>{member.parentesco || 'N/A'}</td>
-                    <td style={{ padding: '5px 8px', border: '1px solid #eee', color: '#333' }}>
-                      {calculateAge(member.fecha_nacimiento)}
-                    </td>
+                    <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{member.nombre_completo}</td>
+                    <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{member.parentesco || 'N/A'}</td>
+                    <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{calculateAge(member.fecha_nacimiento)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -332,41 +200,32 @@ const BeneficiaryDetail = ({ beneficiary, onClose }) => {
           </>
         )}
 
+        {/* HISTORIAL */}
         {activeTab === 'historial' && (
           <>
-            <div style={detailTitleStyle}>Historial de cargas</div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+            <div className="text-[11px] font-bold text-azul mb-[8px] uppercase tracking-[0.5px]">Historial de cargas</div>
+            <table className="w-full border-collapse text-[11px]">
               <thead>
                 <tr>
-                  <th style={{ background: '#e8f0f8', color: '#1a3a5c', padding: '5px 8px', textAlign: 'left', border: '1px solid #ddd' }}>Fecha</th>
-                  <th style={{ background: '#e8f0f8', color: '#1a3a5c', padding: '5px 8px', textAlign: 'left', border: '1px solid #ddd' }}>Monto</th>
-                  <th style={{ background: '#e8f0f8', color: '#1a3a5c', padding: '5px 8px', textAlign: 'left', border: '1px solid #ddd' }}>Motivo</th>
-                  <th style={{ background: '#e8f0f8', color: '#1a3a5c', padding: '5px 8px', textAlign: 'left', border: '1px solid #ddd' }}>Responsable</th>
+                  <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Fecha</th>
+                  <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Monto</th>
+                  <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Motivo</th>
+                  <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Responsable</th>
                 </tr>
               </thead>
               <tbody>
                 {detail.historial_cargas && detail.historial_cargas.length > 0 ? (
                   detail.historial_cargas.map((carga, idx) => (
                     <tr key={idx}>
-                      <td style={{ padding: '5px 8px', border: '1px solid #eee', color: '#333' }}>
-                        {formatDate(carga.fecha)}
-                      </td>
-                      <td style={{ padding: '5px 8px', border: '1px solid #eee', color: '#333' }}>
-                        ${carga.monto.toLocaleString('es-CL')}
-                      </td>
-                      <td style={{ padding: '5px 8px', border: '1px solid #eee', color: '#333' }}>
-                        {carga.motivo || 'N/A'}
-                      </td>
-                      <td style={{ padding: '5px 8px', border: '1px solid #eee', color: '#333' }}>
-                        {carga.responsable || 'N/A'}
-                      </td>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{formatDate(carga.fecha)}</td>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">${carga.monto.toLocaleString('es-CL')}</td>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{carga.motivo || 'N/A'}</td>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{carga.responsable || 'N/A'}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" style={{ padding: '5px 8px', border: '1px solid #eee', color: '#999', textAlign: 'center' }}>
-                      Sin registros
-                    </td>
+                    <td colSpan="4" className="px-[8px] py-[5px] border border-[#f0f0f0] text-gris-claro text-center">Sin registros</td>
                   </tr>
                 )}
               </tbody>
@@ -374,64 +233,43 @@ const BeneficiaryDetail = ({ beneficiary, onClose }) => {
           </>
         )}
 
+        {/* PIN */}
         {activeTab === 'pin' && (
-          <div style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
+          <div className="text-center text-gris-claro p-[20px]">
             PIN - Funcionalidad pendiente (Implementación por Maximiliano)
           </div>
         )}
 
+        {/* DOCUMENTOS */}
         {activeTab === 'documentos' && (
           <>
-            <div style={detailTitleStyle}>Ficha Social</div>
+            <div className="text-[11px] font-bold text-azul mb-[8px] uppercase tracking-[0.5px]">Ficha Social</div>
             {detail.datos_personales?.pdf_ficha_social ? (
-              <div style={{
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                padding: '12px',
-                background: '#f9fafb'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ fontSize: '24px' }}>📄</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#1a3a5c', marginBottom: '3px' }}>
+              <div className="border border-gris-borde rounded-[4px] p-[12px] bg-[#f9fafb]">
+                <div className="flex items-center gap-[10px]">
+                  <div className="text-[24px]">📄</div>
+                  <div className="flex-1">
+                    <div className="text-[12px] font-bold text-azul mb-[3px]">
                       {detail.datos_personales.pdf_ficha_social.split('/').pop()}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#666' }}>
+                    <div className="text-[11px] text-gris-texto">
                       Ficha Social - Creada el {formatDate(detail.datos_personales?.fecha_creacion)}
                     </div>
                   </div>
                   <a
                     href={`http://localhost:3000${detail.datos_personales.pdf_ficha_social}`}
                     download
-                    style={{
-                      background: '#2563a0',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '3px',
-                      padding: '6px 12px',
-                      fontSize: '11px',
-                      cursor: 'pointer',
-                      textDecoration: 'none',
-                      fontWeight: 'bold'
-                    }}
-                    onMouseEnter={(e) => e.target.style.background = '#1a4f80'}
-                    onMouseLeave={(e) => e.target.style.background = '#2563a0'}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="bg-azul text-white border-none rounded-[3px] px-[12px] py-[6px] text-[11px] cursor-pointer font-bold no-underline hover:brightness-110"
+                    style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                   >
                     Descargar
                   </a>
                 </div>
               </div>
             ) : (
-              <div style={{
-                border: '1px dashed #ddd',
-                borderRadius: '4px',
-                padding: '20px',
-                textAlign: 'center',
-                color: '#999',
-                background: '#f9fafb'
-              }}>
+              <div className="border border-dashed border-gris-borde rounded-[4px] p-[20px] text-center text-gris-claro bg-[#f9fafb]">
                 📭 No hay ficha social adjunta para esta familia
               </div>
             )}
@@ -439,11 +277,21 @@ const BeneficiaryDetail = ({ beneficiary, onClose }) => {
         )}
       </div>
 
-      <div style={actionBottomStyle}>
-        <button style={btnStyle('#b52b2b')}>Dar de baja</button>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button style={btnStyle('#c47f00')}>Cargar fondos</button>
-          <button style={btnStyle('#2563a0')}>Editar datos</button>
+      {/* ACTION BOTTOM */}
+      <div className="flex justify-between gap-[8px] px-[14px] py-[12px] border-t border-gris-borde bg-[#f9f9f9]">
+        <button className="bg-[#b52b2b] text-white border-none rounded-[3px] px-[14px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+          Dar de baja
+        </button>
+        <div className="flex gap-[8px]">
+          <button className="bg-[#c49300] text-white border-none rounded-[3px] px-[14px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+            Cargar fondos
+          </button>
+          <button className="bg-azul text-white border-none rounded-[3px] px-[14px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+            Editar datos
+          </button>
         </div>
       </div>
     </div>

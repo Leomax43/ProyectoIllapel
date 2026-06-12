@@ -1,5 +1,3 @@
-import React from 'react';
-
 const ResumenOperacionPanel = ({
   selectedBeneficiario,
   montoInput,
@@ -12,28 +10,29 @@ const ResumenOperacionPanel = ({
   if (!selectedBeneficiario) return null;
 
   return (
-    <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] overflow-hidden mb-[14px]">
-      <div className="bg-[#e67e1a] text-[#ffffff] text-[13px] font-bold p-[8px_14px]">
+    <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden mb-[14px]">
+      <div className="bg-amarillo text-azul text-[13px] font-semibold px-[16px] py-[9px]">
+        <span className="inline-block w-[3px] h-[16px] bg-verde rounded-[2px] mr-[8px] align-middle"></span>
         Resumen de la solicitud
       </div>
       <div className="p-[16px]">
         <table className="w-full border-collapse text-[11px] mt-[6px]">
           <tbody>
             <tr>
-              <td className="p-[5px_8px] border border-[#eeeeee] text-[#888888]">Beneficiario</td>
-              <td className="p-[5px_8px] border border-[#eeeeee] text-[#333333] font-bold">
+              <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-gris-claro">Beneficiario</td>
+              <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333] font-bold">
                 {selectedBeneficiario.datos_personales?.nombre_familia}
               </td>
             </tr>
             <tr>
-              <td className="p-[5px_8px] border border-[#eeeeee] text-[#888888]">Monto a solicitar</td>
-              <td className="p-[5px_8px] border border-[#eeeeee] font-bold text-[#e67e1a]">
+              <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-gris-claro">Monto a solicitar</td>
+              <td className="px-[8px] py-[5px] border border-[#f0f0f0] font-bold text-[#c49300]">
                 {montoInput ? formatCurrency(parseInt(montoInput)) : '$0'}
               </td>
             </tr>
             <tr>
-              <td className="p-[5px_8px] border border-[#eeeeee] text-[#888888]">PDF adjunto</td>
-              <td className={`p-[5px_8px] border border-[#eeeeee] ${pdfFileName ? 'text-[#2e7d32]' : 'text-[#b52b2b]'}`}>
+              <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-gris-claro">PDF adjunto</td>
+              <td className={`px-[8px] py-[5px] border border-[#f0f0f0] ${pdfFileName ? 'text-verde' : 'text-[#b52b2b]'}`}>
                 {pdfFileName ? '✓ ' + pdfFileName : 'Pendiente'}
               </td>
             </tr>
@@ -41,16 +40,18 @@ const ResumenOperacionPanel = ({
         </table>
         <div className="flex justify-end gap-[8px] mt-[14px]">
           <button
-            className="bg-[#ffffff] border border-[#aaaaaa] text-[#555555] rounded-[3px] p-[8px_20px] text-[13px] cursor-pointer hover:bg-[#f5f5f5] disabled:opacity-50"
+            className="bg-white border border-gris-borde text-gris-texto rounded-[3px] px-[20px] py-[8px] text-[13px] cursor-pointer hover:bg-[#f5f5f5] disabled:opacity-50"
             onClick={onCancel}
             disabled={loading}
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
           >
             Cancelar
           </button>
           <button
-            className="bg-[#1e7a3e] border-none text-[#ffffff] rounded-[3px] p-[8px_22px] text-[13px] font-bold cursor-pointer hover:bg-[#157a3e] disabled:opacity-50"
+            className="bg-verde text-white border-none rounded-[3px] px-[22px] py-[8px] text-[13px] font-bold cursor-pointer hover:brightness-110 disabled:opacity-50"
             onClick={onConfirmar}
             disabled={loading}
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
           >
             {loading ? 'Procesando...' : 'Enviar Solicitud a Jefatura →'}
           </button>

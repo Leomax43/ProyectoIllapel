@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Importamos el hook de navegación real
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
+import DashboardFooter from '../components/dashboard/DashboardFooter';
 import BeneficiariesStats from '../components/beneficiarios/BeneficiariesStats';
 import BeneficiariesList from '../components/beneficiarios/BeneficiariesList';
 import BeneficiaryDetail from '../components/beneficiarios/BeneficiaryDetail';
@@ -29,16 +30,17 @@ const BeneficiariesPage = () => {
   const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f5f5f2]">
-      {/* Le inyectamos el navigate real de React Router */}
-      <DashboardHeader currentPage="beneficiarios" onLogout={logout} onNavigate={navigate} />
+    <div className="flex flex-col min-h-screen bg-gris-bg">
+      <DashboardHeader currentPage="beneficiarios" onLogout={logout} />
 
-      <div className="p-[16px] flex-1">
-        <div className="text-[16px] font-bold text-[#1a3a5c] mb-[4px]">
-          Gestión de beneficiarios
-        </div>
-        <div className="text-[12px] text-[#666666] mb-[14px]">
-          Consulte y administre los perfiles de todos los beneficiarios registrados en el sistema. Haga clic en una fila para ver el detalle completo.
+      <div className="p-[18px_20px] flex-1">
+        <div className="flex justify-between items-start mb-[16px]">
+          <div>
+            <div className="text-[18px] font-bold text-azul">Gestión de beneficiarios</div>
+            <div className="text-[12px] text-gris-texto mt-[2px] font-light">
+              Consulte y administre los perfiles de todos los beneficiarios registrados en el sistema. Haga clic en una fila para ver el detalle completo.
+            </div>
+          </div>
         </div>
 
         <BeneficiariesStats stats={stats} />
@@ -62,6 +64,8 @@ const BeneficiariesPage = () => {
           <BeneficiaryDetail beneficiary={selectedBeneficiary} />
         </div>
       </div>
+
+      <DashboardFooter />
     </div>
   );
 };

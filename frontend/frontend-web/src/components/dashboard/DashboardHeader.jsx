@@ -1,4 +1,7 @@
-function DashboardHeader({ currentPage = 'dashboard', onLogout, onNavigate }) {
+import { useNavigate } from 'react-router-dom';
+
+function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
+  const navigate = useNavigate();
   const adminName = localStorage.getItem('adminName') || 'USUARIO';
   const adminRol = localStorage.getItem('adminRol') || 'ADMIN';
 
@@ -14,10 +17,8 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout, onNavigate }) {
     }
   };
 
-  const handleNavigation = (page) => {
-    if (onNavigate) {
-      onNavigate(page);
-    }
+  const handleNavigation = (path) => {
+    navigate(path);
   };
 
   const today = new Date();
@@ -25,64 +26,84 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout, onNavigate }) {
   const dateStr = today.toLocaleDateString('es-ES', options);
   const capitalizedDate = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
 
-  // Mapeamos los elementos con sus rutas reales correspondientes en App.jsx
   const NAV_ITEMS = [
     { label: 'Inicio', page: 'dashboard', path: '/dashboard' },
     { label: 'Beneficiarios', page: 'beneficiarios', path: '/beneficiarios' },
     { label: 'Comercios', page: 'comercios', path: '/comercios' },
     { label: 'Carga de Fondos', page: 'fondos', path: '/fondos' },
     { label: 'Transacciones', page: 'transacciones', path: '/transacciones' },
-    { label: 'Aprobaciones', page: 'aprobaciones', path: '/aprobaciones', requiereJefatura: true },
-    { label: 'Funcionarios', page: 'funcionarios', path: '/funcionarios', requiereJefatura: true },
   ];
 
-  const navItemsVisibles = NAV_ITEMS.filter(item => {
-    if (item.requiereJefatura) {
-      return adminRol === 'JEFATURA';
-    }
-    return true;
-  });
+  const NAV_ITEMS_JEFATURA = [
+    { label: 'Aprobaciones', page: 'aprobaciones', path: '/aprobaciones' },
+    { label: 'Funcionarios', page: 'funcionarios', path: '/funcionarios' },
+  ];
+
+  const adminRolUpper = adminRol.toUpperCase();
+  const esJefatura = adminRolUpper === 'ADMIN' || adminRolUpper === 'JEFATURA';
+
+  // Obtener iniciales para el avatar
+  const getInitials = (name) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
+  const allNavItems = esJefatura
+    ? [...NAV_ITEMS, ...NAV_ITEMS_JEFATURA]
+    : NAV_ITEMS;
 
   return (
-    <>
-      {/* Top bar */}
-      <div className="bg-[#1a3a5c] p-[10px_16px] flex items-center justify-between">
-        <div className="flex items-center gap-[10px]">
-          <div className="w-[44px] h-[44px] bg-[#ffffff] rounded-[4px] flex items-center justify-center">
-            <svg width="36" height="36" viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="16" fill="#1a3a5c" />
-              <text x="18" y="23" textAnchor="middle" fill="#ffffff" fontSize="11" fontWeight="bold">
-                UCN
-              </text>
-            </svg>
-          </div>
+    <div>
+      {/* TOP BAR — Fondo azul */}
+      <div className="bg-azul flex items-center justify-between h-[62px] px-[20px]">
+        <div className="flex items-center gap-[14px]">
+          {/* Logo oficial Municipalidad de Illapel */}
+          <img 
+            src="https://municipalidadillapel.cl/app/uploads/2023/10/logo-white.png" 
+            alt="Municipalidad de Illapel" 
+            className="h-[42px] w-auto"
+          />
+
+          {/* Separador vertical */}
+          <div className="w-[1px] h-[24px] bg-white/25"></div>
+
+          {/* Texto del logo */}
           <div>
-            <div className="text-[#ffffff] text-[15px] font-bold leading-[1.2]">iLLAPEL</div>
-            <div className="text-[#aac8e8] text-[11px]">Municipalidad · Illapel te ayuda</div>
+            <div className="text-white text-[13px] font-semibold leading-tight">Municipalidad de Illapel</div>
+            <div className="text-celeste text-[11px] font-light">Illapel te ayuda · Sistema de ayudas sociales</div>
           </div>
         </div>
-        <div className="flex items-center gap-[12px] justify-end">
-          <div className="text-right text-[#ffffff] text-[11px] leading-[1.5]">
-            <div className="font-bold">{adminName}</div>
-            <div className="text-[10px]">{adminRol}</div>
+
+        {/* Área del usuario + Logout */}
+        <div className="flex items-center gap-[10px]">
+          <div className="text-right text-white text-[11px] leading-snug">
+            <div className="text-[11px] font-medium">{adminName}</div>
+            <div className="text-celeste text-[10px] font-light">{adminRol}</div>
+          </div>
+          <div className="w-[34px] h-[34px] bg-verde rounded-full flex items-center justify-center text-white font-bold text-[13px]">
+            {getInitials(adminName)}
           </div>
           <button
             onClick={handleLogout}
-            className="bg-[#d32f2f] text-[#ffffff] border-none p-[6px_12px] rounded-[3px] text-[11px] cursor-pointer font-bold transition-colors hover:bg-[#b71c1c]"
+            className="bg-[#d32f2f] text-white border-none px-[12px] py-[6px] rounded-[3px] text-[11px] cursor-pointer font-bold transition-colors hover:bg-[#b71c1c] ml-[4px]"
           >
             Logout
           </button>
         </div>
       </div>
 
-      {/* Nav bar */}
-      <nav className="bg-[#2563a0] flex items-center gap-0">
-        {navItemsVisibles.map((item, idx) => (
+      {/* NAV BAR — Fondo verde */}
+      <nav className="bg-verde flex items-stretch">
+        {allNavItems.map((item, idx) => (
           <div
             key={idx}
             onClick={() => handleNavigation(item.path)}
-            className={`text-[#ffffff] text-[13px] p-[9px_18px] cursor-pointer border-r border-[#ffffff]/15 transition-colors ${
-              currentPage === item.page ? 'bg-[#1a4f80]' : 'bg-transparent hover:bg-[#1a4f80]'
+            className={`text-white text-[12px] font-medium px-[18px] flex items-center cursor-pointer border-r border-white/15 h-[38px] tracking-[0.3px] ${
+              currentPage === item.page ? 'bg-black/18' : 'hover:bg-black/12'
             }`}
           >
             {item.label}
@@ -90,11 +111,17 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout, onNavigate }) {
         ))}
       </nav>
 
-      {/* Date bar */}
-      <div className="bg-[#f5f5f2] p-[6px_16px] text-[12px] text-[#555555] border-b border-[#dddddd]">
-        {capitalizedDate}
+      {/* ACCENT BAR — Degradado de 4px */}
+      <div className="h-[4px] bg-gradient-to-r from-amarillo via-celeste to-verde"></div>
+
+      {/* BREADCRUMB */}
+      <div className="bg-white px-[20px] py-[7px] text-[11px] text-gris-claro border-b border-gris-borde flex justify-between items-center">
+        <div>
+          Inicio <span className="text-azul font-semibold">&rsaquo; Resumen del sistema</span>
+        </div>
+        <div className="text-[#aaa] text-[11px]">{capitalizedDate}</div>
       </div>
-    </>
+    </div>
   );
 }
 

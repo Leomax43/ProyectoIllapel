@@ -1,5 +1,3 @@
-import React from 'react';
-
 const ComerciosList = ({ 
   filteredComercios, 
   totalComercios, 
@@ -12,30 +10,44 @@ const ComerciosList = ({
   onNewComercio,
   formatCurrency 
 }) => {
+  const badgeStyle = (estado) => {
+    if (estado === 'ACTIVO') return 'bg-[#e6f7f4] text-verde border border-[#b2e8de]';
+    if (estado === 'BAJA') return 'bg-[#fde8e8] text-[#b52b2b] border border-[#f5b8b8]';
+    return 'bg-[#e9ecef] text-[#555] border border-[#ddd]';
+  };
+
   return (
-    <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] overflow-hidden mb-[14px]">
-      <div className="bg-[#2563a0] text-[#ffffff] text-[13px] font-bold p-[8px_14px] flex justify-between items-center">
-        Comercios registrados
+    <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden mb-[14px]">
+      {/* PANEL HEADER */}
+      <div className="bg-azul text-white text-[13px] font-semibold px-[16px] py-[9px] flex justify-between items-center">
+        <div>
+          <span className="inline-block w-[3px] h-[16px] bg-amarillo rounded-[2px] mr-[8px] align-middle"></span>
+          Comercios registrados
+        </div>
         <button
-          className="bg-[#1e7a3e] border-none text-[#ffffff] rounded-[3px] p-[4px_12px] text-[12px] cursor-pointer font-bold transition-colors hover:bg-[#157a3e]"
           onClick={onNewComercio}
+          className="bg-verde border-none text-white rounded-[3px] px-[12px] py-[4px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
         >
           + Nuevo comercio
         </button>
       </div>
 
-      <div className="p-[8px_12px] border-b border-[#eeeeee] flex gap-[8px] items-center">
+      {/* CONTROLS */}
+      <div className="px-[12px] py-[8px] flex gap-[8px] items-center border-b border-gris-borde bg-[#fafafa]">
         <input
           type="text"
           placeholder="Buscar por nombre, RUT o rubro..."
-          className="flex-1 border border-[#cccccc] rounded-[3px] p-[5px_9px] text-[12px] focus:outline-none"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
+          className="flex-1 border border-gris-borde rounded-[3px] px-[9px] py-[5px] text-[12px] outline-none focus:border-verde"
+          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
         />
         <select
-          className="border border-[#cccccc] rounded-[3px] p-[5px_8px] text-[12px] text-[#555555] bg-[#ffffff] focus:outline-none"
           value={estadoFilter}
           onChange={(e) => onEstadoChange(e.target.value)}
+          className="border border-gris-borde rounded-[3px] px-[8px] py-[5px] text-[12px] text-gris-texto outline-none"
+          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
         >
           <option>Todos</option>
           <option>ACTIVO</option>
@@ -43,48 +55,47 @@ const ComerciosList = ({
         </select>
       </div>
 
+      {/* TABLE */}
       <table className="w-full border-collapse text-[12px]">
         <thead>
           <tr>
-            <th className="bg-[#2563a0] text-[#ffffff] p-[7px_10px] text-left font-normal border-b border-[#dddddd]">RUT</th>
-            <th className="bg-[#2563a0] text-[#ffffff] p-[7px_10px] text-left font-normal border-b border-[#dddddd]">Nombre comercio</th>
-            <th className="bg-[#2563a0] text-[#ffffff] p-[7px_10px] text-left font-normal border-b border-[#dddddd]">Rubro</th>
-            <th className="bg-[#2563a0] text-[#ffffff] p-[7px_10px] text-left font-normal border-b border-[#dddddd]">Saldo acum.</th>
-            <th className="bg-[#2563a0] text-[#ffffff] p-[7px_10px] text-left font-normal border-b border-[#dddddd]">Estado</th>
-            <th className="bg-[#2563a0] text-[#ffffff] p-[7px_10px] text-left font-normal border-b border-[#dddddd]">Acciones</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[7px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">RUT</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[7px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Nombre comercio</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[7px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Rubro</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[7px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Saldo acum.</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[7px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Estado</th>
+            <th className="bg-[#f0f4f6] text-azul px-[12px] py-[7px] text-left font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {filteredComercios.map((comercio) => (
             <tr
               key={comercio.rut_comercio}
-              className={`cursor-pointer transition-colors ${
-                selectedComercio?.rut_comercio === comercio.rut_comercio ? 'bg-[#e0edff]' : 'hover:bg-[#f9f9f9]'
-              }`}
               onClick={() => onComercioSelect(comercio)}
+              className={`cursor-pointer hover:bg-[#f0f8f6] ${
+                selectedComercio?.rut_comercio === comercio.rut_comercio ? 'bg-[#e0eaf0]' : ''
+              }`}
             >
-              <td className="p-[7px_10px] border-b border-[#f0f0f0] text-[#333333]">{comercio.rut_comercio}</td>
-              <td className="p-[7px_10px] border-b border-[#f0f0f0] text-[#333333]">{comercio.nombre_comercio}</td>
-              <td className="p-[7px_10px] border-b border-[#f0f0f0] text-[#333333]">{comercio.rubro}</td>
-              <td className="p-[7px_10px] border-b border-[#f0f0f0] text-[#333333]">{formatCurrency(comercio.saldo_acumulado)}</td>
-              <td className="p-[7px_10px] border-b border-[#f0f0f0] text-[#333333]">
-                <span className={`p-[2px_8px] rounded-[10px] text-[11px] font-bold inline-block ${
-                  comercio.estado === 'ACTIVO' ? 'bg-[#d1e7dd] text-[#0f5132]' : 'bg-[#f8d7da] text-[#842029]'
-                }`}>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{comercio.rut_comercio}</td>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{comercio.nombre_comercio}</td>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{comercio.rubro}</td>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{formatCurrency(comercio.saldo_acumulado)}</td>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">
+                <span className={`inline-block px-[9px] py-[3px] rounded-[12px] text-[11px] font-semibold ${badgeStyle(comercio.estado)}`}>
                   {comercio.estado}
                 </span>
               </td>
-              <td className="p-[7px_10px] border-b border-[#f0f0f0] text-[#333333]" onClick={(e) => e.stopPropagation()}>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]" onClick={(e) => e.stopPropagation()}>
                 <button
-                  className="p-[3px_9px] rounded-[3px] text-[11px] border-none cursor-pointer text-[#ffffff] mr-[3px] bg-[#2563a0] transition-colors hover:bg-[#1a4f80]"
                   onClick={() => onComercioSelect(comercio)}
+                  className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white mr-[3px] bg-azul font-medium"
+                  style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                 >
                   Ver
                 </button>
                 {comercio.estado !== 'BAJA' && (
-                  <button
-                    className="p-[3px_9px] rounded-[3px] text-[11px] border-none cursor-pointer text-[#ffffff] mr-[3px] bg-[#b52b2b] transition-colors hover:bg-[#8b1a1a]"
-                  >
+                  <button className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white bg-[#b52b2b] font-medium"
+                    style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
                     Baja
                   </button>
                 )}
@@ -94,7 +105,8 @@ const ComerciosList = ({
         </tbody>
       </table>
 
-      <div className="p-[7px_12px] text-[12px] text-[#555555] flex justify-between border-t border-[#eeeeee]">
+      {/* PAGER */}
+      <div className="px-[12px] py-[7px] text-[12px] text-gris-claro flex justify-between border-t border-gris-borde bg-[#fafafa]">
         <span>Mostrando {filteredComercios.length} de {totalComercios} comercios</span>
       </div>
     </div>

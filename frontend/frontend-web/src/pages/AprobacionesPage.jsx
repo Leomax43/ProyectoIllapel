@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
+import DashboardFooter from '../components/dashboard/DashboardFooter';
 import { useAuth } from '../hooks/useAuth';
 import aprobacionesService from '../services/aprobacionesService';
-
-// Nuevos componentes modulares
 import AccesoDenegado from '../components/aprobaciones/AccesoDenegado';
 import AprobacionesSidebar from '../components/aprobaciones/AprobacionesSidebar';
 import AprobacionesDetail from '../components/aprobaciones/AprobacionesDetail';
@@ -27,7 +26,6 @@ const AprobacionesPage = () => {
   const [motivoRechazo, setMotivoRechazo] = useState('');
   const [showRechazoInput, setShowRechazoInput] = useState(false);
 
-  // 1. Render condicional de protección de rol
   if (adminRol !== 'JEFATURA') {
     return <AccesoDenegado logout={logout} navigate={navigate} />;
   }
@@ -107,13 +105,17 @@ const AprobacionesPage = () => {
   );
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f5f5f2]">
-      <DashboardHeader currentPage="aprobaciones" onLogout={logout} onNavigate={navigate} />
+    <div className="flex flex-col min-h-screen bg-gris-bg">
+      <DashboardHeader currentPage="aprobaciones" onLogout={logout} />
       
-      <div className="p-[16px] flex-1">
-        <div className="text-[16px] font-bold text-[#1a3a5c] mb-[4px]">Bandeja de Aprobaciones Financieras</div>
-        <div className="text-[12px] text-[#666666] mb-[16px]">
-          Revise, valide y autorice las solicitudes de carga de saldo elevadas por los asistentes sociales.
+      <div className="p-[18px_20px] flex-1">
+        <div className="flex justify-between items-start mb-[16px]">
+          <div>
+            <div className="text-[18px] font-bold text-azul">Bandeja de Aprobaciones Financieras</div>
+            <div className="text-[12px] text-gris-texto mt-[2px] font-light">
+              Revise, valide y autorice las solicitudes de carga de saldo elevadas por los asistentes sociales.
+            </div>
+          </div>
         </div>
 
         {message && (
@@ -125,8 +127,6 @@ const AprobacionesPage = () => {
         )}
 
         <div className="grid grid-cols-[1.1fr_1fr] gap-[14px] items-start">
-          
-          {/* Panel Izquierdo Modularizado */}
           <AprobacionesSidebar 
             solicitudes={solicitudesFiltradas}
             selectedSolicitud={selectedSolicitud}
@@ -138,7 +138,6 @@ const AprobacionesPage = () => {
             setMotivoRechazo={setMotivoRechazo}
           />
 
-          {/* Panel Derecho Modularizado */}
           <AprobacionesDetail 
             solicitud={selectedSolicitud}
             btnLoading={btnLoading}
@@ -150,9 +149,10 @@ const AprobacionesPage = () => {
             motivoRechazo={motivoRechazo}
             setMotivoRechazo={setMotivoRechazo}
           />
-
         </div>
       </div>
+
+      <DashboardFooter />
     </div>
   );
 };

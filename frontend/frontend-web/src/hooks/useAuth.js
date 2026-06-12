@@ -5,14 +5,19 @@ const TOKEN_KEY = 'illapel_token';
 const USER_KEY = 'illapel_user';
 
 export function useAuth() {
-  const [isAuthenticated, setAuthenticated] = useState(() => !!localStorage.getItem(TOKEN_KEY));
+  // Verificación inicial un poco más estricta (evita strings vacíos o raros)
+  const [isAuthenticated, setAuthenticated] = useState(() => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    return !!token && token !== 'undefined' && token !== 'null';
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Escuchar cambios en localStorage (para sincronizar entre pestañas y componentes)
+  // Escuchar cambios en localStorage (sincronización multi-pestaña)
   useEffect(() => {
     const handleStorageChange = () => {
-      setAuthenticated(!!localStorage.getItem(TOKEN_KEY));
+      const token = localStorage.getItem(TOKEN_KEY);
+      setAuthenticated(!!token && token !== 'undefined' && token !== 'null');
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -25,21 +30,26 @@ export function useAuth() {
     try {
       const resp = await loginApi({ rut, clave });
 
-      // Backend devuelve { status: 'Éxito', mensaje: '...', usuario: {...} }
       if (resp?.status !== 'Éxito' || !resp?.usuario) {
         throw new Error(resp?.mensaje || 'Respuesta inválida del servidor');
       }
 
-      // Guardamos el usuario como "token" de sesión
+      // Guardamos la sesión de forma estructurada
       localStorage.setItem(TOKEN_KEY, JSON.stringify(resp.usuario));
       localStorage.setItem(USER_KEY, JSON.stringify(resp.usuario));
-      // También guardamos nombre y rol para fácil acceso en el dashboard
       localStorage.setItem('adminName', resp.usuario.nombre_completo || 'Usuario');
       localStorage.setItem('adminRol', resp.usuario.rol || 'Admin');
+      
       setAuthenticated(true);
     } catch (err) {
       setError(err?.message || 'No se pudo autenticar');
       setAuthenticated(false);
+      
+      // Limpieza preventiva por seguridad ante credenciales inválidas o expiradas
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem('adminName');
+      localStorage.removeItem('adminRol');
     } finally {
       setLoading(false);
     }
@@ -50,8 +60,11 @@ export function useAuth() {
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem('adminName');
     localStorage.removeItem('adminRol');
+    
+    setError(null); // Limpiamos errores previos al cerrar sesión
     setAuthenticated(false);
-    // Disparar evento de storage para sincronizar estado
+    
+    // Forzamos el evento para actualizar inmediatamente el estado de la pestaña actual
     window.dispatchEvent(new Event('storage'));
   }, []);
 

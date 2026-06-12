@@ -1,5 +1,3 @@
-import React from 'react';
-
 const CargaFondosList = ({
   cargasFiltradas,
   totalCargas,
@@ -17,44 +15,52 @@ const CargaFondosList = ({
 }) => {
   const getEstadoBadge = (estado) => {
     const normalizado = estado ? estado.toUpperCase() : 'PENDIENTE';
-    const baseClass = "p-[2px_8px] rounded-[10px] text-[11px] font-bold inline-block";
+    const baseClass = "inline-block px-[9px] py-[3px] rounded-[12px] text-[11px] font-semibold border";
     
     if (normalizado === 'APROBADO' || normalizado === 'ACTIVO') {
-      return <span className={`${baseClass} bg-[#d1e7dd] text-[#0f5132]`}>{normalizado}</span>;
+      return <span className={`${baseClass} bg-[#e6f7f4] text-verde border-[#b2e8de]`}>{normalizado}</span>;
     } else if (normalizado === 'PENDIENTE') {
-      return <span className={`${baseClass} bg-[#fff3cd] text-[#856404]`}>{normalizado}</span>;
+      return <span className={`${baseClass} bg-[#fff8e0] text-[#a07800] border-[#f0d970]`}>{normalizado}</span>;
     } else if (normalizado === 'RECHAZADO' || normalizado === 'BLOQUEADO' || normalizado === 'BAJA') {
-      return <span className={`${baseClass} bg-[#f8d7da] text-[#842029]`}>{normalizado}</span>;
+      return <span className={`${baseClass} bg-[#fde8e8] text-[#b52b2b] border-[#f5b8b8]`}>{normalizado}</span>;
     }
     
     return <span className={baseClass}>{normalizado}</span>;
   };
 
   return (
-    <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] overflow-hidden mb-[14px]">
-      <div className="bg-[#2563a0] text-[#ffffff] text-[13px] font-bold p-[8px_14px] flex justify-between items-center">
-        Historial de cargas
+    <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden mb-[14px]">
+      {/* PANEL HEADER */}
+      <div className="bg-azul text-white text-[13px] font-semibold px-[16px] py-[9px] flex justify-between items-center">
+        <div>
+          <span className="inline-block w-[3px] h-[16px] bg-amarillo rounded-[2px] mr-[8px] align-middle"></span>
+          Historial de cargas
+        </div>
         <button
-          className="bg-[#1e7a3e] border-none text-[#ffffff] rounded-[3px] p-[4px_14px] text-[12px] cursor-pointer font-bold transition-colors hover:bg-[#165a2f]"
           onClick={onNewCarga}
+          className="bg-verde border-none text-white rounded-[3px] px-[14px] py-[4px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
         >
           + Nueva carga
         </button>
       </div>
 
-      <div className="p-[8px_12px] border-b border-[#eeeeee] flex gap-[8px] items-center flex-wrap">
+      {/* CONTROLS */}
+      <div className="px-[12px] py-[8px] flex gap-[8px] items-center flex-wrap border-b border-gris-borde bg-[#fafafa]">
         <input
           type="text"
           placeholder="Buscar por beneficiario o RUT..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="flex-1 min-w-[180px] border border-[#cccccc] rounded-[3px] p-[5px_9px] text-[12px] text-[#333333] focus:outline-none focus:border-[#2563a0]"
+          className="flex-1 min-w-[180px] border border-gris-borde rounded-[3px] px-[9px] py-[5px] text-[12px] outline-none focus:border-verde"
+          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
         />
         
         <select
           value={estadoFilter}
           onChange={(e) => onEstadoFilterChange(e.target.value)}
-          className="border border-[#cccccc] rounded-[3px] p-[5px_9px] text-[12px] text-[#333333] bg-[#ffffff] focus:outline-none focus:border-[#2563a0] min-w-[130px]"
+          className="border border-gris-borde rounded-[3px] px-[9px] py-[5px] text-[12px] text-gris-texto outline-none min-w-[130px]"
+          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
         >
           <option value="TODOS">Todos los estados</option>
           <option value="PENDIENTE">PENDIENTE</option>
@@ -63,22 +69,23 @@ const CargaFondosList = ({
         </select>
       </div>
 
+      {/* TABLE */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left text-[12px]">
           <thead>
-            <tr className="bg-[#f5f5f2] text-[#1a3a5c] font-bold">
-              <th className="p-[8px_10px] border-b border-[#dddddd] w-[50px]">ID</th>
-              <th className="p-[8px_10px] border-b border-[#dddddd] w-[90px]">Fecha</th>
-              <th className="p-[8px_10px] border-b border-[#dddddd]">Beneficiario</th>
-              <th className="p-[8px_10px] border-b border-[#dddddd]">Motivo</th>
-              <th className="p-[8px_10px] border-b border-[#dddddd] w-[100px]">Monto</th>
-              <th className="p-[8px_10px] border-b border-[#dddddd] w-[100px]">Estado</th>
+            <tr>
+              <th className="bg-[#f0f4f6] text-azul px-[10px] py-[7px] font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste w-[50px]">ID</th>
+              <th className="bg-[#f0f4f6] text-azul px-[10px] py-[7px] font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste w-[90px]">Fecha</th>
+              <th className="bg-[#f0f4f6] text-azul px-[10px] py-[7px] font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Beneficiario</th>
+              <th className="bg-[#f0f4f6] text-azul px-[10px] py-[7px] font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste">Motivo</th>
+              <th className="bg-[#f0f4f6] text-azul px-[10px] py-[7px] font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste w-[100px]">Monto</th>
+              <th className="bg-[#f0f4f6] text-azul px-[10px] py-[7px] font-semibold text-[11px] tracking-[0.3px] border-b-2 border-celeste w-[100px]">Estado</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="6" className="p-[20px] text-center text-[#666666]">
+                <td colSpan="6" className="p-[20px] text-center text-gris-texto">
                   Cargando historial de asignaciones...
                 </td>
               </tr>
@@ -90,7 +97,7 @@ const CargaFondosList = ({
               </tr>
             ) : cargasFiltradas.length === 0 ? (
               <tr>
-                <td colSpan="6" className="p-[16px_10px] border-b border-[#f0f0f0] text-[#999999] text-center">
+                <td colSpan="6" className="px-[10px] py-[16px] border-b border-[#f0f0f0] text-gris-claro text-center">
                   Sin cargas registradas con los filtros seleccionados
                 </td>
               </tr>
@@ -99,18 +106,18 @@ const CargaFondosList = ({
                 <tr
                   key={carga.id_carga}
                   onClick={() => onCargaSelect(carga)}
-                  className={`cursor-pointer transition-colors ${
-                    selectedCarga?.id_carga === carga.id_carga ? 'bg-[#e0edff]' : 'hover:bg-[#f0f6ff]'
+                  className={`cursor-pointer hover:bg-[#f0f8f6] ${
+                    selectedCarga?.id_carga === carga.id_carga ? 'bg-[#e0eaf0]' : ''
                   }`}
                 >
-                  <td className="p-[7px_10px] border-b border-[#f0f0f0] text-[#333333]">{carga.id_carga}</td>
-                  <td className="p-[7px_10px] border-b border-[#f0f0f0] text-[#333333]">{formatDate(carga.fecha)}</td>
-                  <td className="p-[7px_10px] border-b border-[#f0f0f0] text-[#333333]">{carga.nombre_familia}</td>
-                  <td className="p-[7px_10px] border-b border-[#f0f0f0] text-[#333333]">{carga.motivo || '—'}</td>
-                  <td className="p-[7px_10px] border-b border-[#f0f0f0] text-[#1e7a3e] font-bold">
+                  <td className="px-[10px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{carga.id_carga}</td>
+                  <td className="px-[10px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{formatDate(carga.fecha)}</td>
+                  <td className="px-[10px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{carga.nombre_familia}</td>
+                  <td className="px-[10px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{carga.motivo || '—'}</td>
+                  <td className="px-[10px] py-[7px] border-b border-[#f0f0f0] text-verde font-bold">
                     ${formatCurrency(carga.monto)}
                   </td>
-                  <td className="p-[7px_10px] border-b border-[#f0f0f0]">
+                  <td className="px-[10px] py-[7px] border-b border-[#f0f0f0]">
                     {getEstadoBadge(carga.estado)}
                   </td>
                 </tr>
@@ -120,8 +127,8 @@ const CargaFondosList = ({
         </table>
       </div>
 
-      {/* PIE DE LA TABLA: Implementado con el mismo estilo que BeneficiariesList */}
-      <div className="p-[8px_12px] bg-[#ffffff] border-t border-[#dddddd] flex justify-between items-center text-[11px] text-[#666666] font-sans">
+      {/* PAGER */}
+      <div className="px-[12px] py-[8px] bg-white border-t border-gris-borde flex justify-between items-center text-[11px] text-gris-claro">
         <span>
           Mostrando {cargasFiltradas.length} registros (Total: {totalCargas} en historial)
         </span>

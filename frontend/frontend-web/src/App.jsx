@@ -1,65 +1,69 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth.js';
 
-// Páginas
-import Login from './pages/Login.jsx';
-import AdminDashboardNew from './pages/AdminDashboardNew.jsx';
-import BeneficiariesPage from './pages/BeneficiariesPage.jsx';
-import NewSolicitudPage from './pages/NewSolicitudPage.jsx';
-import ComerciosPage from './pages/ComerciosPage.jsx';
-import NewComercioPage from './pages/NewComercioPage.jsx';
-import CargaFondosHistorialPage from './pages/CargaFondosHistorialPage.jsx';
-import CargaFondosPage from './pages/CargaFondosPage.jsx';
-import TransaccionesPage from './pages/TransaccionesPage.jsx';
-import AprobacionesPage from './pages/AprobacionesPage.jsx';
-import FuncionariosPage from './pages/FuncionariosPage.jsx';
+// Carga perezosa (Lazy Loading) de las páginas para optimizar el bundle inicial
+const Login = lazy(() => import('./pages/Login.jsx'));
+const AdminDashboardNew = lazy(() => import('./pages/AdminDashboardNew.jsx'));
+const BeneficiariesPage = lazy(() => import('./pages/BeneficiariesPage.jsx'));
+const NewSolicitudPage = lazy(() => import('./pages/NewSolicitudPage.jsx'));
+const ComerciosPage = lazy(() => import('./pages/ComerciosPage.jsx'));
+const NewComercioPage = lazy(() => import('./pages/NewComercioPage.jsx'));
+const CargaFondosHistorialPage = lazy(() => import('./pages/CargaFondosHistorialPage.jsx'));
+const CargaFondosPage = lazy(() => import('./pages/CargaFondosPage.jsx'));
+const TransaccionesPage = lazy(() => import('./pages/TransaccionesPage.jsx'));
+const AprobacionesPage = lazy(() => import('./pages/AprobacionesPage.jsx'));
+const FuncionariosPage = lazy(() => import('./pages/FuncionariosPage.jsx'));
+
+// Componente simple de carga visual intermedio mientras se descargan los fragmentos de página
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen bg-[#f5f5f2] text-[12px] text-[#999999]">
+    Cargando sección...
+  </div>
+);
 
 function App() {
   const { isAuthenticated, logout, login, error, loading } = useAuth();
 
-  // Si no está autenticado, la única ruta accesible es el Login
-  if (!isAuthenticated) {
-    return (
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login login={login} error={error} loading={loading} />} />
-          {/* Cualquier otra URL redirige automáticamente al Login */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </Router>
-    );
-  }
-
-  // Si está autenticado, habilitamos el panel completo de rutas de Illapel
   return (
     <Router>
-      <Routes>
-        {/* Rutas Principales */}
-        <Route path="/dashboard" element={<AdminDashboardNew />} />
-        <Route path="/funcionarios" element={<FuncionariosPage />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {!isAuthenticated ? (
+            <>
+              {/* Rutas Públicas */}
+              <Route path="/login" element={<Login login={login} error={error} loading={loading} />} />
+              {/* Cualquier otra ruta redirige al login si no está autenticado */}
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </>
+          ) : (
+            <>
+              {/* Rutas Privadas Protegidas */}
+              <Route path="/dashboard" element={<AdminDashboardNew />} />
+              <Route path="/funcionarios" element={<FuncionariosPage />} />
 
-        {/* beneficiarios */}
-        <Route path="/beneficiarios" element={<BeneficiariesPage />} />
-        <Route path="/nueva-solicitud" element={<NewSolicitudPage />} />
-        
-        {/* Solicitudes y Aprobaciones */}
-        <Route path="/aprobaciones" element={<AprobacionesPage />} />
-        
-        {/* Comercios */}
-        <Route path="/comercios" element={<ComerciosPage />} />
-        <Route path="/nuevo-comercio" element={<NewComercioPage />} />
-        
-        {/* Fondos y Transacciones */}
-        <Route path="/fondos" element={<CargaFondosHistorialPage />} />
-        <Route path="/nueva-carga" element={<CargaFondosPage />} />
-        <Route path="/transacciones" element={<TransaccionesPage />} />
+              {/* Beneficiarios */}
+              <Route path="/beneficiarios" element={<BeneficiariesPage />} />
+              <Route path="/nueva-solicitud" element={<NewSolicitudPage />} />
+              
+              {/* Solicitudes y Aprobaciones */}
+              <Route path="/aprobaciones" element={<AprobacionesPage />} />
+              
+              {/* Comercios */}
+              <Route path="/comercios" element={<ComerciosPage />} />
+              <Route path="/nuevo-comercio" element={<NewComercioPage />} />
+              
+              {/* Fondos y Transacciones */}
+              <Route path="/fondos" element={<CargaFondosHistorialPage />} />
+              <Route path="/nueva-carga" element={<CargaFondosPage />} />
+              <Route path="/transacciones" element={<TransaccionesPage />} />
 
-        {/* Redirecciones de seguridad por si escriben una URL que no existe */}
-        <Route path="/login" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
+              {/* Redirección automática si escribe cualquier ruta inexistente estando logeado */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </>
+          )}
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

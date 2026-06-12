@@ -1,34 +1,24 @@
-import React from 'react';
-
 const BeneficiariesStats = ({ stats }) => {
-  const pillStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px',
-    padding: '4px 10px',
-    borderRadius: '20px',
-    fontSize: '12px',
-    fontWeight: 'normal'
-  };
+  const pills = [
+    { label: 'total registrados', count: stats?.total_registrados || 0, style: 'bg-[#e0eaf0] text-azul border-[#b0ccd8]' },
+    { label: 'activos', count: stats?.activos || 0, style: 'bg-[#e6f7f4] text-verde border-[#b2e8de]' },
+    { label: 'pendientes', count: stats?.pendientes || 0, style: 'bg-[#fff8e0] text-[#a07800] border-[#f0d970]' },
+    { label: 'dados de baja', count: stats?.bajas || 0, style: 'bg-[#fde8e8] text-[#b52b2b] border-[#f5b8b8]' },
+  ];
 
   return (
-    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
-      <div style={{ ...pillStyle, background: '#e0edff', color: '#1a3a5c' }}>
-        <span style={{ fontWeight: 'bold' }}>{stats.total_registrados}</span>
-        <span>total registrados</span>
-      </div>
-      <div style={{ ...pillStyle, background: '#d1e7dd', color: '#0f5132' }}>
-        <span style={{ fontWeight: 'bold' }}>{stats.activos}</span>
-        <span>activos</span>
-      </div>
-      <div style={{ ...pillStyle, background: '#fff3cd', color: '#856404' }}>
-        <span style={{ fontWeight: 'bold' }}>{stats.pendientes}</span>
-        <span>pendientes</span>
-      </div>
-      <div style={{ ...pillStyle, background: '#f8d7da', color: '#842029' }}>
-        <span style={{ fontWeight: 'bold' }}>{stats.bajas}</span>
-        <span>dados de baja</span>
-      </div>
+    <div className="flex gap-[8px] mb-[12px] flex-wrap">
+      {pills.map((pill, idx) => (
+        <div
+          key={idx}
+          className={`flex items-center gap-[6px] px-[12px] py-[5px] rounded-[20px] text-[12px] font-medium border ${pill.style}`}
+        >
+          <span className="font-bold bg-black/12 rounded-full w-[20px] h-[20px] flex items-center justify-center text-[11px]">
+            {pill.count}
+          </span>
+          <span>{pill.label}</span>
+        </div>
+      ))}
     </div>
   );
 };

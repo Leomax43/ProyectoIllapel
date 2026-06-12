@@ -89,6 +89,36 @@ const fondosService = {
       console.error('Payload error:', error.payload);
       throw error;
     }
+  },
+  solicitarCargaFondos: async (id_familia, id_admin, monto, motivo, observaciones, pdfFile) => {
+    try {
+      const formData = new FormData();
+      formData.append('id_admin', id_admin);
+      formData.append('monto', monto);
+      formData.append('motivo', motivo);
+      formData.append('observaciones', observaciones || 'N/A');
+      
+      if (pdfFile) {
+        formData.append('pdf_resolucion', pdfFile); // Clave exacta esperada por tu backend
+      }
+
+      // URL con el orden correcto id_familia antes de /cargar
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/fondos/${id_familia}/cargar`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.mensaje || payload?.message || 'Error al procesar la solicitud.');
+      }
+
+      return payload;
+    } catch (error) {
+      console.error('Error en solicitarCargaFondos:', error);
+      throw error;
+    }
   }
 };
 

@@ -1,13 +1,12 @@
-import React from 'react';
-
 const IntegrantesTable = ({ integrantes, onIntegranteChange, onEliminarIntegrante, onAgregarIntegrante }) => {
   return (
-    <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] overflow-hidden mb-[14px]">
-      <div className="bg-[#2563a0] text-[#ffffff] text-[13px] font-bold p-[8px_14px]">
+    <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden mb-[14px]">
+      <div className="bg-azul text-white text-[13px] font-semibold px-[16px] py-[9px]">
+        <span className="inline-block w-[3px] h-[16px] bg-amarillo rounded-[2px] mr-[8px] align-middle"></span>
         2. Otros integrantes del núcleo familiar (opcional)
       </div>
       <div className="p-[16px]">
-        <label className="text-[11px] text-[#444444] font-bold block mb-[6px]">
+        <label className="text-[11px] text-gris-texto font-bold block mb-[6px]">
           Si la solicitud incluye otros miembros (pareja, hijos, etc.), agréguelos aquí:
         </label>
         
@@ -15,39 +14,42 @@ const IntegrantesTable = ({ integrantes, onIntegranteChange, onEliminarIntegrant
           <table className="w-full border-collapse text-[12px] mt-[8px]">
             <thead>
               <tr>
-                <th className="bg-[#e8f0f8] text-[#1a3a5c] p-[6px_10px] text-left border border-[#dddddd] font-bold">Nombres y apellidos</th>
-                <th className="bg-[#e8f0f8] text-[#1a3a5c] p-[6px_10px] text-left border border-[#dddddd] font-bold">RUT</th>
-                <th className="bg-[#e8f0f8] text-[#1a3a5c] p-[6px_10px] text-left border border-[#dddddd] font-bold">Parentesco</th>
-                <th className="bg-[#e8f0f8] text-[#1a3a5c] p-[6px_10px] text-left border border-[#dddddd] font-bold">Fecha de nacimiento</th>
-                <th className="bg-[#e8f0f8] text-[#1a3a5c] p-[6px_10px] text-left border border-[#dddddd] font-bold"></th>
+                <th className="bg-[#f0f4f6] text-azul px-[10px] py-[6px] text-left border border-gris-borde font-semibold text-[11px]">Nombres y apellidos</th>
+                <th className="bg-[#f0f4f6] text-azul px-[10px] py-[6px] text-left border border-gris-borde font-semibold text-[11px]">RUT</th>
+                <th className="bg-[#f0f4f6] text-azul px-[10px] py-[6px] text-left border border-gris-borde font-semibold text-[11px]">Parentesco</th>
+                <th className="bg-[#f0f4f6] text-azul px-[10px] py-[6px] text-left border border-gris-borde font-semibold text-[11px]">Fecha de nacimiento</th>
+                <th className="bg-[#f0f4f6] text-azul px-[10px] py-[6px] text-left border border-gris-borde font-semibold text-[11px]"></th>
               </tr>
             </thead>
             <tbody>
               {integrantes.map((integrante) => (
                 <tr key={integrante.id}>
-                  <td className="p-[6px_10px] border border-[#eeeeee] text-[#333333]">
+                  <td className="px-[10px] py-[6px] border border-[#f0f0f0] text-[#333]">
                     <input
                       type="text"
                       placeholder="Nombre completo"
-                      className="border-none bg-transparent p-[4px] text-[12px] text-[#333333] w-full focus:outline-none"
                       value={integrante.nombre_completo}
                       onChange={(e) => onIntegranteChange(integrante.id, 'nombre_completo', e.target.value)}
+                      className="border-none bg-transparent p-[4px] text-[12px] w-full outline-none"
+                      style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                     />
                   </td>
-                  <td className="p-[6px_10px] border border-[#eeeeee] text-[#333333]">
+                  <td className="px-[10px] py-[6px] border border-[#f0f0f0] text-[#333]">
                     <input
                       type="text"
                       placeholder="RUT"
-                      className="border-none bg-transparent p-[4px] text-[12px] text-[#333333] w-full focus:outline-none"
                       value={integrante.rut}
                       onChange={(e) => onIntegranteChange(integrante.id, 'rut', e.target.value)}
+                      className="border-none bg-transparent p-[4px] text-[12px] w-full outline-none"
+                      style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                     />
                   </td>
-                  <td className="p-[6px_10px] border border-[#eeeeee] text-[#333333]">
+                  <td className="px-[10px] py-[6px] border border-[#f0f0f0] text-[#333]">
                     <select
-                      className="border-none bg-transparent p-[4px] text-[12px] text-[#333333] w-full focus:outline-none"
                       value={integrante.parentesco}
                       onChange={(e) => onIntegranteChange(integrante.id, 'parentesco', e.target.value)}
+                      className="border-none bg-transparent p-[4px] text-[12px] w-full outline-none"
+                      style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                     >
                       <option>Cónyuge</option>
                       <option>Hijo/a</option>
@@ -55,15 +57,16 @@ const IntegrantesTable = ({ integrantes, onIntegranteChange, onEliminarIntegrant
                       <option>Otro</option>
                     </select>
                   </td>
-                  <td className="p-[6px_10px] border border-[#eeeeee] text-[#333333]">
+                  <td className="px-[10px] py-[6px] border border-[#f0f0f0] text-[#333]">
                     <input
                       type="date"
-                      className="border-none bg-transparent p-[4px] text-[12px] text-[#333333] w-full focus:outline-none"
                       value={integrante.fecha_nacimiento}
                       onChange={(e) => onIntegranteChange(integrante.id, 'fecha_nacimiento', e.target.value)}
+                      className="border-none bg-transparent p-[4px] text-[12px] w-full outline-none"
+                      style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                     />
                   </td>
-                  <td className="p-[6px_10px] border border-[#eeeeee] text-[#b52b2b] cursor-pointer text-center text-[14px]">
+                  <td className="px-[10px] py-[6px] border border-[#f0f0f0] text-[#b52b2b] cursor-pointer text-center text-[14px]">
                     <span onClick={() => onEliminarIntegrante(integrante.id)}>✕</span>
                   </td>
                 </tr>
@@ -74,8 +77,9 @@ const IntegrantesTable = ({ integrantes, onIntegranteChange, onEliminarIntegrant
         
         <button
           type="button"
-          className="mt-[8px] bg-[#ffffff] border border-[#2563a0] text-[#2563a0] rounded-[3px] p-[5px_12px] text-[12px] cursor-pointer font-bold transition-colors hover:bg-[#f0f6ff]"
           onClick={onAgregarIntegrante}
+          className="mt-[8px] bg-white border border-azul text-azul rounded-[3px] px-[12px] py-[5px] text-[12px] cursor-pointer font-bold hover:bg-[#f0f4f6]"
+          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
         >
           + Agregar integrante
         </button>

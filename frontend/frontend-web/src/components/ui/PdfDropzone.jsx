@@ -1,5 +1,3 @@
-import React from 'react';
-
 const PdfDropzone = ({ pdfFileName, onPdfChange, onMessageChange }) => {
   
   const handlePdfValidation = (file) => {
@@ -37,16 +35,17 @@ const PdfDropzone = ({ pdfFileName, onPdfChange, onMessageChange }) => {
   };
 
   return (
-    <div className="bg-[#ffffff] border border-[#dddddd] rounded-[4px] overflow-hidden mb-[14px]">
-      <div className="bg-[#2563a0] text-[#ffffff] text-[13px] font-bold p-[8px_14px]">
+    <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden mb-[14px]">
+      <div className="bg-azul text-white text-[13px] font-semibold px-[16px] py-[9px]">
+        <span className="inline-block w-[3px] h-[16px] bg-amarillo rounded-[2px] mr-[8px] align-middle"></span>
         3. Ficha Social (PDF)
       </div>
       <div className="p-[16px]">
-        <label className="text-[11px] text-[#444444] font-bold block mb-[6px]">
+        <label className="text-[11px] text-gris-texto font-bold block mb-[6px]">
           Adjunta la ficha social en formato PDF
         </label>
         <div
-          className="border-2 border-dashed border-[#2563a0] rounded-[4px] p-[24px] text-center bg-[#f9fafb] cursor-pointer transition-all"
+          className="border-2 border-dashed border-azul rounded-[4px] p-[24px] text-center bg-[#f9fafb] cursor-pointer transition-all hover:bg-[#f0f4f6]"
           onDragOver={handleDragOver}
           onDrop={handleDragDrop}
           onClick={() => document.getElementById('pdfInput').click()}
@@ -61,20 +60,20 @@ const PdfDropzone = ({ pdfFileName, onPdfChange, onMessageChange }) => {
           {pdfFileName ? (
             <div>
               <div className="text-[24px] mb-[8px]">📄</div>
-              <div className="text-[13px] font-bold text-[#1a3a5c] mb-[4px]">
+              <div className="text-[13px] font-bold text-azul mb-[4px]">
                 {pdfFileName}
               </div>
-              <div className="text-[11px] text-[#666666]">
+              <div className="text-[11px] text-gris-texto">
                 Haz clic para cambiar el archivo
               </div>
             </div>
           ) : (
             <div>
               <div className="text-[24px] mb-[8px]">📤</div>
-              <div className="text-[13px] font-bold text-[#1a3a5c] mb-[4px]">
+              <div className="text-[13px] font-bold text-azul mb-[4px]">
                 Arrastra tu PDF aquí
               </div>
-              <div className="text-[11px] text-[#666666]">
+              <div className="text-[11px] text-gris-texto">
                 o haz clic para seleccionar (máx 10 MB)
               </div>
             </div>

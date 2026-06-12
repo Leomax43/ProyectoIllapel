@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
+import DashboardFooter from '../components/dashboard/DashboardFooter';
 import ComerciosList from '../components/comercios/ComerciosList'; 
 import ComercioDetail from '../components/comercios/ComercioDetail';
 import { useAuth } from '../hooks/useAuth';
@@ -65,17 +66,21 @@ const ComerciosPage = () => {
   const formatDate = (date) => new Date(date).toLocaleDateString('es-CL');
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f5f5f2]">
-      <DashboardHeader currentPage="comercios" onLogout={logout} onNavigate={navigate} />
+    <div className="flex flex-col min-h-screen bg-gris-bg">
+      <DashboardHeader currentPage="comercios" onLogout={logout} />
       
-      <div className="p-[16px] flex-1">
-        <div className="text-[16px] font-bold text-[#1a3a5c] mb-[4px]">Gestión de comercios</div>
-        <div className="text-[12px] text-[#666666] mb-[16px]">
-          Administre los comercios locales verificados por la municipalidad. Puede registrar nuevos establecimientos, revisar su saldo acumulado y darlos de baja.
+      <div className="p-[18px_20px] flex-1">
+        <div className="flex justify-between items-start mb-[16px]">
+          <div>
+            <div className="text-[18px] font-bold text-azul">Gestión de comercios</div>
+            <div className="text-[12px] text-gris-texto mt-[2px] font-light">
+              Administre los comercios locales verificados por la municipalidad. Puede registrar nuevos establecimientos, revisar su saldo acumulado y darlos de baja.
+            </div>
+          </div>
         </div>
 
         {loading ? (
-          <div className="text-center text-[12px] text-[#666666] py-[32px]">Cargando comercios...</div>
+          <div className="text-center text-[12px] text-gris-texto py-[32px]">Cargando comercios...</div>
         ) : (
           <div className="grid grid-cols-[1.3fr_1fr] gap-[14px] items-start">
             <ComerciosList 
@@ -100,6 +105,8 @@ const ComerciosPage = () => {
           </div>
         )}
       </div>
+
+      <DashboardFooter />
     </div>
   );
 };
