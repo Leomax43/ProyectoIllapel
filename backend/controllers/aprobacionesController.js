@@ -1,10 +1,9 @@
 const pool = require('../config/db');
 
-// 1. Cambiar el estado de una familia (Ej: Activo, Rechazado, Baja) - ¡Mantenemos tu función original!
+// 1. Cambiar el estado de una familia (Ej: Activo, Rechazado, Baja) - ¡Tu función original intacta!
 const cambiarEstadoFamilia = async (req, res) => {
-    // Capturamos el ID de la familia desde la URL y el nuevo estado desde el body
     const { id_familia } = req.params;
-    const { nuevo_estado } = req.body; // Puede ser 'ACTIVO', 'RECHAZADO', 'BAJA'
+    const { nuevo_estado } = req.body; 
 
     try {
         const result = await pool.query(
@@ -27,7 +26,8 @@ const cambiarEstadoFamilia = async (req, res) => {
     }
 };
 
-// 2. Listar todas las solicitudes de fondos que están PENDIENTES (NUEVA)
+// 2. Listar todas las solicitudes de fondos que están PENDIENTES
+// Nota: Se actualizó cf.fecha a cf.fecha_solicitud para concordar con el nuevo esquema
 const obtenerSolicitudesFondos = async (req, res) => {
     try {
         const result = await pool.query(`
@@ -36,7 +36,7 @@ const obtenerSolicitudesFondos = async (req, res) => {
             JOIN familias f ON cf.id_familia = f.id_familia
             JOIN admin a ON cf.id_admin = a.id_admin
             WHERE cf.estado = 'PENDIENTE'
-            ORDER BY cf.fecha DESC
+            ORDER BY cf.fecha_solicitud DESC
         `);
         res.status(200).json({ status: 'Éxito', solicitudes: result.rows });
     } catch (error) {
@@ -44,7 +44,7 @@ const obtenerSolicitudesFondos = async (req, res) => {
     }
 };
 
-// 3. Aprobar una solicitud de carga (NUEVA - Aquí ocurre la transacción SQL segura)
+// 3. Aprobar una solicitud de carga (Transacción SQL segura + Cálculo de Expiración)
 const aprobarSolicitudFondo = async (req, res) => {
     const { id_carga } = req.params;
     const { id_jefatura } = req.body;
@@ -52,8 +52,11 @@ const aprobarSolicitudFondo = async (req, res) => {
     try {
         await pool.query('BEGIN');
 
-        // Verificamos que la carga exista y siga pendiente
-        const cargaRes = await pool.query('SELECT id_familia, monto, estado FROM cargas_fondos WHERE id_carga = $1', [id_carga]);
+        // Verificamos que la carga exista y siga pendiente (añadimos dias_validez a la lectura)
+        const cargaRes = await pool.query(
+            'SELECT id_familia, monto, estado, dias_validez FROM cargas_fondos WHERE id_carga = $1 FOR UPDATE', 
+            [id_carga]
+        );
         
         if (cargaRes.rows.length === 0) {
             await pool.query('ROLLBACK');
@@ -65,12 +68,17 @@ const aprobarSolicitudFondo = async (req, res) => {
             return res.status(400).json({ status: 'Error', mensaje: 'Esta solicitud ya fue procesada previamente.' });
         }
 
-        const { id_familia, monto } = cargaRes.rows[0];
+        const { id_familia, monto, dias_validez } = cargaRes.rows[0];
 
-        // A. Cambiar estado de la solicitud a APROBADO e inscribir qué Jefatura lo ejecutó
+        // A. Cambiar estado a APROBADO, registrar jefatura, fecha de aprobación y calcular fecha_expiracion en base a los días
         await pool.query(
-            "UPDATE cargas_fondos SET estado = 'APROBADO', id_jefatura = $1 WHERE id_carga = $2",
-            [id_jefatura, id_carga]
+            `UPDATE cargas_fondos 
+             SET estado = 'APROBADO', 
+                 id_jefatura = $1, 
+                 fecha_aprobacion = CURRENT_TIMESTAMP,
+                 fecha_expiracion = CURRENT_TIMESTAMP + ($2 || ' days')::interval 
+             WHERE id_carga = $3`,
+            [id_jefatura, dias_validez, id_carga]
         );
 
         // B. SUMAR EL DINERO REAL a la cuenta de la familia
@@ -80,7 +88,7 @@ const aprobarSolicitudFondo = async (req, res) => {
         );
 
         await pool.query('COMMIT');
-        res.status(200).json({ status: 'Éxito', mensaje: 'Solicitud aprobada. Fondos transferidos a la familia.' });
+        res.status(200).json({ status: 'Éxito', mensaje: 'Solicitud aprobada. Fondos transferidos a la familia con tiempo límite.' });
 
     } catch (error) {
         await pool.query('ROLLBACK');
@@ -88,7 +96,7 @@ const aprobarSolicitudFondo = async (req, res) => {
     }
 };
 
-// 4. Rechazar una solicitud de carga (NUEVA)
+// 4. Rechazar una solicitud de carga
 const rechazarSolicitudFondo = async (req, res) => {
     const { id_carga } = req.params;
     const { id_jefatura } = req.body;
@@ -104,16 +112,85 @@ const rechazarSolicitudFondo = async (req, res) => {
             return res.status(400).json({ status: 'Error', mensaje: 'Solicitud no encontrada o ya procesada.' });
         }
 
-        res.status(200).json({ status: 'Éxito', mensaje: 'Solicitud de fondos rechazada correctamente. No se alteró el saldo.' });
+        res.status(200).json({ status: 'Éxito', mensaje: 'Solicitud de fondos rechazazada correctamente. No se alteró el saldo.' });
     } catch (error) {
         res.status(500).json({ status: 'Error', mensaje: 'Error al rechazar la solicitud', error: error.message });
     }
 };
 
-// Exportamos las 4 funciones ordenadamente
+// 5. Cancelar / Revocar un beneficio ya entregado (NUEVA REGLA DE NEGOCIO)
+const cancelarSolicitudFondo = async (req, res) => {
+    const { id_carga } = req.params;
+    const { id_admin } = req.body; // ID del funcionario con permisos que revoca el beneficio
+
+    try {
+        await pool.query('BEGIN');
+
+        // Buscar la carga aprobada para auditarla
+        const cargaRes = await pool.query('SELECT * FROM cargas_fondos WHERE id_carga = $1 FOR UPDATE', [id_carga]);
+        if (cargaRes.rows.length === 0) {
+            await pool.query('ROLLBACK');
+            return res.status(404).json({ status: 'Error', mensaje: 'Carga de fondos no encontrada.' });
+        }
+        
+        const carga = cargaRes.rows[0];
+
+        // Validar que esté aprobada antes de intentar cancelarla
+        if (carga.estado !== 'APROBADO') {
+            await pool.query('ROLLBACK');
+            return res.status(400).json({ status: 'Error', mensaje: 'Solo se pueden revocar beneficios que estén en estado APROBADO.' });
+        }
+
+        // Validar si el beneficio ya venció por transcurso de tiempo natural
+        if (carga.fecha_expiracion && new Date() > new Date(carga.fecha_expiracion)) {
+            await pool.query('ROLLBACK');
+            return res.status(400).json({ status: 'Error', mensaje: 'El beneficio ya expiró por límite de tiempo. No requiere cancelación manual.' });
+        }
+
+        // Validar que la familia no haya gastado el saldo en un comercio (Evita saldos negativos)
+        const famRes = await pool.query('SELECT saldo FROM familias WHERE id_familia = $1', [carga.id_familia]);
+        if (famRes.rows.length === 0) {
+            await pool.query('ROLLBACK');
+            return res.status(404).json({ status: 'Error', mensaje: 'Familia asociada no encontrada.' });
+        }
+
+        if (famRes.rows[0].saldo < carga.monto) {
+            await pool.query('ROLLBACK');
+            return res.status(400).json({ 
+                status: 'Error', 
+                mensaje: 'La familia ya utilizó parte o la totalidad de estos fondos en comercios asociados. No es posible cancelar el beneficio.' 
+            });
+        }
+
+        // Restar el dinero del saldo disponible de la familia
+        await pool.query(
+            'UPDATE familias SET saldo = saldo - $1 WHERE id_familia = $2',
+            [carga.monto, carga.id_familia]
+        );
+
+        // Marcar la transacción como CANCELADA e inyectar bitácora en la columna detalles
+        await pool.query(
+            `UPDATE cargas_fondos 
+             SET estado = 'CANCELADO', 
+                 detalles = COALESCE(detalles, '') || ' [Beneficio revocado manualmente por funcionario ID: ' || $1 || ']' 
+             WHERE id_carga = $2`,
+            [id_admin, id_carga]
+        );
+
+        await pool.query('COMMIT');
+        res.status(200).json({ status: 'Éxito', mensaje: 'Beneficio revocado con éxito. El monto fue retirado de la cuenta familiar.' });
+
+    } catch (error) {
+        await pool.query('ROLLBACK');
+        res.status(500).json({ status: 'Error', mensaje: 'Error al procesar la cancelación del beneficio', error: error.message });
+    }
+};
+
+// Exportamos las 5 funciones ordenadamente
 module.exports = { 
     cambiarEstadoFamilia, 
     obtenerSolicitudesFondos, 
     aprobarSolicitudFondo, 
-    rechazarSolicitudFondo 
+    rechazarSolicitudFondo,
+    cancelarSolicitudFondo  
 };

@@ -4,17 +4,28 @@ const bcrypt = require('bcrypt');
 
 
 const crearFamilia = async (req, res) => {
-    const { rut_representante, nombre_familia, clave_acceso, direccion, telefono } = req.body;
+    // 1. Agregamos tiene_discapacidad sin importar el orden
+    const { rut_representante, nombre_familia, clave_acceso, direccion, telefono, tiene_discapacidad } = req.body;
 
     try {
+        // Validación para evitar RUTs duplicados (Buena práctica de seguridad)
+        const checkRes = await pool.query('SELECT rut_representante FROM familias WHERE rut_representante = $1', [rut_representante]);
+        if (checkRes.rows.length > 0) {
+            return res.status(400).json({ status: 'Error', mensaje: 'La familia ya está registrada con este RUT.' });
+        }
+
         // Encriptamos la clave con un "salt" de 10 rondas (muy seguro y rápido)
         const saltRounds = 10;
         const claveHasheada = await bcrypt.hash(clave_acceso, saltRounds);
 
+        // 2. Asegurarnos de que se guarde como un booleano real (true o false)
+        const discapacidadValor = tiene_discapacidad === true || tiene_discapacidad === 'true';
+
+        // 3. Agregamos tiene_discapacidad ($6) al final para respetar el orden exacto de tu código original
         const result = await pool.query(
-            `INSERT INTO familias (rut_representante, nombre_familia, direccion, telefono, clave_acceso, estado, saldo) 
-             VALUES ($1, $2, $3, $4, $5, 'ACTIVO', 0) RETURNING *`, // <-- Cambiado a ACTIVO
-            [rut_representante, nombre_familia, direccion, telefono, claveHasheada]
+            `INSERT INTO familias (rut_representante, nombre_familia, direccion, telefono, clave_acceso, estado, saldo, tiene_discapacidad) 
+             VALUES ($1, $2, $3, $4, $5, 'ACTIVO', 0, $6) RETURNING *`, 
+            [rut_representante, nombre_familia, direccion, telefono, claveHasheada, discapacidadValor]
         );
 
         res.status(201).json({ status: 'Éxito', mensaje: 'Familia registrada correctamente', familia: result.rows[0] });
@@ -104,7 +115,6 @@ const obtenerFamilias = async (req, res) => {
 };
 
 const obtenerFamiliaDetalle = async (req, res) => {
-    // Capturamos el RUT desde la URL (ej: /api/familias/12345678-9)
     const { rut } = req.params; 
 
     try {
@@ -117,16 +127,17 @@ const obtenerFamiliaDetalle = async (req, res) => {
         
         const familia = famRes.rows[0];
 
-        // 2. Buscar los integrantes del núcleo familiar usando el ID de la familia
+        // 2. Buscar los integrantes del núcleo familiar
         const intRes = await pool.query('SELECT * FROM integrantes WHERE id_familia = $1', [familia.id_familia]);
 
-        // 3. Buscar el historial de cargas de fondos asociadas a esta familia
+        // 3. Buscar el historial de cargas (¡AQUÍ ESTABA EL ERROR!)
+        // Cambiamos c.fecha por c.fecha_solicitud para coincidir con la BD nueva
         const cargasRes = await pool.query(`
             SELECT c.*, a.nombre_completo as responsable 
             FROM cargas_fondos c 
             JOIN admin a ON c.id_admin = a.id_admin 
             WHERE c.id_familia = $1 
-            ORDER BY c.fecha DESC
+            ORDER BY c.fecha_solicitud DESC 
         `, [familia.id_familia]);
 
         // 4. Armar el "Expediente Completo"
@@ -138,6 +149,7 @@ const obtenerFamiliaDetalle = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("Error en obtenerFamiliaDetalle:", error);
         res.status(500).json({ status: 'Error', mensaje: 'Error al obtener el expediente', error: error.message });
     }
 };

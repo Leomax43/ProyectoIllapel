@@ -1,9 +1,6 @@
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 
-
-
-
 // Nueva función: Obtener métricas del mes actual
 const obtenerMetricas = async (req, res) => {
     try {
@@ -12,7 +9,7 @@ const obtenerMetricas = async (req, res) => {
         const primerDiaMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
         const ultimoDiaMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0, 23, 59, 59);
 
-        // 1. Total de transacciones este mes
+        // 1. Total de transacciones este mes (Aplica a tabla transacciones, 'fecha' es correcto)
         const transaccionesRes = await pool.query(
             `SELECT COUNT(*) as total FROM transacciones 
              WHERE fecha >= $1 AND fecha <= $2`,
@@ -20,18 +17,18 @@ const obtenerMetricas = async (req, res) => {
         );
         const totalTransacciones = parseInt(transaccionesRes.rows[0].total);
 
-        // 2. Total fondos cargados este mes (desde cargas_fondos)
+        // 2. Total fondos cargados este mes (Aplica a cargas_fondos, CORREGIDO a 'fecha_solicitud')
         const fondosCargadosRes = await pool.query(
             `SELECT COALESCE(SUM(monto), 0) as total FROM cargas_fondos 
-            WHERE fecha >= $1 AND fecha <= $2 AND estado = 'APROBADO'`,
+             WHERE fecha_solicitud >= $1 AND fecha_solicitud <= $2 AND estado = 'APROBADO'`,
             [primerDiaMes, ultimoDiaMes]
         );
         const totalFondosCargados = parseInt(fondosCargadosRes.rows[0].total);
 
-        // 3. Total cargas realizadas
+        // 3. Total cargas realizadas (Aplica a cargas_fondos, CORREGIDO a 'fecha_solicitud')
         const totalCargasRes = await pool.query(
             `SELECT COUNT(*) as total FROM cargas_fondos 
-             WHERE fecha >= $1 AND fecha <= $2`,
+             WHERE fecha_solicitud >= $1 AND fecha_solicitud <= $2`,
             [primerDiaMes, ultimoDiaMes]
         );
         const totalCargas = parseInt(totalCargasRes.rows[0].total);
@@ -80,6 +77,7 @@ const obtenerMetricas = async (req, res) => {
         res.status(500).json({ status: 'Error', mensaje: 'Error al obtener métricas', error: error.message });
     }
 };
+
 // Nueva función: Obtener todas las transacciones con filtros
 const obtenerTransacciones = async (req, res) => {
     const { tipo, rut_comercio, id_familia } = req.query;
@@ -128,12 +126,7 @@ const obtenerTransacciones = async (req, res) => {
 
         query += ` ORDER BY t.id_transaccion DESC LIMIT 100`;
 
-        console.log('📊 Query ejecutado:', query);
-        console.log('📊 Parámetros:', params);
-
         const result = await pool.query(query, params);
-
-        console.log('📊 Resultado:', result.rows.length, 'transacciones');
 
         res.status(200).json({
             status: 'Éxito',
@@ -147,63 +140,50 @@ const obtenerTransacciones = async (req, res) => {
     }
 };
 
-
-
-
-
 const realizarTransaccion = async (req, res) => {
-    // Recibimos quién compra, dónde compra, cuánto gasta y cómo paga
     const { id_familia, rut_comercio, monto, metodo_pago } = req.body;
 
     try {
-        await pool.query('BEGIN'); // Iniciamos la transacción segura
+        await pool.query('BEGIN');
 
-        // 1. Validar la Familia (¿Existe? ¿Está activa? ¿Tiene saldo suficiente?)
+        // 1. Validar la Familia
         const famRes = await pool.query('SELECT saldo, estado FROM familias WHERE id_familia = $1', [id_familia]);
-        
         if (famRes.rows.length === 0) {
             await pool.query('ROLLBACK');
             return res.status(404).json({ status: 'Error', mensaje: 'Familia no encontrada' });
         }
         
         const familia = famRes.rows[0];
-        
         if (familia.estado !== 'ACTIVO') {
             await pool.query('ROLLBACK');
             return res.status(403).json({ status: 'Error', mensaje: 'La cuenta de la familia no está ACTIVA' });
         }
-        
         if (familia.saldo < monto) {
             await pool.query('ROLLBACK');
             return res.status(400).json({ status: 'Error', mensaje: 'Saldo insuficiente para realizar la compra' });
         }
 
-        // 2. Validar el Comercio (¿Existe? ¿Está activo para recibir pagos?)
+        // 2. Validar el Comercio
         const comRes = await pool.query('SELECT estado FROM comercios WHERE rut_comercio = $1', [rut_comercio]);
-        
         if (comRes.rows.length === 0) {
             await pool.query('ROLLBACK');
             return res.status(404).json({ status: 'Error', mensaje: 'Comercio no encontrado' });
         }
-        
         if (comRes.rows[0].estado !== 'ACTIVO') {
             await pool.query('ROLLBACK');
             return res.status(403).json({ status: 'Error', mensaje: 'El comercio no está habilitado para recibir pagos' });
         }
 
-        // 3. Descontar el saldo a la familia
+        // 3. Descontar y sumar saldos
         await pool.query('UPDATE familias SET saldo = saldo - $1 WHERE id_familia = $2', [monto, id_familia]);
-
-        // 4. Sumar el saldo al comercio
         await pool.query('UPDATE comercios SET saldo_acumulado = saldo_acumulado + $1 WHERE rut_comercio = $2', [monto, rut_comercio]);
 
-        // 5. Dejar el registro en el historial de transacciones
+        // 4. Historial
         await pool.query(
             'INSERT INTO transacciones (id_familia, rut_comercio, monto, metodo_pago) VALUES ($1, $2, $3, $4)',
-            [id_familia, rut_comercio, monto, metodo_pago || 'QR'] // Por defecto usamos QR si no se especifica
+            [id_familia, rut_comercio, monto, metodo_pago || 'QR'] 
         );
 
-        // 6. ¡Todo salió perfecto! Guardamos los cambios.
         await pool.query('COMMIT');
 
         res.status(200).json({ 
@@ -214,49 +194,37 @@ const realizarTransaccion = async (req, res) => {
         });
 
     } catch (error) {
-        await pool.query('ROLLBACK'); // Si algo falla, cancelamos todo el movimiento
+        await pool.query('ROLLBACK');
         res.status(500).json({ status: 'Error', mensaje: 'Error interno en la transacción', error: error.message });
     }
 };
 
-
-
-
-
-// Nueva función: Cobrar usando el Token del QR
 const comprarConQR = async (req, res) => {
-    // El comercio envía su RUT, el monto a cobrar y el código gigante que escaneó
     const { rut_comercio, monto, qr_token } = req.body;
     let id_familia;
 
-    // 1. ABRIR EL SOBRE (Validar el QR)
     try {
         const decoded = jwt.verify(qr_token, 'secreto_municipal_qr_2026');
-        id_familia = decoded.id_familia; // Extraemos de quién es el código
+        id_familia = decoded.id_familia; 
     } catch (error) {
-        // Si el token fue alterado o pasaron los 5 minutos, explota y cae aquí
         return res.status(401).json({ status: 'Error', mensaje: 'El código QR es inválido o ha expirado. Genere uno nuevo.' });
     }
 
-    // 2. PROCESAR EL PAGO (Igual que antes, ahora que sabemos quién es la familia)
     try {
         await pool.query('BEGIN');
 
-        // Validar Familia
         const famRes = await pool.query('SELECT saldo, estado FROM familias WHERE id_familia = $1', [id_familia]);
         if (famRes.rows.length === 0 || famRes.rows[0].estado !== 'ACTIVO' || famRes.rows[0].saldo < monto) {
             await pool.query('ROLLBACK');
             return res.status(400).json({ status: 'Error', mensaje: 'Problemas con la cuenta de la familia o saldo insuficiente' });
         }
 
-        // Validar Comercio
         const comRes = await pool.query('SELECT estado FROM comercios WHERE rut_comercio = $1', [rut_comercio]);
         if (comRes.rows.length === 0 || comRes.rows[0].estado !== 'ACTIVO') {
             await pool.query('ROLLBACK');
             return res.status(400).json({ status: 'Error', mensaje: 'Comercio no habilitado' });
         }
 
-        // Mover dinero y registrar boleta
         await pool.query('UPDATE familias SET saldo = saldo - $1 WHERE id_familia = $2', [monto, id_familia]);
         await pool.query('UPDATE comercios SET saldo_acumulado = saldo_acumulado + $1 WHERE rut_comercio = $2', [monto, rut_comercio]);
         await pool.query(
@@ -266,12 +234,11 @@ const comprarConQR = async (req, res) => {
 
         await pool.query('COMMIT');
         
-        // Devolvemos el monto cobrado y calculamos el saldo restante
         res.status(200).json({ 
             status: 'Éxito', 
             mensaje: 'Pago con QR aprobado', 
             monto_cobrado: monto,
-            saldo_restante: parseInt(famRes.rows[0].saldo) - parseInt(monto) // <-- ESTA ES LA LÍNEA NUEVA
+            saldo_restante: parseInt(famRes.rows[0].saldo) - parseInt(monto)
         });
 
     } catch (error) {
@@ -279,10 +246,5 @@ const comprarConQR = async (req, res) => {
         res.status(500).json({ status: 'Error', mensaje: 'Error en transacción', error: error.message });
     }
 };
-
-
-
-
-
 
 module.exports = { realizarTransaccion, comprarConQR, obtenerTransacciones, obtenerMetricas };
