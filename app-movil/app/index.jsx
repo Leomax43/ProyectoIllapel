@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
 import { router } from 'expo-router';
+import { API_URL } from '../src/config/api';
+
 
 export default function LoginScreen() {
   const [rut, setRut] = useState('');
@@ -14,7 +16,7 @@ export default function LoginScreen() {
 
     try {
       // Usamos tu IP local apuntando al puerto 3000 de Node.js
-      const response = await fetch('http://192.168.1.75:3000/api/movil/login', {
+      const response = await fetch(`${API_URL}/movil/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rut: rut, clave: clave })

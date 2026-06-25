@@ -1,5 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { API_URL } from '../../src/config/api';
+
 
 export default function PagarScreen() {
   // Ahora también recibimos el idFamilia
@@ -8,18 +10,18 @@ export default function PagarScreen() {
   const realizarPagoReal = async () => {
     try {
       // 1. La App pide su código QR temporal al backend
-      const resQR = await fetch(`http://192.168.1.75:3000/api/movil/familia/${idFamilia}/generar-qr`);
+      const resQR = await fetch(`${API_URL}/movil/familia/${idFamilia}/generar-qr`);
       const dataQR = await resQR.json();
       
       if (!resQR.ok) throw new Error("No se pudo generar el código QR");
       const token = dataQR.qr_data; // Tenemos el súper código encriptado
 
-      // 2. Simulamos que el Minimarket Don Jorge (RUT 76111222-3) escanea y cobra 5000
-      const resCobro = await fetch('http://192.168.1.75:3000/api/transacciones/comprar-qr', {
+      // 2. Simulamos que el Minimarket Don Jorge (RUT 77777777-7) escanea y cobra 5000
+      const resCobro = await fetch(`${API_URL}/transacciones/comprar-qr`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          rut_comercio: "76111222-3", // Usamos el Minimarket de nuestro seedDB
+          rut_comercio: "77777777-7", // Usamos el Minimarket de nuestro seedDB
           monto: 5000,
           qr_token: token // Enviamos el código sellado mágicamente con JWT
         })
