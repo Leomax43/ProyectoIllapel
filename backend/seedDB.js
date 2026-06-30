@@ -43,12 +43,13 @@ const poblarBaseDeDatos = async () => {
             ($2, 'Ana Fuentes', '11223344-5', 'Cónyuge', '1978-03-20', false);
         `, [idFamMartinez, idFamPerez]);
 
+        // SE INYECTA LA CLAVE A LOS COMERCIOS ($1)
         console.log("Insertando comercios...");
         await pool.query(`
-            INSERT INTO comercios (rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, saldo_acumulado) VALUES
-            ('77777777-7', 'Supermercado El Centro', 'Abarrotes', 'Plaza de Armas 123', 'Luis Gómez', '+56999887766', 5000),
-            ('88888888-8', 'Ferretería Construye', 'Materiales', 'Av. Principal 456', 'Marta Silva', '+56911223344', 0);
-        `);
+            INSERT INTO comercios (rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, clave_acceso, saldo_acumulado) VALUES
+            ('77777777-7', 'Supermercado El Centro', 'Abarrotes', 'Plaza de Armas 123', 'Luis Gómez', '+56999887766', $1, 5000),
+            ('88888888-8', 'Ferretería Construye', 'Materiales', 'Av. Principal 456', 'Marta Silva', '+56911223344', $1, 0);
+        `, [claveHasheada]);
 
         console.log("Insertando cargas de fondos...");
         await pool.query(`
@@ -74,6 +75,7 @@ const poblarBaseDeDatos = async () => {
         console.log("Asistente: 33333333-3");
         console.log("Operador: 44444444-4");
         console.log("Familia (Rosa Ríos): 12345678-9 (Tiene $45.000)");
+        console.log("Comercio (El Centro): 77777777-7 (¡Nuevo para testing!)");
 
     } catch (error) {
         await pool.query('ROLLBACK');

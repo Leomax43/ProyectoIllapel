@@ -2,7 +2,7 @@ const pool = require('./config/db');
 
 const crearTablas = async () => {
     try {
-        console.log("--- Reiniciando Base de Datos (V5.1 - Modelo Normalizado) ---");
+        console.log("--- Reiniciando Base de Datos (V5.1 - Modelo Normalizado con Claves de Comercio) ---");
 
         await pool.query('BEGIN');
 
@@ -64,7 +64,7 @@ const crearTablas = async () => {
             );
         `);
 
-        // 4. Tabla Comercios
+        // 4. Tabla Comercios (¡AQUÍ ESTÁ LA NUEVA COLUMNA!)
         await pool.query(`
             CREATE TABLE comercios (
                 rut_comercio VARCHAR(12) PRIMARY KEY,
@@ -73,6 +73,7 @@ const crearTablas = async () => {
                 direccion VARCHAR(255),
                 responsable VARCHAR(100),
                 telefono VARCHAR(20),
+                clave_acceso VARCHAR(255) NOT NULL, 
                 saldo_acumulado INT DEFAULT 0,
                 estado VARCHAR(20) DEFAULT 'ACTIVO',
                 fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -2,49 +2,65 @@ const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-
-
-// 1. Login de la Familia en la App
-const loginFamilia = async (req, res) => {
+// 1. Login Unificado (Familias y Comercios)
+const loginMovil = async (req, res) => {
     const { rut, clave } = req.body;
 
     try {
-        const result = await pool.query('SELECT * FROM familias WHERE rut_representante = $1', [rut]);
+        // --- A. INTENTAR COMO FAMILIA ---
+        const famRes = await pool.query('SELECT * FROM familias WHERE rut_representante = $1', [rut]);
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ status: 'Error', mensaje: 'Familia no encontrada en el sistema' });
+        if (famRes.rows.length > 0) {
+            const familia = famRes.rows[0];
+            const match = await bcrypt.compare(clave, familia.clave_acceso);
+            
+            if (!match) return res.status(401).json({ status: 'Error', mensaje: 'Clave de acceso incorrecta' });
+            if (familia.estado !== 'ACTIVO') return res.status(403).json({ status: 'Error', mensaje: 'Cuenta inactiva.' });
+
+            return res.status(200).json({
+                status: 'Éxito',
+                usuario: {
+                    rol: 'FAMILIA', // <-- El Semáforo lo detectará
+                    id_familia: familia.id_familia,
+                    rut_representante: familia.rut_representante,
+                    nombre_familia: familia.nombre_representante,
+                    saldo: familia.saldo
+                },
+                token: "token-simulado-jwt-123456" 
+            });
         }
 
-        const familia = result.rows[0];
+        // --- B. INTENTAR COMO COMERCIO ---
+        const comRes = await pool.query('SELECT * FROM comercios WHERE rut_comercio = $1', [rut]);
 
-        // bcrypt.compare toma la clave en texto plano ("1234") y la compara con el hash de la BD
-        const match = await bcrypt.compare(clave, familia.clave_acceso);
-        
-        if (!match) {
-            return res.status(401).json({ status: 'Error', mensaje: 'Clave de acceso incorrecta' });
+        if (comRes.rows.length > 0) {
+            const comercio = comRes.rows[0];
+            
+            // ATENCIÓN: Esto requiere que la tabla comercios tenga la columna 'clave_acceso'
+            const match = await bcrypt.compare(clave, comercio.clave_acceso);
+            
+            if (!match) return res.status(401).json({ status: 'Error', mensaje: 'Clave de acceso incorrecta' });
+            if (comercio.estado !== 'ACTIVO') return res.status(403).json({ status: 'Error', mensaje: 'Comercio inactivo.' });
+
+            return res.status(200).json({
+                status: 'Éxito',
+                usuario: {
+                    rol: 'COMERCIO', // <-- El Semáforo lo detectará
+                    rut_comercio: comercio.rut_comercio,
+                    nombre_comercio: comercio.nombre_comercio,
+                    saldo_acumulado: comercio.saldo_acumulado
+                },
+                token: "token-simulado-jwt-123456" 
+            });
         }
 
-        if (familia.estado !== 'ACTIVO') {
-            return res.status(403).json({ status: 'Error', mensaje: 'Cuenta inactiva. Diríjase a la municipalidad.' });
-        }
-
-        // Si todo está bien, le devolvemos sus datos básicos y un token
-        res.status(200).json({
-            status: 'Éxito',
-            mensaje: 'Bienvenido a la Billetera Digital de Illapel',
-            usuario: {
-                id_familia: familia.id_familia,
-                rut_representante: familia.rut_representante,
-                nombre_representante: familia.nombre_representante,
-                saldo: familia.saldo
-            },
-            token: "token-simulado-jwt-123456" // En el futuro será un token real
-        });
+        // --- C. NO EXISTE EN NINGÚN LADO ---
+        return res.status(404).json({ status: 'Error', mensaje: 'El RUT ingresado no está registrado en el sistema.' });
 
     } catch (error) {
         res.status(500).json({ status: 'Error', mensaje: 'Error interno del servidor', error: error.message });
     }
-};
+}
 
 // 2. Obtener la Cartola (Historial de compras)
 const obtenerCartola = async (req, res) => {
@@ -105,4 +121,4 @@ const generarQR = (req, res) => {
 
 
 
-module.exports = { loginFamilia, obtenerCartola, generarQR };
+module.exports = { loginMovil, obtenerCartola, generarQR };

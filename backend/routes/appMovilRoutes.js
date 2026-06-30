@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { loginFamilia, obtenerCartola, generarQR } = require('../controllers/appMovilController'); 
+const { loginMovil, obtenerCartola, generarQR } = require('../controllers/appMovilController'); 
 
 
 
@@ -9,7 +9,7 @@ const { loginFamilia, obtenerCartola, generarQR } = require('../controllers/appM
 
 // Ruta POST: Iniciar sesión en la App
 // URL: http://localhost:3000/api/movil/login
-router.post('/login', loginFamilia);
+router.post('/login', loginMovil);
 
 // Ruta GET: Ver el historial de compras de la billetera
 // URL: http://localhost:3000/api/movil/familia/2/cartola

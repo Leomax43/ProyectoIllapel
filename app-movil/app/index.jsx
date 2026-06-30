@@ -3,7 +3,6 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Aler
 import { router } from 'expo-router';
 import { API_URL } from '../src/config/api';
 
-
 export default function LoginScreen() {
   const [rut, setRut] = useState('');
   const [clave, setClave] = useState('');
@@ -15,7 +14,6 @@ export default function LoginScreen() {
     }
 
     try {
-      // Usamos tu IP local apuntando al puerto 3000 de Node.js
       const response = await fetch(`${API_URL}/movil/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -25,25 +23,37 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        // Login exitoso: Viajamos a la pestaña de Pagar enviando el nombre Y EL ID
-        router.replace({
-          pathname: '/(tabs)/pagar',
-          params: { 
-            nombreFamilia: data.usuario.nombre_familia,
-            idFamilia: data.usuario.id_familia // <-- ¡NUEVO! Pasamos el ID
-          }
-        });
+        const usuario = data.usuario;
+
+        // EL SEMÁFORO: Redirigimos según el rol que envíe el backend
+        if (usuario.rol === 'FAMILIA') {
+          router.replace({
+            pathname: '/(familia)/pagar',
+            params: { 
+              nombreFamilia: usuario.nombre_familia,
+              idFamilia: usuario.id_familia 
+            }
+          });
+        } else if (usuario.rol === 'COMERCIO') {
+          router.replace({
+            pathname: '/(comercio)/pago',
+            params: {
+              nombreComercio: usuario.nombre_comercio,
+              rutComercio: usuario.rut_comercio
+            }
+          });
+        } else {
+          Alert.alert("Error", "Rol no reconocido por el sistema.");
+        }
+        
       } else {
-        // Si la cuenta está pendiente, o la clave (bcrypt) falla, mostramos tu mensaje del backend
         Alert.alert("Acceso Denegado", data.mensaje);
       }
     } catch (error) {
-      Alert.alert("Error de Red", "No se pudo conectar con el servidor. Revisa que Node.js esté corriendo.");
+      Alert.alert("Error de Red", "No se pudo conectar con el servidor municipal.");
       console.log(error);
     }
   };
-
-  // ... (El return y los styles quedan exactamente igual que antes)
 
   return (
     <SafeAreaView style={styles.container}>
