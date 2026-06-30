@@ -2,11 +2,10 @@ const pool = require('./config/db');
 
 const crearTablas = async () => {
     try {
-        console.log("--- Reiniciando Base de Datos (V3.1 - Arquitectura con Fechas Completas) ---");
+        console.log("--- Reiniciando Base de Datos (V5.1 - Modelo Normalizado) ---");
 
         await pool.query('BEGIN');
 
-        // DROP en orden inverso para respetar las claves foráneas
         await pool.query(`
             DROP TABLE IF EXISTS transacciones CASCADE;
             DROP TABLE IF EXISTS cargas_fondos CASCADE;
@@ -15,7 +14,7 @@ const crearTablas = async () => {
             DROP TABLE IF EXISTS comercios CASCADE;
             DROP TABLE IF EXISTS admin CASCADE;
         `);
-        console.log("✔ Tablas antiguas eliminadas.");
+        console.log("✔️ Tablas antiguas eliminadas.");
 
         // 1. Tabla Admin
         await pool.query(`
@@ -29,19 +28,21 @@ const crearTablas = async () => {
             );
         `);
 
-        // 2. Tabla Familias (¡NUEVA COLUMNA: fecha_registro!)
+        // 2. Tabla Familias
         await pool.query(`
             CREATE TABLE familias (
                 id_familia SERIAL PRIMARY KEY,
-                rut_representante VARCHAR(12) UNIQUE NOT NULL,
-                nombre_familia VARCHAR(100) NOT NULL,
+                folio_historico INT UNIQUE,                
+                rut_representante VARCHAR(12) UNIQUE NOT NULL,    
+                nombre_representante VARCHAR(150) NOT NULL, 
                 direccion VARCHAR(255),
-                telefono VARCHAR(20),
-                clave_acceso VARCHAR(255) NOT NULL,
+                sector_localidad VARCHAR(100),              
+                telefono VARCHAR(20),                       
+                clave_acceso VARCHAR(255) NOT NULL,         
                 saldo INT DEFAULT 0,
                 estado VARCHAR(20) DEFAULT 'ACTIVO',
                 pdf_ficha_social VARCHAR(255),
-                tiene_discapacidad BOOLEAN DEFAULT FALSE,
+                observaciones TEXT,                         
                 fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
@@ -50,12 +51,16 @@ const crearTablas = async () => {
         await pool.query(`
             CREATE TABLE integrantes (
                 id_integrante SERIAL PRIMARY KEY,
-                id_familia INT REFERENCES familias(id_familia) ON DELETE CASCADE,
+                id_familia INT REFERENCES familias(id_familia) ON DELETE RESTRICT, 
                 nombre_completo VARCHAR(150) NOT NULL,
-                rut VARCHAR(12),
-                parentesco VARCHAR(50),
-                fecha_nacimiento DATE,
-                tiene_discapacidad BOOLEAN DEFAULT FALSE
+                rut VARCHAR(12), 
+                parentesco VARCHAR(50), 
+                sexo VARCHAR(10), 
+                fecha_nacimiento DATE, 
+                correo_electronico VARCHAR(100), 
+                telefono VARCHAR(20),
+                tiene_discapacidad BOOLEAN DEFAULT FALSE,
+                observaciones TEXT 
             );
         `);
 
@@ -79,11 +84,12 @@ const crearTablas = async () => {
             CREATE TABLE cargas_fondos (
                 id_carga SERIAL PRIMARY KEY,
                 id_familia INT REFERENCES familias(id_familia),
-                id_admin INT REFERENCES admin(id_admin),
+                rut_beneficiario VARCHAR(12), 
+                id_admin INT REFERENCES admin(id_admin), 
                 id_jefatura INT REFERENCES admin(id_admin),
                 monto INT NOT NULL,
                 motivo VARCHAR(50),
-                detalles VARCHAR(500),
+                detalles VARCHAR(500), 
                 estado VARCHAR(20) DEFAULT 'PENDIENTE', 
                 fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 fecha_aprobacion TIMESTAMP,
@@ -101,12 +107,12 @@ const crearTablas = async () => {
                 rut_comercio VARCHAR(12) REFERENCES comercios(rut_comercio),
                 monto INT NOT NULL,
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                metodo_pago VARCHAR(20)
+                metodo_pago VARCHAR(20) DEFAULT 'APP_MOVIL'
             );
         `);
 
         await pool.query('COMMIT');
-        console.log("✔ Tablas creadas exitosamente.");
+        console.log("✔️ Estructura definitiva creada exitosamente.");
 
     } catch (error) {
         await pool.query('ROLLBACK');

@@ -157,7 +157,7 @@ const BeneficiaryDetail = ({ beneficiary, onClose }) => {
               </div>
               <div className="text-[12px]">
                 <div className="text-[11px] text-gris-claro mb-[3px]">Fecha de registro</div>
-                <div className="text-[12px] text-[#222] font-bold">{getFirstCargaDate()}</div>
+                <div className="text-[12px] text-[#222] font-bold">{formatDate(detail.datos_personales?.fecha_creacion)}</div>
               </div>
             </div>
 

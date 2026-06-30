@@ -1,49 +1,50 @@
 const pool = require('../config/db');
 const bcrypt = require('bcrypt');
 
-
+// Helper para generar nombre_familia con formato "Apellido-ID"
+const generarNombreFamilia = (nombre_representante, id_familia) => {
+    const apellido = (nombre_representante || '').split(' ').pop() || 'Familia';
+    return `${apellido}-${String(id_familia).padStart(2, '0')}`;
+};
 
 const crearFamilia = async (req, res) => {
-    // 1. Agregamos tiene_discapacidad sin importar el orden
-    const { rut_representante, nombre_familia, clave_acceso, direccion, telefono, tiene_discapacidad } = req.body;
+    // Aceptar tanto nombre_representante como nombre_familia (para compatibilidad con frontend)
+    const nombre_representante = req.body.nombre_representante || req.body.nombre_familia || 'Familia';
+    const { rut_representante, clave_acceso, direccion, telefono } = req.body;
 
     try {
-        // Validación para evitar RUTs duplicados (Buena práctica de seguridad)
         const checkRes = await pool.query('SELECT rut_representante FROM familias WHERE rut_representante = $1', [rut_representante]);
         if (checkRes.rows.length > 0) {
             return res.status(400).json({ status: 'Error', mensaje: 'La familia ya está registrada con este RUT.' });
         }
 
-        // Encriptamos la clave con un "salt" de 10 rondas (muy seguro y rápido)
         const saltRounds = 10;
         const claveHasheada = await bcrypt.hash(clave_acceso, saltRounds);
 
-        // 2. Asegurarnos de que se guarde como un booleano real (true o false)
-        const discapacidadValor = tiene_discapacidad === true || tiene_discapacidad === 'true';
-
-        // 3. Agregamos tiene_discapacidad ($6) al final para respetar el orden exacto de tu código original
         const result = await pool.query(
-            `INSERT INTO familias (rut_representante, nombre_familia, direccion, telefono, clave_acceso, estado, saldo, tiene_discapacidad) 
-             VALUES ($1, $2, $3, $4, $5, 'ACTIVO', 0, $6) RETURNING *`, 
-            [rut_representante, nombre_familia, direccion, telefono, claveHasheada, discapacidadValor]
+            `INSERT INTO familias (rut_representante, nombre_representante, direccion, telefono, clave_acceso, estado, saldo) 
+             VALUES ($1, $2, $3, $4, $5, 'ACTIVO', 0) RETURNING *`, 
+            [rut_representante, nombre_representante, direccion, telefono, claveHasheada]
         );
 
-        res.status(201).json({ status: 'Éxito', mensaje: 'Familia registrada correctamente', familia: result.rows[0] });
+        const familia = result.rows[0];
+        
+        // Añadir nombre_familia computado para el frontend
+        familia.nombre_familia = generarNombreFamilia(familia.nombre_representante, familia.id_familia);
+        familia.fecha_creacion = familia.fecha_registro;
+
+        res.status(201).json({ status: 'Éxito', mensaje: 'Familia registrada correctamente', familia });
     } catch (error) {
         res.status(500).json({ status: 'Error', mensaje: 'Error al registrar familia', error: error.message });
     }
 };
 
-
-
 const obtenerFamilias = async (req, res) => {
-    // Capturamos los parámetros de la URL. Si no vienen, por defecto mostramos la página 1 con 8 registros.
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 8;
     const search = req.query.search || '';
     const estado = req.query.estado || '';
 
-    // Calculamos el desfase (cuántos registros nos saltamos)
     const offset = (page - 1) * limit;
 
     try {
@@ -51,9 +52,10 @@ const obtenerFamilias = async (req, res) => {
             SELECT 
                 f.id_familia,
                 f.rut_representante,
-                f.nombre_familia,
+                f.nombre_representante,
                 f.saldo,
                 f.estado,
+                f.fecha_registro,
                 f.pdf_ficha_social,
                 COUNT(i.id_integrante) as total_integrantes
             FROM familias f
@@ -65,11 +67,10 @@ const obtenerFamilias = async (req, res) => {
         let queryParams = [];
         let paramCount = 0;
 
-        // 1. Aplicar filtros de búsqueda
         let whereConditions = [];
         
         if (search) {
-            whereConditions.push(`(f.nombre_familia ILIKE $${++paramCount} OR f.rut_representante ILIKE $${paramCount})`);
+            whereConditions.push(`(f.nombre_representante ILIKE $${++paramCount} OR f.rut_representante ILIKE $${paramCount})`);
             queryParams.push(`%${search}%`);
         }
 
@@ -84,18 +85,21 @@ const obtenerFamilias = async (req, res) => {
             countQueryText += whereClause;
         }
 
-        // 2. Obtener el total de elementos que cumplen la condición
         const totalRes = await pool.query(countQueryText, queryParams);
         const totalItems = parseInt(totalRes.rows[0].count);
 
-        // 3. Agrupar por familia y añadir paginación
-        queryText += ` GROUP BY f.id_familia ORDER BY f.nombre_familia ASC LIMIT $${++paramCount} OFFSET $${++paramCount}`;
+        queryText += ` GROUP BY f.id_familia ORDER BY f.nombre_representante ASC LIMIT $${++paramCount} OFFSET $${++paramCount}`;
         queryParams.push(limit, offset);
 
-        // Ejecutamos la consulta de datos paginados
         const dataRes = await pool.query(queryText, queryParams);
 
-        // Calculamos el total de páginas necesarias
+        // Mapear para incluir nombre_familia computado y alias de fechas
+        const familias = dataRes.rows.map(f => ({
+            ...f,
+            nombre_familia: generarNombreFamilia(f.nombre_representante, f.id_familia),
+            fecha_creacion: f.fecha_registro
+        }));
+
         const totalPages = Math.ceil(totalItems / limit);
 
         res.status(200).json({
@@ -106,7 +110,7 @@ const obtenerFamilias = async (req, res) => {
                 pagina_actual: page,
                 registros_por_pagina: limit
             },
-            familias: dataRes.rows
+            familias
         });
 
     } catch (error) {
@@ -118,34 +122,42 @@ const obtenerFamiliaDetalle = async (req, res) => {
     const { rut } = req.params; 
 
     try {
-        // 1. Buscar los datos base de la familia
         const famRes = await pool.query('SELECT * FROM familias WHERE rut_representante = $1', [rut]);
         
         if (famRes.rows.length === 0) {
             return res.status(404).json({ status: 'Error', mensaje: 'Familia no encontrada' });
         }
         
-        const familia = famRes.rows[0];
+        const familiaBase = famRes.rows[0];
 
-        // 2. Buscar los integrantes del núcleo familiar
-        const intRes = await pool.query('SELECT * FROM integrantes WHERE id_familia = $1', [familia.id_familia]);
+        const intRes = await pool.query('SELECT * FROM integrantes WHERE id_familia = $1', [familiaBase.id_familia]);
 
-        // 3. Buscar el historial de cargas (¡AQUÍ ESTABA EL ERROR!)
-        // Cambiamos c.fecha por c.fecha_solicitud para coincidir con la BD nueva
         const cargasRes = await pool.query(`
             SELECT c.*, a.nombre_completo as responsable 
             FROM cargas_fondos c 
             JOIN admin a ON c.id_admin = a.id_admin 
             WHERE c.id_familia = $1 
             ORDER BY c.fecha_solicitud DESC 
-        `, [familia.id_familia]);
+        `, [familiaBase.id_familia]);
 
-        // 4. Armar el "Expediente Completo"
+        // Mapear cargas para incluir campo 'fecha' (alias de fecha_solicitud)
+        const historial_cargas = cargasRes.rows.map(c => ({
+            ...c,
+            fecha: c.fecha_solicitud
+        }));
+
+        // Construir datos_personales con nombre_familia computado y fecha_creacion
+        const datos_personales = {
+            ...familiaBase,
+            nombre_familia: generarNombreFamilia(familiaBase.nombre_representante, familiaBase.id_familia),
+            fecha_creacion: familiaBase.fecha_registro
+        };
+
         res.status(200).json({
             status: 'Éxito',
-            datos_personales: familia,
+            datos_personales,
             nucleo_familiar: intRes.rows,
-            historial_cargas: cargasRes.rows
+            historial_cargas
         });
 
     } catch (error) {
@@ -157,12 +169,10 @@ const obtenerFamiliaDetalle = async (req, res) => {
 const subirFichaSocial = async (req, res) => {
     const { id_familia } = req.params;
 
-    // Multer dejará la información del archivo en req.file
     if (!req.file) {
         return res.status(400).json({ status: 'Error', mensaje: 'No se adjuntó ningún archivo PDF' });
     }
 
-    // Armamos la ruta relativa que se guardará en la base de datos
     const rutaBd = `/archivosDocumentos/familias/${id_familia}/${req.file.filename}`;
 
     try {

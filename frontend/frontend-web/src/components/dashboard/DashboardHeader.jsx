@@ -116,9 +116,6 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
 
       {/* BREADCRUMB */}
       <div className="bg-white px-[20px] py-[7px] text-[11px] text-gris-claro border-b border-gris-borde flex justify-between items-center">
-        <div>
-          Inicio <span className="text-azul font-semibold">&rsaquo; Resumen del sistema</span>
-        </div>
         <div className="text-[#aaa] text-[11px]">{capitalizedDate}</div>
       </div>
     </div>

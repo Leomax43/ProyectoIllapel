@@ -27,17 +27,27 @@ const obtenerComercioDetalle = async (req, res) => {
         // Buscar el historial de ventas en este comercio
         // Usamos un JOIN para traer también el nombre de la familia que compró
         const ventasRes = await pool.query(`
-            SELECT t.id_transaccion, t.monto, t.fecha, t.metodo_pago, f.rut_representante as rut_familia, f.nombre_familia
+            SELECT t.id_transaccion, t.monto, t.fecha, t.metodo_pago, f.rut_representante as rut_familia, f.nombre_representante, f.id_familia
             FROM transacciones t
             JOIN familias f ON t.id_familia = f.id_familia
             WHERE t.rut_comercio = $1
             ORDER BY t.fecha DESC
         `, [rut]);
 
+        // Mapear ventas para incluir nombre_familia computado
+        const generarNombreFamilia = (nombre_representante, id_familia) => {
+            const apellido = (nombre_representante || '').split(' ').pop() || 'Familia';
+            return `${apellido}-${String(id_familia).padStart(2, '0')}`;
+        };
+        const historial_ventas = ventasRes.rows.map(v => ({
+            ...v,
+            nombre_familia: generarNombreFamilia(v.nombre_representante, v.id_familia)
+        }));
+
         res.status(200).json({
             status: 'Éxito',
             datos_comercio: comercio,
-            historial_ventas: ventasRes.rows
+            historial_ventas
         });
 
     } catch (error) {

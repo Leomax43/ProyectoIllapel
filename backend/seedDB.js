@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 const poblarBaseDeDatos = async () => {
     try {
-        console.log("--- Iniciando poblado de Base de Datos V3.1 ---");
+        console.log("--- Iniciando poblado de Base de Datos V5.1 ---");
 
         const saltRounds = 10;
         const claveHasheada = await bcrypt.hash('1234', saltRounds);
@@ -25,9 +25,9 @@ const poblarBaseDeDatos = async () => {
 
         console.log("Insertando familias...");
         const familiasRes = await pool.query(`
-            INSERT INTO familias (rut_representante, nombre_familia, direccion, telefono, clave_acceso, saldo, estado, tiene_discapacidad) VALUES
-            ('12345678-9', 'Familia Martínez Ríos', 'Los Aromos 432', '+56912345678', $1, 45000, 'ACTIVO', false),
-            ('9876543-2', 'Familia Pérez Fuentes', 'Calle Las Rosas 12', '+56987654321', $1, 30000, 'ACTIVO', true)
+            INSERT INTO familias (rut_representante, nombre_representante, direccion, telefono, clave_acceso, saldo, estado) VALUES
+            ('12345678-9', 'Rosa Ríos', 'Los Aromos 432', '+56912345678', $1, 45000, 'ACTIVO'),
+            ('9876543-2', 'José Pérez', 'Calle Las Rosas 12', '+56987654321', $1, 30000, 'ACTIVO')
             RETURNING id_familia;
         `, [claveHasheada]);
 
@@ -73,7 +73,7 @@ const poblarBaseDeDatos = async () => {
         console.log("Jefatura: 22222222-2");
         console.log("Asistente: 33333333-3");
         console.log("Operador: 44444444-4");
-        console.log("Familia Martínez: 12345678-9 (Tiene $45.000)");
+        console.log("Familia (Rosa Ríos): 12345678-9 (Tiene $45.000)");
 
     } catch (error) {
         await pool.query('ROLLBACK');
@@ -84,7 +84,3 @@ const poblarBaseDeDatos = async () => {
 };
 
 poblarBaseDeDatos();
-
-
-
-

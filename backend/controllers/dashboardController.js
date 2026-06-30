@@ -1,33 +1,38 @@
 const pool = require('../config/db');
 
+// Helper para generar nombre_familia con formato "Apellido-ID"
+const generarNombreFamilia = (nombre_representante, id_familia) => {
+    const apellido = (nombre_representante || '').split(' ').pop() || 'Familia';
+    return `${apellido}-${String(id_familia).padStart(2, '0')}`;
+};
+
 const obtenerResumen = async (req, res) => {
     try {
-        // Obtener página, límite y búsqueda de query params
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 8;
         const searchTerm = req.query.search || '';
         const offset = (page - 1) * limit;
 
-        // Construir condición WHERE si hay término de búsqueda
         let whereClause = '';
         let queryParams = [];
         
         if (searchTerm) {
-            whereClause = 'WHERE nombre_familia ILIKE $1 OR rut_representante ILIKE $1';
+            whereClause = 'WHERE nombre_representante ILIKE $1 OR rut_representante ILIKE $1';
             queryParams = [`%${searchTerm}%`];
         }
 
-        // Ejecutamos varias consultas en paralelo para que sea súper rápido
+        const primerDiaMes = new Date();
+        primerDiaMes.setDate(1);
+        primerDiaMes.setHours(0, 0, 0, 0);
+
         const [activasRes, pendientesRes, comerciosRes, fondosRes, totalFamiliasRes, familiasRes] = await Promise.all([
             pool.query("SELECT COUNT(*) FROM familias WHERE estado = 'ACTIVO'"),
             pool.query("SELECT COUNT(*) FROM familias WHERE estado = 'PENDIENTE'"),
             pool.query("SELECT COUNT(*) FROM comercios WHERE estado = 'ACTIVO'"),
-            // COALESCE evita que dé error si aún no hay cargas de fondos (devuelve 0 en vez de null)
-            pool.query("SELECT COALESCE(SUM(monto), 0) as total FROM cargas_fondos WHERE estado = 'APROBADO'"),            // Contar familias con el filtro de búsqueda
+            pool.query("SELECT COALESCE(SUM(monto), 0) as total FROM cargas_fondos WHERE estado = 'APROBADO' AND fecha_solicitud >= $1", [primerDiaMes]),
             pool.query(`SELECT COUNT(*) FROM familias ${whereClause}`, queryParams),
-            // Traemos las familias con paginación y búsqueda
             pool.query(
-                `SELECT id_familia, rut_representante, nombre_familia, saldo, estado FROM familias ${whereClause} ORDER BY id_familia DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`,
+                `SELECT f.id_familia, f.rut_representante, f.nombre_representante, f.saldo, f.estado, f.fecha_registro, MAX(c.fecha_solicitud) as ultima_carga FROM familias f LEFT JOIN cargas_fondos c ON f.id_familia = c.id_familia AND c.estado = 'APROBADO' ${whereClause.replace('WHERE', 'WHERE') || ''} GROUP BY f.id_familia ORDER BY f.id_familia DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`,
                 [...queryParams, limit, offset]
             )
         ]);
@@ -35,7 +40,13 @@ const obtenerResumen = async (req, res) => {
         const totalFamilias = parseInt(totalFamiliasRes.rows[0].count);
         const totalPages = Math.ceil(totalFamilias / limit);
 
-        // Armamos el "paquete" de respuesta
+        // Mapear familias para incluir nombre_familia computado y fecha_creacion
+        const familias = familiasRes.rows.map(f => ({
+            ...f,
+            nombre_familia: generarNombreFamilia(f.nombre_representante, f.id_familia),
+            fecha_creacion: f.fecha_registro
+        }));
+
         res.status(200).json({
             status: 'Éxito',
             indicadores: {
@@ -44,7 +55,7 @@ const obtenerResumen = async (req, res) => {
                 comerciosRegistrados: parseInt(comerciosRes.rows[0].count),
                 fondosCargadosTotales: parseInt(fondosRes.rows[0].total)
             },
-            familias: familiasRes.rows,
+            familias,
             paginacion: {
                 paginaActual: page,
                 totalPaginas: totalPages,

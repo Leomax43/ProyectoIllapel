@@ -88,7 +88,8 @@ const obtenerTransacciones = async (req, res) => {
                 t.id_transaccion,
                 t.id_familia,
                 f.rut_representante,
-                f.nombre_familia,
+                f.nombre_representante,
+                f.id_familia as fam_id,
                 t.rut_comercio,
                 c.nombre_comercio,
                 t.monto,
@@ -128,10 +129,20 @@ const obtenerTransacciones = async (req, res) => {
 
         const result = await pool.query(query, params);
 
+        // Mapear para incluir nombre_familia computado
+        const generarNombreFamilia = (nombre_representante, id_familia) => {
+            const apellido = (nombre_representante || '').split(' ').pop() || 'Familia';
+            return `${apellido}-${String(id_familia).padStart(2, '0')}`;
+        };
+        const transacciones = result.rows.map(t => ({
+            ...t,
+            nombre_familia: t.nombre_representante ? generarNombreFamilia(t.nombre_representante, t.fam_id || t.id_familia) : 'Familia'
+        }));
+
         res.status(200).json({
             status: 'Éxito',
-            transacciones: result.rows,
-            total: result.rows.length
+            transacciones,
+            total: transacciones.length
         });
 
     } catch (error) {

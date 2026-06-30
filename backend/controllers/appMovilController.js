@@ -35,7 +35,7 @@ const loginFamilia = async (req, res) => {
             usuario: {
                 id_familia: familia.id_familia,
                 rut_representante: familia.rut_representante,
-                nombre_familia: familia.nombre_familia,
+                nombre_representante: familia.nombre_representante,
                 saldo: familia.saldo
             },
             token: "token-simulado-jwt-123456" // En el futuro será un token real

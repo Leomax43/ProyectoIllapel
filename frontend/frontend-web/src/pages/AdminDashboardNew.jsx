@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useDashboardPaginado } from '../hooks/useDashboardPaginado.js';
@@ -15,7 +15,8 @@ function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [localSearchTerm, setLocalSearchTerm] = useState('');
 
-  const { data, loading, error, currentPage, nextPage, prevPage } = useDashboardPaginado(searchTerm);
+  const { data, initialLoading, error, currentPage, nextPage, prevPage } = useDashboardPaginado(searchTerm);
+  const tableRef = useRef(null);
 
   const {
     indicadores = {
@@ -67,7 +68,7 @@ function AdminDashboard() {
           </div>
         )}
 
-        {loading ? (
+        {initialLoading ? (
           <div className="text-center py-[32px] text-[12px] text-gris-claro">
             Cargando dashboard...
           </div>
@@ -75,6 +76,7 @@ function AdminDashboard() {
           <>
             <MetricsCards indicadores={indicadores} />
             <QuickAlerts indicadores={indicadores} />
+            
             <BeneficiariesTable 
               beneficiarios={familias} 
               currentPage={currentPage}

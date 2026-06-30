@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+
 const BeneficiariesList = ({ 
   beneficiaries, 
   searchTerm, 
@@ -10,8 +12,11 @@ const BeneficiariesList = ({
   totalPages,
   onNextPage,
   onPrevPage,
-  onNewSolicitud
+  onNewSolicitud,
+  onNavigate: externalNavigate
 }) => {
+  const internalNavigate = useNavigate();
+  const navigate = externalNavigate || internalNavigate;
   const formatMoney = (amount) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
   };
@@ -85,8 +90,8 @@ const BeneficiariesList = ({
               }`}
             >
               <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{ben.rut_representante}</td>
+              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{ben.nombre_representante}</td>
               <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{ben.nombre_familia}</td>
-              <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">Fam. {ben.nombre_familia?.split(' ')[1] || 'N/A'}</td>
               <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{formatMoney(ben.saldo)}</td>
               <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">
                 <span className={`inline-block px-[9px] py-[3px] rounded-[12px] text-[11px] font-semibold ${badgeStyle(ben.estado)}`}>
@@ -99,7 +104,9 @@ const BeneficiariesList = ({
                   Ver
                 </button>
                 {ben.estado === 'ACTIVO' && (
-                  <button className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white bg-[#c49300] font-medium"
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); navigate(`/nueva-carga?rut=${ben.rut_representante}`); }}
+                    className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white bg-[#c49300] font-medium"
                     style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
                     Fondos
                   </button>

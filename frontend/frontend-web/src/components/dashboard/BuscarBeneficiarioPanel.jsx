@@ -52,7 +52,7 @@ const BuscarBeneficiarioPanel = ({
                     onClick={() => onSelectBeneficiario(beneficiario)}
                     className="cursor-pointer hover:bg-[#f0f8f6]"
                   >
-                    <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{beneficiario.nombre_familia}</td>
+                    <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{beneficiario.nombre_representante}</td>
                     <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{beneficiario.rut_representante}</td>
                     <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">
                       <span className={badgeStyle(beneficiario.estado)}>{beneficiario.estado}</span>

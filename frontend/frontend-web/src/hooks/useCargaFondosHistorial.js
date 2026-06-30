@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react';
 import fondosService from '../services/fondosService';
 import beneficiariesService from '../services/beneficiariesService';
 
+const ITEMS_POR_PAGINA = 8;
+
 export const useCargaFondosHistorial = () => {
   const [cargas, setCargas] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCarga, setSelectedCarga] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Estado local para las métricas dinámicas
   const [metricas, setMetricas] = useState({
     cargasEsteMes: 0,
     totalDistribuidoMes: 0,
@@ -19,19 +21,22 @@ export const useCargaFondosHistorial = () => {
     nombreMesAño: ''
   });
 
+  // Reset a página 1 cuando cambia el filtro de búsqueda
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   useEffect(() => {
     const fetchDatosYCalcularMetricas = async () => {
       try {
         setLoading(true);
         
-        // 1. Obtener cargas e historial unificado
         const dataCargas = await fondosService.obtenerTodasLasCargas();
         setCargas(dataCargas);
         if (dataCargas.length > 0 && !selectedCarga) {
           setSelectedCarga(dataCargas[0]);
         }
 
-        // 2. Obtener estadísticas globales de beneficiarios (desde su respectivo servicio)
         let activosCount = 0;
         try {
           const statsBeneficiarios = await beneficiariesService.getBeneficiariesStats();
@@ -40,29 +45,21 @@ export const useCargaFondosHistorial = () => {
           console.error('⚠️ No se pudieron obtener estadísticas globales de beneficiarios:', errStats);
         }
 
-        // 3. Procesar cálculos basados en fechas y estados reales
         const ahora = new Date();
-        const mesActual = ahora.getMonth(); // 0 = Enero, 4 = Mayo, etc.
+        const mesActual = ahora.getMonth();
         const añoActual = ahora.getFullYear();
-
-        // Formato para el label inferior de las cards (ej: "junio 2026")
         const nombreMesAño = ahora.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
 
-        // Filtrar cargas correspondientes al mes y año en curso
         const cargasDelMes = dataCargas.filter(carga => {
+          if (!carga.fecha) return false; // Ignorar cargas sin fecha
           const fechaCarga = new Date(carga.fecha);
+          if (isNaN(fechaCarga.getTime())) return false; // Ignorar fechas inválidas
           return fechaCarga.getMonth() === mesActual && fechaCarga.getFullYear() === añoActual;
         });
 
-        // Sumatoria del monto total distribuido en el mes
         const totalDistribuidoMes = cargasDelMes.reduce((sum, carga) => sum + (parseInt(carga.monto) || 0), 0);
-
-        // Contar beneficiarios únicos que recibieron fondos en el mes
         const rutsUnicosMes = new Set(cargasDelMes.map(carga => carga.rut_principal));
         const beneficiariosUnicosMes = rutsUnicosMes.size;
-
-        // Cargas rechazadas o bloqueadas (según estados del modelo de base de datos)
-        // Revisamos si en la base de datos están bajo la regla o marcadas como 'RECHAZADO' o 'BLOQUEADO'
         const cargasBloqueadas = dataCargas.filter(carga => 
           carga.estado === 'RECHAZADO' || carga.estado === 'BLOQUEADO'
         ).length;
@@ -91,21 +88,44 @@ export const useCargaFondosHistorial = () => {
   const cargasFiltradas = cargas.filter(carga => {
     const searchLower = searchTerm.toLowerCase();
     return (
+      carga.nombre_representante?.toLowerCase().includes(searchLower) ||
       carga.nombre_familia?.toLowerCase().includes(searchLower) ||
       carga.rut_principal?.toLowerCase().includes(searchLower) ||
       carga.motivo?.toLowerCase().includes(searchLower)
     );
   });
 
+  // Paginación
+  const totalPages = Math.ceil(cargasFiltradas.length / ITEMS_POR_PAGINA);
+  const startIndex = (currentPage - 1) * ITEMS_POR_PAGINA;
+  const cargasPaginadas = cargasFiltradas.slice(startIndex, startIndex + ITEMS_POR_PAGINA);
+
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
   return {
     cargas,
-    cargasFiltradas,
+    cargasFiltradas: cargasPaginadas,
+    totalFiltradas: cargasFiltradas.length,
     searchTerm,
     setSearchTerm,
     selectedCarga,
     setSelectedCarga,
     loading,
     error,
-    metricas
+    metricas,
+    currentPage,
+    totalPages,
+    nextPage,
+    prevPage
   };
 };

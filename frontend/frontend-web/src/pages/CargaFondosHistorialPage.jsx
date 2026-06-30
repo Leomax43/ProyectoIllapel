@@ -15,13 +15,18 @@ const CargaFondosHistorialPage = () => {
   const {
     cargas,
     cargasFiltradas: cargasFiltradasPorTexto,
+    totalFiltradas,
     searchTerm,
     setSearchTerm,
     selectedCarga,
     setSelectedCarga,
     loading,
     error,
-    metricas
+    metricas,
+    currentPage,
+    totalPages,
+    nextPage,
+    prevPage
   } = useCargaFondosHistorial();
 
   const formatCurrency = (value) => parseInt(value).toLocaleString('es-CL');
@@ -76,7 +81,7 @@ const CargaFondosHistorialPage = () => {
         <div className="grid grid-cols-[1.4fr_1fr] gap-[14px] items-start">
           <CargaFondosList 
             cargasFiltradas={cargasFiltradasFinal}
-            totalCargas={cargas.length}
+            totalCargas={totalFiltradas}
             selectedCarga={selectedCarga}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
@@ -88,6 +93,10 @@ const CargaFondosHistorialPage = () => {
             formatDate={formatDate}
             loading={loading}
             error={error}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onNextPage={nextPage}
+            onPrevPage={prevPage}
           />
 
           <CargaFondosDetail 

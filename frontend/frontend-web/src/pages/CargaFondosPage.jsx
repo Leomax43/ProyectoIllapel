@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DashboardFooter from '../components/dashboard/DashboardFooter';
 import BuscarBeneficiarioPanel from '../components/dashboard/BuscarBeneficiarioPanel';
@@ -20,12 +20,36 @@ const CargaFondosPage = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [beneficiariosList, setBeneficiariosList] = useState([]);
+  const [searchParams] = useSearchParams();
   const [selectedBeneficiario, setSelectedBeneficiario] = useState(null);
+  const autoSelectDone = useRef(false);
   const [montoInput, setMontoInput] = useState('');
   const [tipoAyuda, setTipoAyuda] = useState('Seleccione...');
   const [observaciones, setObservaciones] = useState('');
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfFileName, setPdfFileName] = useState('');
+
+  // Si viene un RUT en la URL, seleccionar automáticamente al beneficiario
+  useEffect(() => {
+    const rutParam = searchParams.get('rut');
+    if (rutParam && !autoSelectDone.current) {
+      autoSelectDone.current = true;
+      const autoSelect = async () => {
+        setLoadingSearch(true);
+        try {
+          const detail = await beneficiariesService.getBeneficiaryDetail(rutParam);
+          if (detail && detail.datos_personales) {
+            setSelectedBeneficiario(detail);
+          }
+        } catch (error) {
+          console.warn('No se pudo cargar beneficiario desde URL:', error);
+        } finally {
+          setLoadingSearch(false);
+        }
+      };
+      autoSelect();
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (searchTerm.trim()) {

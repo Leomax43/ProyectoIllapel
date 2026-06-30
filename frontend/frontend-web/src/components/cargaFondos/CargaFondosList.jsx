@@ -11,7 +11,11 @@ const CargaFondosList = ({
   formatCurrency,
   formatDate,
   loading,
-  error
+  error,
+  currentPage = 1,
+  totalPages = 1,
+  onNextPage = () => {},
+  onPrevPage = () => {}
 }) => {
   const getEstadoBadge = (estado) => {
     const normalizado = estado ? estado.toUpperCase() : 'PENDIENTE';
@@ -112,7 +116,7 @@ const CargaFondosList = ({
                 >
                   <td className="px-[10px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{carga.id_carga}</td>
                   <td className="px-[10px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{formatDate(carga.fecha)}</td>
-                  <td className="px-[10px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{carga.nombre_familia}</td>
+                  <td className="px-[10px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{carga.nombre_representante || carga.nombre_familia}</td>
                   <td className="px-[10px] py-[7px] border-b border-[#f0f0f0] text-[#333]">{carga.motivo || '—'}</td>
                   <td className="px-[10px] py-[7px] border-b border-[#f0f0f0] text-verde font-bold">
                     ${formatCurrency(carga.monto)}
@@ -130,8 +134,31 @@ const CargaFondosList = ({
       {/* PAGER */}
       <div className="px-[12px] py-[8px] bg-white border-t border-gris-borde flex justify-between items-center text-[11px] text-gris-claro">
         <span>
-          Mostrando {cargasFiltradas.length} registros (Total: {totalCargas} en historial)
+          Mostrando {cargasFiltradas.length} registros (Total: {totalCargas} registros)
         </span>
+        <div className="flex gap-[8px] items-center">
+          <button
+            onClick={onPrevPage}
+            disabled={currentPage === 1}
+            className={`px-[8px] py-[3px] rounded-[3px] text-[11px] border border-gris-borde ${
+              currentPage === 1 ? 'bg-[#e0e0e0] text-gris-claro cursor-not-allowed' : 'bg-white text-[#333] cursor-pointer'
+            }`}
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
+          >
+            Anterior
+          </button>
+          <span className="text-[11px] font-bold text-[#333]">{currentPage} de {totalPages}</span>
+          <button
+            onClick={onNextPage}
+            disabled={currentPage >= totalPages}
+            className={`px-[8px] py-[3px] rounded-[3px] text-[11px] border border-gris-borde ${
+              currentPage >= totalPages ? 'bg-[#e0e0e0] text-gris-claro cursor-not-allowed' : 'bg-white text-[#333] cursor-pointer'
+            }`}
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
+          >
+            Siguiente
+          </button>
+        </div>
       </div>
     </div>
   );

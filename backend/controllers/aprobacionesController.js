@@ -1,5 +1,11 @@
 const pool = require('../config/db');
 
+// Helper para generar nombre_familia con formato "Apellido-ID"
+const generarNombreFamilia = (nombre_representante, id_familia) => {
+    const apellido = (nombre_representante || '').split(' ').pop() || 'Familia';
+    return `${apellido}-${String(id_familia).padStart(2, '0')}`;
+};
+
 // 1. Cambiar el estado de una familia (Ej: Activo, Rechazado, Baja) - ¡Tu función original intacta!
 const cambiarEstadoFamilia = async (req, res) => {
     const { id_familia } = req.params;
@@ -7,7 +13,7 @@ const cambiarEstadoFamilia = async (req, res) => {
 
     try {
         const result = await pool.query(
-            'UPDATE familias SET estado = $1 WHERE id_familia = $2 RETURNING rut_representante, nombre_familia, estado',
+            'UPDATE familias SET estado = $1 WHERE id_familia = $2 RETURNING rut_representante, nombre_representante, estado',
             [nuevo_estado, id_familia]
         );
 
@@ -27,18 +33,25 @@ const cambiarEstadoFamilia = async (req, res) => {
 };
 
 // 2. Listar todas las solicitudes de fondos que están PENDIENTES
-// Nota: Se actualizó cf.fecha a cf.fecha_solicitud para concordar con el nuevo esquema
 const obtenerSolicitudesFondos = async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT cf.*, f.nombre_familia, f.rut_representante, a.nombre_completo as nombre_asistente
+            SELECT cf.*, f.nombre_representante, f.rut_representante, f.id_familia, a.nombre_completo as nombre_asistente
             FROM cargas_fondos cf
             JOIN familias f ON cf.id_familia = f.id_familia
             JOIN admin a ON cf.id_admin = a.id_admin
             WHERE cf.estado = 'PENDIENTE'
             ORDER BY cf.fecha_solicitud DESC
         `);
-        res.status(200).json({ status: 'Éxito', solicitudes: result.rows });
+        
+        // Mapear para incluir nombre_familia computado y fecha como alias
+        const solicitudes = result.rows.map(s => ({
+            ...s,
+            nombre_familia: generarNombreFamilia(s.nombre_representante, s.id_familia),
+            fecha: s.fecha_solicitud
+        }));
+        
+        res.status(200).json({ status: 'Éxito', solicitudes });
     } catch (error) {
         res.status(500).json({ status: 'Error', mensaje: 'Error al obtener solicitudes', error: error.message });
     }

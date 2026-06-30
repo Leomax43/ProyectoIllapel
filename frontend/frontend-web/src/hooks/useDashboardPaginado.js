@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { obtenerResumenDashboard } from '../services/dashboardService.js';
 
 export function useDashboardPaginado(searchTerm = '') {
@@ -17,9 +17,10 @@ export function useDashboardPaginado(searchTerm = '') {
       registrosPorPagina: 8,
     },
   });
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const isFirstRender = useRef(true);
 
   // Reset a página 1 cuando cambia el término de búsqueda
   useEffect(() => {
@@ -29,14 +30,18 @@ export function useDashboardPaginado(searchTerm = '') {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        setLoading(true);
+        if (isFirstRender.current) {
+          setInitialLoading(true);
+          isFirstRender.current = false;
+        }
+        
         const resultado = await obtenerResumenDashboard(currentPage, 8, searchTerm);
         setData(resultado);
       } catch (err) {
         setError(err.message || 'Error al cargar el dashboard');
         console.error('Error cargando dashboard:', err);
       } finally {
-        setLoading(false);
+        setInitialLoading(false);
       }
     };
 
@@ -59,7 +64,7 @@ export function useDashboardPaginado(searchTerm = '') {
 
   return { 
     data, 
-    loading, 
+    initialLoading, 
     error, 
     currentPage, 
     goToPage, 

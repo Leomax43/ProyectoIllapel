@@ -30,7 +30,7 @@ function BeneficiariesTable({
     if (estadoUpper === 'PENDIENTE') {
       buttons.push({ label: 'Aprobar', style: 'btn-aprobar bg-celeste', action: () => navigate(`/aprobaciones`) });
     } else if (estadoUpper === 'ACTIVO') {
-      buttons.push({ label: 'Fondos', style: 'btn-fondos bg-verde', action: () => navigate(`/nueva-carga`) });
+      buttons.push({ label: 'Fondos', style: 'btn-fondos bg-verde', action: () => navigate(`/nueva-carga?rut=${beneficiario.rut_representante}`) });
     }
     return buttons;
   };
@@ -106,10 +106,12 @@ function BeneficiariesTable({
                 className="hover:bg-[#f0f8f6] cursor-pointer"
               >
                 <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">{beneficiario.rut_representante}</td>
+                <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">{beneficiario.nombre_representante}</td>
                 <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">{beneficiario.nombre_familia}</td>
-                <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">Fam. {beneficiario.nombre_familia?.split(' ')[0]}</td>
                 <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">${(beneficiario.saldo || 0).toLocaleString('es-CL')}</td>
-                <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">—</td>
+                <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">
+                  {beneficiario.ultima_carga ? new Date(beneficiario.ultima_carga).toLocaleDateString('es-CL') : '—'}
+                </td>
                 <td className="px-[12px] py-[8px] border-b border-[#f0f0f0] text-[#333]">
                   <span className={`inline-block px-[9px] py-[3px] rounded-[12px] text-[11px] font-semibold ${badgeStyle(beneficiario.estado)}`}>
                     {beneficiario.estado?.charAt(0).toUpperCase() + beneficiario.estado?.slice(1).toLowerCase()}

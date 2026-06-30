@@ -65,6 +65,7 @@ const fondosService = {
                 motivo: carga.motivo,
                 detalles: carga.detalles,
                 pdf_resolucion: carga.pdf_resolucion,
+                nombre_representante: familia.nombre_representante,
                 nombre_familia: familia.nombre_familia,
                 rut_principal: familia.rut_representante,
                 saldo: familia.saldo,
