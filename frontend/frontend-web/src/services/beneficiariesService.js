@@ -53,6 +53,22 @@ const beneficiariesService = {
       console.error('Error fetching beneficiary detail:', error);
       throw error;
     }
+  },
+
+  updateBeneficiary: async (rut, payload) => {
+    try {
+      const data = await request(`/api/familias/${rut}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      return data;
+    } catch (error) {
+      console.error('Error updating beneficiary:', error);
+      throw error;
+    }
   }
 };
 

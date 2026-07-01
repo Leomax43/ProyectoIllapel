@@ -19,6 +19,17 @@ const asegurarColumnasFamilias = async () => {
     `);
 };
 
+const asegurarColumnasIntegrantes = async () => {
+    await pool.query(`
+        ALTER TABLE integrantes
+        ADD COLUMN IF NOT EXISTS sexo VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS correo_electronico VARCHAR(150),
+        ADD COLUMN IF NOT EXISTS telefono VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS tiene_discapacidad BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS observaciones TEXT;
+    `);
+};
+
 const crearFamilia = async (req, res) => {
     const nombre_representante = req.body.nombre_representante || req.body.nombre_familia || 'Familia';
     const {
@@ -73,6 +84,122 @@ const crearFamilia = async (req, res) => {
         res.status(201).json({ status: 'Éxito', mensaje: 'Familia registrada correctamente', familia });
     } catch (error) {
         res.status(500).json({ status: 'Error', mensaje: 'Error al registrar familia', error: error.message });
+    }
+};
+
+const actualizarFamilia = async (req, res) => {
+    const { rut } = req.params;
+    const {
+        rut_representante,
+        nombre_representante,
+        direccion,
+        sector_localidad,
+        telefono,
+        telefono_hogar,
+        correo_electronico,
+        sexo,
+        observaciones,
+        tiene_discapacidad,
+        clave_acceso,
+        integrantes = []
+    } = req.body;
+
+    try {
+        await asegurarColumnasFamilias();
+        await asegurarColumnasIntegrantes();
+
+        const famRes = await pool.query('SELECT * FROM familias WHERE rut_representante = $1', [rut]);
+
+        if (famRes.rows.length === 0) {
+            return res.status(404).json({ status: 'Error', mensaje: 'Familia no encontrada' });
+        }
+
+        const familiaActual = famRes.rows[0];
+        const discapacidadValor = tiene_discapacidad === true || tiene_discapacidad === 'true';
+        const nombreRepresentante = nombre_representante || familiaActual.nombre_representante || 'Familia';
+        const nuevoRutRepresentante = rut_representante || familiaActual.rut_representante;
+
+        let queryText = `
+            UPDATE familias
+            SET rut_representante = $1,
+                nombre_representante = $2,
+                direccion = $3,
+                sector_localidad = $4,
+                telefono = $5,
+                telefono_hogar = $6,
+                sexo = $7,
+                correo_electronico = $8,
+                tiene_discapacidad = $9,
+                observaciones = $10`;
+        const params = [
+            nuevoRutRepresentante,
+            nombreRepresentante,
+            direccion || familiaActual.direccion || null,
+            sector_localidad || familiaActual.sector_localidad || null,
+            telefono || familiaActual.telefono || null,
+            telefono_hogar || familiaActual.telefono_hogar || null,
+            sexo || familiaActual.sexo || null,
+            correo_electronico || familiaActual.correo_electronico || null,
+            discapacidadValor,
+            observaciones || familiaActual.observaciones || null
+        ];
+
+        if (String(clave_acceso || '').trim()) {
+            const saltRounds = 10;
+            const claveHasheada = await bcrypt.hash(String(clave_acceso).trim(), saltRounds);
+            queryText += `, clave_acceso = $11`;
+            params.push(claveHasheada);
+        }
+
+        queryText += ` WHERE rut_representante = $${params.length + 1} RETURNING *`;
+        params.push(rut);
+
+        const result = await pool.query(queryText, params);
+        const familiaActualizada = result.rows[0];
+
+        await pool.query('DELETE FROM integrantes WHERE id_familia = $1', [familiaActualizada.id_familia]);
+
+        for (const integrante of integrantes) {
+            const discapacidadIntegrante = integrante.tiene_discapacidad === true || integrante.tiene_discapacidad === 'true';
+            await pool.query(`
+                INSERT INTO integrantes (
+                    id_familia,
+                    nombre_completo,
+                    rut,
+                    parentesco,
+                    sexo,
+                    fecha_nacimiento,
+                    correo_electronico,
+                    telefono,
+                    tiene_discapacidad,
+                    observaciones
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            `, [
+                familiaActualizada.id_familia,
+                integrante.nombre_completo || null,
+                integrante.rut || null,
+                integrante.parentesco || null,
+                integrante.sexo || null,
+                integrante.fecha_nacimiento || null,
+                integrante.correo_electronico || null,
+                integrante.telefono || null,
+                discapacidadIntegrante,
+                integrante.observaciones || null
+            ]);
+        }
+
+        res.status(200).json({
+            status: 'Éxito',
+            mensaje: 'Familia actualizada correctamente',
+            familia: {
+                ...familiaActualizada,
+                nombre_familia: generarNombreFamilia(familiaActualizada.nombre_representante, familiaActualizada.id_familia),
+                fecha_creacion: familiaActualizada.fecha_registro
+            }
+        });
+    } catch (error) {
+        console.error('Error al actualizar la familia:', error);
+        res.status(500).json({ status: 'Error', mensaje: 'Error al actualizar la familia', error: error.message });
     }
 };
 
@@ -252,4 +379,4 @@ const obtenerEstadisticasBeneficiarios = async (req, res) => {
     }
 };
 
-module.exports = { crearFamilia, obtenerFamilias, obtenerFamiliaDetalle, subirFichaSocial, obtenerEstadisticasBeneficiarios };
+module.exports = { crearFamilia, actualizarFamilia, obtenerFamilias, obtenerFamiliaDetalle, subirFichaSocial, obtenerEstadisticasBeneficiarios };
