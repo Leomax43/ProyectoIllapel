@@ -1,52 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import beneficiariesService from '../../services/beneficiariesService';
-import BeneficiarioForm from '../ui/BeneficiarioForm';
-import IntegrantesTable from '../ui/IntegrantesTable';
-
-const initialBeneficiarioState = {
-  nombre_completo: '',
-  rut: '',
-  fecha_nacimiento: '',
-  sexo: '',
-  telefono: '',
-  correo_electronico: '',
-  direccion: '',
-  sector_localidad: '',
-  telefono_hogar: '',
-  tiene_discapacidad: false,
-  observaciones: '',
-  rol_en_hogar: 'Jefa de hogar',
-  clave_acceso: '',
-  confirmar_clave: '',
-  quiero_definir_clave: false
-};
-
-const initialIntegranteState = {
-  nombre_completo: '',
-  rut: '',
-  parentesco: 'Cónyuge',
-  sexo: '',
-  fecha_nacimiento: '',
-  telefono: '',
-  correo_electronico: '',
-  tiene_discapacidad: false,
-  observaciones: ''
-};
 
 const BeneficiaryDetail = ({ beneficiary }) => {
+  const navigate = useNavigate();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('datos-personales');
-  const [isEditing, setIsEditing] = useState(false);
-  const [editBeneficiario, setEditBeneficiario] = useState(initialBeneficiarioState);
-  const [editIntegrantes, setEditIntegrantes] = useState([]);
-  const [saving, setSaving] = useState(false);
-  const [formMessage, setFormMessage] = useState(null);
 
   useEffect(() => {
     if (beneficiary) {
-      setIsEditing(false);
-      setFormMessage(null);
       fetchDetail();
     }
   }, [beneficiary]);
@@ -60,142 +23,6 @@ const BeneficiaryDetail = ({ beneficiary }) => {
       console.error('Error loading detail:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const buildEditStateFromDetail = (detailData) => {
-    const personal = detailData?.datos_personales || {};
-    const representante = detailData?.nucleo_familiar?.[0] || {};
-
-    return {
-      nombre_completo: personal.nombre_representante || representante.nombre_completo || '',
-      rut: personal.rut_representante || '',
-      fecha_nacimiento: representante.fecha_nacimiento || '',
-      sexo: personal.sexo || representante.sexo || '',
-      telefono: personal.telefono || representante.telefono || '',
-      correo_electronico: personal.correo_electronico || representante.correo_electronico || '',
-      direccion: personal.direccion || '',
-      sector_localidad: personal.sector_localidad || '',
-      telefono_hogar: personal.telefono_hogar || '',
-      tiene_discapacidad: Boolean(personal.tiene_discapacidad ?? representante.tiene_discapacidad ?? false),
-      observaciones: personal.observaciones || representante.observaciones || '',
-      rol_en_hogar: representante.parentesco || 'Jefa de hogar',
-      clave_acceso: '',
-      confirmar_clave: '',
-      quiero_definir_clave: false
-    };
-  };
-
-  const buildEditIntegrantesState = (detailData) => {
-    return (detailData?.nucleo_familiar || []).slice(1).map((member, index) => ({
-      id: `integrante-${index}`,
-      ...initialIntegranteState,
-      ...member
-    }));
-  };
-
-  const startEditing = () => {
-    setEditBeneficiario(buildEditStateFromDetail(detail));
-    setEditIntegrantes(buildEditIntegrantesState(detail));
-    setIsEditing(true);
-    setFormMessage(null);
-  };
-
-  const handleBeneficiarioChange = (field, value) => {
-    setEditBeneficiario(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleIntegranteChange = (id, field, value) => {
-    setEditIntegrantes(prev => prev.map(int => (int.id === id ? { ...int, [field]: value } : int)));
-  };
-
-  const agregarIntegrante = () => {
-    const newId = `integrante-${Date.now()}`;
-    setEditIntegrantes(prev => [...prev, { id: newId, ...initialIntegranteState }]);
-  };
-
-  const eliminarIntegrante = (id) => {
-    setEditIntegrantes(prev => prev.filter(item => item.id !== id));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setFormMessage(null);
-
-    try {
-      const nombreCompleto = editBeneficiario.nombre_completo.trim();
-      const rutRepresentante = editBeneficiario.rut.trim();
-
-      if (!nombreCompleto || !rutRepresentante || !editBeneficiario.fecha_nacimiento || !editBeneficiario.direccion || !editBeneficiario.sector_localidad) {
-        throw new Error('Faltan campos obligatorios del beneficiario principal');
-      }
-
-      if (editBeneficiario.quiero_definir_clave) {
-        if (!editBeneficiario.clave_acceso || editBeneficiario.clave_acceso.length < 6) {
-          throw new Error('La clave personalizada debe tener al menos 6 caracteres');
-        }
-        if (editBeneficiario.clave_acceso !== editBeneficiario.confirmar_clave) {
-          throw new Error('Las claves no coinciden');
-        }
-      }
-
-      if (editIntegrantes.some(int => !int.nombre_completo || !int.parentesco || !int.fecha_nacimiento)) {
-        throw new Error('Completa todos los campos de los integrantes adicionales');
-      }
-
-      const payload = {
-        rut_representante: rutRepresentante,
-        nombre_representante: nombreCompleto,
-        direccion: editBeneficiario.direccion,
-        sector_localidad: editBeneficiario.sector_localidad,
-        telefono: editBeneficiario.telefono || editBeneficiario.telefono_hogar || null,
-        telefono_hogar: editBeneficiario.telefono_hogar,
-        correo_electronico: editBeneficiario.correo_electronico || null,
-        sexo: editBeneficiario.sexo || null,
-        observaciones: editBeneficiario.observaciones || null,
-        tiene_discapacidad: editBeneficiario.tiene_discapacidad,
-        ...(editBeneficiario.quiero_definir_clave ? { clave_acceso: editBeneficiario.clave_acceso } : {}),
-        integrantes: [
-          {
-            nombre_completo: nombreCompleto,
-            rut: rutRepresentante,
-            parentesco: editBeneficiario.rol_en_hogar,
-            sexo: editBeneficiario.sexo || null,
-            fecha_nacimiento: editBeneficiario.fecha_nacimiento,
-            correo_electronico: editBeneficiario.correo_electronico || null,
-            telefono: editBeneficiario.telefono || editBeneficiario.telefono_hogar || null,
-            tiene_discapacidad: editBeneficiario.tiene_discapacidad,
-            observaciones: editBeneficiario.observaciones || null
-          },
-          ...editIntegrantes.map(integrante => ({
-            nombre_completo: integrante.nombre_completo,
-            rut: integrante.rut || null,
-            parentesco: integrante.parentesco,
-            sexo: integrante.sexo || null,
-            fecha_nacimiento: integrante.fecha_nacimiento,
-            correo_electronico: integrante.correo_electronico || null,
-            telefono: integrante.telefono || null,
-            tiene_discapacidad: integrante.tiene_discapacidad,
-            observaciones: integrante.observaciones || null
-          }))
-        ]
-      };
-
-      const currentRut = detail?.datos_personales?.rut_representante || beneficiary?.rut_representante;
-      if (!currentRut) {
-        throw new Error('No fue posible identificar al beneficiario');
-      }
-
-      await beneficiariesService.updateBeneficiary(currentRut, payload);
-      const refreshed = await beneficiariesService.getBeneficiaryDetail(rutRepresentante);
-      setDetail(refreshed);
-      setIsEditing(false);
-      setFormMessage({ text: '✅ Datos actualizados correctamente', type: 'success' });
-    } catch (error) {
-      setFormMessage({ text: `❌ Error: ${error.message}`, type: 'error' });
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -264,50 +91,6 @@ const BeneficiaryDetail = ({ beneficiary }) => {
     );
   }
 
-  if (isEditing) {
-    return (
-      <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden">
-        <div className="bg-azul text-white text-[13px] font-semibold px-[16px] py-[9px]">
-          <span className="inline-block w-[3px] h-[16px] bg-amarillo rounded-[2px] mr-[8px] align-middle"></span>
-          Editar datos del beneficiario
-        </div>
-
-        <div className="p-[13px_14px]">
-          {formMessage && (
-            <div className={`border rounded-[3px] p-[8px_12px] text-[12px] mb-[14px] ${
-              formMessage.type === 'error' ? 'bg-[#ffebee] border-[#ffcdd2] text-[#c62828]' : 'bg-[#e8f5e9] border-[#c8e6c9] text-[#2e7d32]'
-            }`}>
-              {formMessage.text}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            <BeneficiarioForm
-              beneficiario={editBeneficiario}
-              onBeneficiarioChange={handleBeneficiarioChange}
-            />
-
-            <IntegrantesTable
-              integrantes={editIntegrantes}
-              onIntegranteChange={handleIntegranteChange}
-              onEliminarIntegrante={eliminarIntegrante}
-              onAgregarIntegrante={agregarIntegrante}
-            />
-
-            <div className="flex justify-end gap-[10px] mt-[4px]">
-              <button type="button" onClick={() => { setIsEditing(false); setFormMessage(null); }} disabled={saving} className="bg-white border border-gris-borde text-gris-texto rounded-[4px] px-[22px] py-[9px] text-[13px] cursor-pointer hover:bg-[#f5f5f5]">
-                Cancelar
-              </button>
-              <button type="submit" disabled={saving} className={`bg-verde text-white border-none rounded-[4px] px-[24px] py-[9px] text-[13px] font-semibold ${saving ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:brightness-110'}`}>
-                {saving ? 'Guardando...' : 'Guardar cambios'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden">
       {/* PANEL HEADER */}
@@ -335,14 +118,6 @@ const BeneficiaryDetail = ({ beneficiary }) => {
 
       {/* TAB CONTENT */}
       <div className="p-[13px_14px]">
-        {formMessage && (
-          <div className={`border rounded-[3px] p-[8px_12px] text-[12px] mb-[14px] ${
-            formMessage.type === 'error' ? 'bg-[#ffebee] border-[#ffcdd2] text-[#c62828]' : 'bg-[#e8f5e9] border-[#c8e6c9] text-[#2e7d32]'
-          }`}>
-            {formMessage.text}
-          </div>
-        )}
-
         {/* DATOS PERSONALES */}
         {activeTab === 'datos-personales' && (
           <>
@@ -553,7 +328,7 @@ const BeneficiaryDetail = ({ beneficiary }) => {
             style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
             Cargar fondos
           </button>
-          <button onClick={startEditing} className="bg-azul text-white border-none rounded-[3px] px-[14px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+          <button onClick={() => navigate(`/beneficiarios/editar/${detail?.datos_personales?.rut_representante || beneficiary?.rut_representante}`)} className="bg-azul text-white border-none rounded-[3px] px-[14px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
             style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
             Editar datos
           </button>

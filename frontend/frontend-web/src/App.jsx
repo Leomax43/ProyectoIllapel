@@ -7,6 +7,7 @@ const Login = lazy(() => import('./pages/Login.jsx'));
 const AdminDashboardNew = lazy(() => import('./pages/AdminDashboardNew.jsx'));
 const BeneficiariesPage = lazy(() => import('./pages/BeneficiariesPage.jsx'));
 const NewSolicitudPage = lazy(() => import('./pages/NewSolicitudPage.jsx'));
+const EditBeneficiarioPage = lazy(() => import('./pages/EditBeneficiarioPage.jsx'));
 const ComerciosPage = lazy(() => import('./pages/ComerciosPage.jsx'));
 const NewComercioPage = lazy(() => import('./pages/NewComercioPage.jsx'));
 const CargaFondosHistorialPage = lazy(() => import('./pages/CargaFondosHistorialPage.jsx'));
@@ -45,6 +46,7 @@ function App() {
               {/* Beneficiarios */}
               <Route path="/beneficiarios" element={<BeneficiariesPage />} />
               <Route path="/nueva-solicitud" element={<NewSolicitudPage />} />
+              <Route path="/beneficiarios/editar/:rut" element={<EditBeneficiarioPage />} />
               
               {/* Solicitudes y Aprobaciones */}
               <Route path="/aprobaciones" element={<AprobacionesPage />} />
