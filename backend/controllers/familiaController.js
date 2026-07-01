@@ -7,29 +7,66 @@ const generarNombreFamilia = (nombre_representante, id_familia) => {
     return `${apellido}-${String(id_familia).padStart(2, '0')}`;
 };
 
+const asegurarColumnasFamilias = async () => {
+    await pool.query(`
+        ALTER TABLE familias
+        ADD COLUMN IF NOT EXISTS sector_localidad VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS sexo VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS correo_electronico VARCHAR(150),
+        ADD COLUMN IF NOT EXISTS telefono_hogar VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS tiene_discapacidad BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS observaciones TEXT;
+    `);
+};
+
 const crearFamilia = async (req, res) => {
-    // Aceptar tanto nombre_representante como nombre_familia (para compatibilidad con frontend)
     const nombre_representante = req.body.nombre_representante || req.body.nombre_familia || 'Familia';
-    const { rut_representante, clave_acceso, direccion, telefono } = req.body;
+    const {
+        rut_representante,
+        clave_acceso,
+        direccion,
+        sector_localidad,
+        telefono,
+        telefono_hogar,
+        correo_electronico,
+        sexo,
+        observaciones,
+        tiene_discapacidad
+    } = req.body;
 
     try {
+        await asegurarColumnasFamilias();
+
         const checkRes = await pool.query('SELECT rut_representante FROM familias WHERE rut_representante = $1', [rut_representante]);
         if (checkRes.rows.length > 0) {
             return res.status(400).json({ status: 'Error', mensaje: 'La familia ya está registrada con este RUT.' });
         }
 
+        const claveEntrada = String(clave_acceso || '').trim() || '1234';
         const saltRounds = 10;
-        const claveHasheada = await bcrypt.hash(clave_acceso, saltRounds);
+        const claveHasheada = await bcrypt.hash(claveEntrada, saltRounds);
+        const discapacidadValor = tiene_discapacidad === true || tiene_discapacidad === 'true';
 
         const result = await pool.query(
-            `INSERT INTO familias (rut_representante, nombre_representante, direccion, telefono, clave_acceso, estado, saldo) 
-             VALUES ($1, $2, $3, $4, $5, 'ACTIVO', 0) RETURNING *`, 
-            [rut_representante, nombre_representante, direccion, telefono, claveHasheada]
+            `INSERT INTO familias (
+                rut_representante,
+                nombre_representante,
+                direccion,
+                sector_localidad,
+                telefono,
+                telefono_hogar,
+                clave_acceso,
+                estado,
+                saldo,
+                sexo,
+                correo_electronico,
+                tiene_discapacidad,
+                observaciones
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'ACTIVO', 0, $8, $9, $10, $11) RETURNING *`,
+            [rut_representante, nombre_representante, direccion, sector_localidad || null, telefono || null, telefono_hogar || null, claveHasheada, sexo || null, correo_electronico || null, discapacidadValor, observaciones || null]
         );
 
         const familia = result.rows[0];
-        
-        // Añadir nombre_familia computado para el frontend
         familia.nombre_familia = generarNombreFamilia(familia.nombre_representante, familia.id_familia);
         familia.fecha_creacion = familia.fecha_registro;
 
@@ -93,7 +130,6 @@ const obtenerFamilias = async (req, res) => {
 
         const dataRes = await pool.query(queryText, queryParams);
 
-        // Mapear para incluir nombre_familia computado y alias de fechas
         const familias = dataRes.rows.map(f => ({
             ...f,
             nombre_familia: generarNombreFamilia(f.nombre_representante, f.id_familia),
@@ -140,13 +176,11 @@ const obtenerFamiliaDetalle = async (req, res) => {
             ORDER BY c.fecha_solicitud DESC 
         `, [familiaBase.id_familia]);
 
-        // Mapear cargas para incluir campo 'fecha' (alias de fecha_solicitud)
         const historial_cargas = cargasRes.rows.map(c => ({
             ...c,
             fecha: c.fecha_solicitud
         }));
 
-        // Construir datos_personales con nombre_familia computado y fecha_creacion
         const datos_personales = {
             ...familiaBase,
             nombre_familia: generarNombreFamilia(familiaBase.nombre_representante, familiaBase.id_familia),

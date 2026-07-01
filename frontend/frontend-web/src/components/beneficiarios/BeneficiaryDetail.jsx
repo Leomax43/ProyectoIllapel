@@ -50,6 +50,12 @@ const BeneficiaryDetail = ({ beneficiary, onClose }) => {
     return d.toLocaleDateString('es-CL');
   };
 
+  const formatBoolean = (value) => {
+    if (value === true || value === 'true' || value === 'TRUE' || value === 1) return 'Sí';
+    if (value === false || value === 'false' || value === 'FALSE' || value === 0) return 'No';
+    return 'N/A';
+  };
+
   const getFirstCargaDate = () => {
     const cargas = detail?.historial_cargas || [];
     if (cargas.length === 0) return 'N/A';
@@ -123,11 +129,11 @@ const BeneficiaryDetail = ({ beneficiary, onClose }) => {
             <div className="grid grid-cols-2 gap-[7px] mb-[10px]">
               <div className="text-[12px]">
                 <div className="text-[11px] text-gris-claro mb-[3px]">Nombre completo</div>
-                <div className="text-[12px] text-[#222] font-bold">{representante.nombre_completo || 'N/A'}</div>
+                <div className="text-[12px] text-[#222] font-bold">{representante.nombre_completo || detail.datos_personales?.nombre_representante || 'N/A'}</div>
               </div>
               <div className="text-[12px]">
                 <div className="text-[11px] text-gris-claro mb-[3px]">RUT</div>
-                <div className="text-[12px] text-[#222] font-bold">{beneficiary.rut_representante}</div>
+                <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.rut_representante || beneficiary.rut_representante}</div>
               </div>
               <div className="text-[12px]">
                 <div className="text-[11px] text-gris-claro mb-[3px]">Fecha de nacimiento</div>
@@ -136,12 +142,36 @@ const BeneficiaryDetail = ({ beneficiary, onClose }) => {
                 </div>
               </div>
               <div className="text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">Sexo</div>
+                <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.sexo || 'N/A'}</div>
+              </div>
+              <div className="text-[12px]">
                 <div className="text-[11px] text-gris-claro mb-[3px]">Teléfono</div>
                 <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.telefono || 'N/A'}</div>
+              </div>
+              <div className="text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">Teléfono del hogar</div>
+                <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.telefono_hogar || 'N/A'}</div>
+              </div>
+              <div className="col-span-2 text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">Correo electrónico</div>
+                <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.correo_electronico || 'N/A'}</div>
               </div>
               <div className="col-span-2 text-[12px]">
                 <div className="text-[11px] text-gris-claro mb-[3px]">Dirección</div>
                 <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.direccion || 'N/A'}</div>
+              </div>
+              <div className="text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">Sector / localidad</div>
+                <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.sector_localidad || 'N/A'}</div>
+              </div>
+              <div className="text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">¿Tiene discapacidad?</div>
+                <div className="text-[12px] text-[#222] font-bold">{formatBoolean(detail.datos_personales?.tiene_discapacidad)}</div>
+              </div>
+              <div className="col-span-2 text-[12px]">
+                <div className="text-[11px] text-gris-claro mb-[3px]">Observaciones</div>
+                <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.observaciones || 'Sin observaciones'}</div>
               </div>
               <div className="text-[12px]">
                 <div className="text-[11px] text-gris-claro mb-[3px]">Estado de cuenta</div>
@@ -179,24 +209,38 @@ const BeneficiaryDetail = ({ beneficiary, onClose }) => {
         {activeTab === 'nucleo-familiar' && (
           <>
             <div className="text-[11px] font-bold text-azul mb-[8px] uppercase tracking-[0.5px]">Miembros del núcleo familiar</div>
-            <table className="w-full border-collapse text-[11px]">
-              <thead>
-                <tr>
-                  <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Nombre</th>
-                  <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Parentesco</th>
-                  <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Edad</th>
-                </tr>
-              </thead>
-              <tbody>
-                {detail.nucleo_familiar && detail.nucleo_familiar.map((member, idx) => (
-                  <tr key={idx}>
-                    <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{member.nombre_completo}</td>
-                    <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{member.parentesco || 'N/A'}</td>
-                    <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{calculateAge(member.fecha_nacimiento)}</td>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] border-collapse text-[11px]">
+                <thead>
+                  <tr>
+                    <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Nombre</th>
+                    <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Parentesco</th>
+                    <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">RUT</th>
+                    <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Sexo</th>
+                    <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Edad</th>
+                    <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Teléfono</th>
+                    <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Correo</th>
+                    <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Discap.</th>
+                    <th className="bg-[#f0f4f6] text-azul px-[8px] py-[5px] text-left border border-gris-borde font-semibold">Observaciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {detail.nucleo_familiar && detail.nucleo_familiar.map((member, idx) => (
+                    <tr key={idx}>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{member.nombre_completo || 'N/A'}</td>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{member.parentesco || 'N/A'}</td>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{member.rut || 'N/A'}</td>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{member.sexo || 'N/A'}</td>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{calculateAge(member.fecha_nacimiento)}</td>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{member.telefono || 'N/A'}</td>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{member.correo_electronico || 'N/A'}</td>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{formatBoolean(member.tiene_discapacidad)}</td>
+                      <td className="px-[8px] py-[5px] border border-[#f0f0f0] text-[#333]">{member.observaciones || 'Sin observaciones'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </>
         )}
 
