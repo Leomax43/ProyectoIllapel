@@ -16,7 +16,7 @@ const poblarBaseDeDatos = async () => {
             ('11111111-1', 'Admin Supremo', 'SUPER_ADMIN', $1, 'ACTIVO'),
             ('22222222-2', 'Carlos Muñoz', 'JEFATURA', $1, 'ACTIVO'),
             ('33333333-3', 'María González', 'ASISTENTE_SOCIAL', $1, 'ACTIVO'),
-            ('44444444-4', 'Pedro Operador', 'OPERADOR', $1, 'ACTIVO')
+            ('44444444-4', 'Pedro Operador', 'ENCARGADO_COMERCIOS', $1, 'ACTIVO')
             RETURNING id_admin;
         `, [claveHasheada]);
         

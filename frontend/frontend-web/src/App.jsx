@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth.js';
+import { getAllowedPagesForRole, normalizeRole } from './utils/permissions';
 
 // Carga perezosa (Lazy Loading) de las páginas para optimizar el bundle inicial
 const Login = lazy(() => import('./pages/Login.jsx'));
@@ -25,6 +26,20 @@ const PageLoader = () => (
 
 function App() {
   const { isAuthenticated, logout, login, error, loading } = useAuth();
+  const currentRole = normalizeRole(localStorage.getItem('adminRol'));
+  const allowedPages = getAllowedPagesForRole(currentRole);
+
+  const isAllowed = (page) => allowedPages.includes(page);
+  const getDefaultRoute = () => {
+    if (allowedPages.includes('dashboard')) return '/dashboard';
+    if (allowedPages.includes('beneficiarios')) return '/beneficiarios';
+    if (allowedPages.includes('comercios')) return '/comercios';
+    if (allowedPages.includes('fondos')) return '/fondos';
+    if (allowedPages.includes('transacciones')) return '/transacciones';
+    if (allowedPages.includes('aprobaciones')) return '/aprobaciones';
+    if (allowedPages.includes('funcionarios')) return '/funcionarios';
+    return '/login';
+  };
 
   return (
     <Router>
@@ -40,28 +55,29 @@ function App() {
           ) : (
             <>
               {/* Rutas Privadas Protegidas */}
-              <Route path="/dashboard" element={<AdminDashboardNew />} />
-              <Route path="/funcionarios" element={<FuncionariosPage />} />
+              <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
+              {isAllowed('dashboard') && <Route path="/dashboard" element={<AdminDashboardNew />} />}
+              {isAllowed('funcionarios') && <Route path="/funcionarios" element={<FuncionariosPage />} />}
 
               {/* Beneficiarios */}
-              <Route path="/beneficiarios" element={<BeneficiariesPage />} />
-              <Route path="/nueva-solicitud" element={<NewSolicitudPage />} />
-              <Route path="/beneficiarios/editar/:rut" element={<EditBeneficiarioPage />} />
+              {isAllowed('beneficiarios') && <Route path="/beneficiarios" element={<BeneficiariesPage />} />}
+              {isAllowed('beneficiarios') && <Route path="/nueva-solicitud" element={<NewSolicitudPage />} />}
+              {isAllowed('beneficiarios') && <Route path="/beneficiarios/editar/:rut" element={<EditBeneficiarioPage />} />}
               
               {/* Solicitudes y Aprobaciones */}
-              <Route path="/aprobaciones" element={<AprobacionesPage />} />
+              {isAllowed('aprobaciones') && <Route path="/aprobaciones" element={<AprobacionesPage />} />}
               
               {/* Comercios */}
-              <Route path="/comercios" element={<ComerciosPage />} />
-              <Route path="/nuevo-comercio" element={<NewComercioPage />} />
+              {isAllowed('comercios') && <Route path="/comercios" element={<ComerciosPage />} />}
+              {isAllowed('comercios') && <Route path="/nuevo-comercio" element={<NewComercioPage />} />}
               
               {/* Fondos y Transacciones */}
-              <Route path="/fondos" element={<CargaFondosHistorialPage />} />
-              <Route path="/nueva-carga" element={<CargaFondosPage />} />
-              <Route path="/transacciones" element={<TransaccionesPage />} />
+              {isAllowed('fondos') && <Route path="/fondos" element={<CargaFondosHistorialPage />} />}
+              {isAllowed('fondos') && <Route path="/nueva-carga" element={<CargaFondosPage />} />}
+              {isAllowed('transacciones') && <Route path="/transacciones" element={<TransaccionesPage />} />}
 
               {/* Redirección automática si escribe cualquier ruta inexistente estando logeado */}
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
             </>
           )}
         </Routes>

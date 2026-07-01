@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { getAllowedPagesForRole, normalizeRole } from '../../utils/permissions';
 
 function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
   const navigate = useNavigate();
@@ -39,8 +40,8 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
     { label: 'Funcionarios', page: 'funcionarios', path: '/funcionarios' },
   ];
 
-  const adminRolUpper = adminRol.toUpperCase();
-  const esJefatura = adminRolUpper === 'ADMIN' || adminRolUpper === 'JEFATURA';
+  const adminRolUpper = normalizeRole(adminRol);
+  const allowedPages = getAllowedPagesForRole(adminRolUpper);
 
   // Obtener iniciales para el avatar
   const getInitials = (name) => {
@@ -52,9 +53,10 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
       .toUpperCase();
   };
 
-  const allNavItems = esJefatura
-    ? [...NAV_ITEMS, ...NAV_ITEMS_JEFATURA]
-    : NAV_ITEMS;
+  const allNavItems = [
+    ...NAV_ITEMS.filter(item => allowedPages.includes(item.page)),
+    ...NAV_ITEMS_JEFATURA.filter(item => allowedPages.includes(item.page))
+  ];
 
   return (
     <div>

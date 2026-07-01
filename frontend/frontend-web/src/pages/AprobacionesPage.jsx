@@ -7,6 +7,7 @@ import aprobacionesService from '../services/aprobacionesService';
 import AccesoDenegado from '../components/aprobaciones/AccesoDenegado';
 import AprobacionesSidebar from '../components/aprobaciones/AprobacionesSidebar';
 import AprobacionesDetail from '../components/aprobaciones/AprobacionesDetail';
+import { ROLES } from '../utils/permissions';
 
 const AprobacionesPage = () => {
   const { logout } = useAuth();
@@ -26,7 +27,7 @@ const AprobacionesPage = () => {
   const [motivoRechazo, setMotivoRechazo] = useState('');
   const [showRechazoInput, setShowRechazoInput] = useState(false);
 
-  if (adminRol !== 'JEFATURA') {
+  if (adminRol !== ROLES.JEFATURA && adminRol !== ROLES.SUPER_ADMIN) {
     return <AccesoDenegado logout={logout} navigate={navigate} />;
   }
 

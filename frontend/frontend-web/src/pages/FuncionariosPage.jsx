@@ -3,6 +3,7 @@ import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DashboardFooter from '../components/dashboard/DashboardFooter';
 import { useAuth } from '../hooks/useAuth';
 import { useFuncionarios } from '../hooks/useFuncionarios';
+import { ROLES } from '../utils/permissions';
 
 const FuncionariosPage = () => {
   const { logout } = useAuth();
@@ -18,7 +19,7 @@ const FuncionariosPage = () => {
   } = useFuncionarios();
 
   // Protección de ruta
-  if (adminRol !== 'JEFATURA') {
+  if (adminRol !== ROLES.JEFATURA && adminRol !== ROLES.SUPER_ADMIN) {
     return (
       <div className="flex flex-col min-h-screen bg-gris-bg">
         <DashboardHeader currentPage="funcionarios" onLogout={logout} />
@@ -112,6 +113,7 @@ const FuncionariosPage = () => {
                   style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                 >
                   <option value="ASISTENTE_SOCIAL">Asistente Social (Carga de datos y solicitudes)</option>
+                  <option value="ENCARGADO_COMERCIOS">Encargado de comercios (Solo comercios y transacciones)</option>
                   <option value="JEFATURA">Jefatura (Aprobaciones y control total)</option>
                 </select>
               </div>

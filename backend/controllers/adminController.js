@@ -45,13 +45,13 @@ const loginAdmin = async (req, res) => {
 };
 
 // Función para registrar un nuevo Funcionario
-// Función para registrar un nuevo Funcionario (Asistente, Jefatura u Operador)
+// Función para registrar un nuevo Funcionario (Asistente, Jefatura o Encargado de Comercios)
 const registrarAdmin = async (req, res) => {
     // Agregamos id_creador para saber quién está intentando registrar a este nuevo usuario
     const { rut, nombre_completo, rol, clave, id_creador } = req.body;
 
     // 1. Validar que el rol sea uno de los permitidos en el sistema
-    const rolesValidos = ['SUPER_ADMIN', 'JEFATURA', 'ASISTENTE_SOCIAL', 'OPERADOR'];
+    const rolesValidos = ['SUPER_ADMIN', 'JEFATURA', 'ASISTENTE_SOCIAL', 'ENCARGADO_COMERCIOS'];
     if (!rolesValidos.includes(rol)) {
         return res.status(400).json({ status: 'Error', mensaje: 'El rol especificado no es válido.' });
     }
@@ -118,7 +118,7 @@ const cambiarRol = async (req, res) => {
     const { id_admin } = req.params;
     const { nuevo_rol, id_super_admin } = req.body; 
 
-    const rolesValidos = ['SUPER_ADMIN', 'JEFATURA', 'ASISTENTE_SOCIAL', 'OPERADOR'];
+    const rolesValidos = ['SUPER_ADMIN', 'JEFATURA', 'ASISTENTE_SOCIAL', 'ENCARGADO_COMERCIOS'];
     if (!rolesValidos.includes(nuevo_rol)) {
         return res.status(400).json({ mensaje: "El rol proporcionado no es válido." });
     }
