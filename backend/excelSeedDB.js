@@ -114,8 +114,23 @@ const migrar = async () => {
                 ]
             );
             idFamiliaPorFolio[fila.folio] = res.rows[0].id_familia;
+
+            // Insertar al jefe/a de hogar como primer integrante de la familia
+            await client.query(
+                `INSERT INTO integrantes
+                    (id_familia, nombre_completo, rut, parentesco, sexo, fecha_nacimiento, correo_electronico, telefono, tiene_discapacidad, observaciones)
+                 VALUES ($1, $2, $3, 'Jefe/a de Hogar', null, $4, $5, $6, false, null)`,
+                [
+                    res.rows[0].id_familia,
+                    nulo(fila.nombre_representante) || 'SIN NOMBRE',
+                    nulo(fila.rut_representante) || 'SIN-RUT',
+                    nulo(fila.fecha_nacimiento_jefe),
+                    nulo(fila.correo),
+                    nulo(fila.telefono),
+                ]
+            );
         }
-        console.log(`Insertadas ${Object.keys(idFamiliaPorFolio).length} familias`);
+        console.log(`Insertadas ${Object.keys(idFamiliaPorFolio).length} familias (con su jefe/a de hogar como integrante)`);
 
         // 3) Insertar integrantes
         let integrantesInsertados = 0;
