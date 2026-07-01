@@ -57,8 +57,13 @@ export const useCargaFondosHistorial = () => {
           return fechaCarga.getMonth() === mesActual && fechaCarga.getFullYear() === añoActual;
         });
 
-        const totalDistribuidoMes = cargasDelMes.reduce((sum, carga) => sum + (parseInt(carga.monto) || 0), 0);
-        const rutsUnicosMes = new Set(cargasDelMes.map(carga => carga.rut_principal));
+        const cargasAprobadasDelMes = cargasDelMes.filter(carga => {
+          const estado = String(carga.estado || '').trim().toUpperCase();
+          return estado === 'APROBADA' || estado === 'APROBADO';
+        });
+
+        const totalDistribuidoMes = cargasAprobadasDelMes.reduce((sum, carga) => sum + (parseInt(carga.monto) || 0), 0);
+        const rutsUnicosMes = new Set(cargasAprobadasDelMes.map(carga => carga.rut_principal));
         const beneficiariosUnicosMes = rutsUnicosMes.size;
         const cargasBloqueadas = dataCargas.filter(carga => 
           carga.estado === 'RECHAZADO' || carga.estado === 'BLOQUEADO'
