@@ -44,9 +44,15 @@ const FormularioMontoPanel = ({
             style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
           >
             <option>Seleccione...</option>
-            <option>Alimentación</option>
-            <option>Materiales de construcción</option>
-            <option>Útiles escolares</option>
+            <option>Alimentos</option>
+            <option>Servicios funerarios</option>
+            <option>Prestación Salud</option>
+            <option>Prestación Pasaje</option>
+            <option>Prestación Vivienda</option>
+            <option>Prestación Educación</option>
+            <option>Prestación Mediaguas</option>
+            <option>Prestación Vestuario</option>
+            <option>Gastos Básicos</option>
             <option>Otro</option>
           </select>
         </div>
