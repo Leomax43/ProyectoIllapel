@@ -1,4 +1,8 @@
+
+
+
 // Obtener todas las transacciones con filtros opcionales
+
 export const obtenerTransacciones = async (filtros = {}) => {
   try {
     const queryParams = new URLSearchParams();

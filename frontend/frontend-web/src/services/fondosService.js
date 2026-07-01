@@ -1,4 +1,4 @@
-import { request } from './apiClient';
+import { request } from './apiClient.js';
 
 const fondosService = {
   // Cargar fondos a una familia

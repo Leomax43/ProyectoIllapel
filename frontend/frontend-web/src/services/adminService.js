@@ -1,9 +1,15 @@
-const API_URL = 'http://localhost:3000/api/admin';
+// Antes:
+// const API_URL = 'http://localhost:3000/api/admin'; 
+
+// Ahora:
+import { API_URL } from './apiClient'; // Importa la variable de apiClient.js
+
+
 
 const adminService = {
   registrarFuncionario: async (adminData) => {
     try {
-      const response = await fetch(`${API_URL}/registrar`, {
+      const response = await fetch(`${API_URL}/admin/registrar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

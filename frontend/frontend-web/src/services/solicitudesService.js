@@ -1,4 +1,4 @@
-import { request } from './apiClient';
+import { request } from './apiClient.js';
 
 const solicitudesService = {
   // Crear nueva familia/solicitud
