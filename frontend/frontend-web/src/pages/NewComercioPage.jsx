@@ -12,6 +12,7 @@ const NewComercioPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
+  // 1. Agregamos los nuevos campos al estado inicial
   const [comercio, setComercio] = useState({
     nombre_comercio: '',
     rut: '',
@@ -19,7 +20,9 @@ const NewComercioPage = () => {
     telefono: '',
     rubro: 'Seleccione...',
     direccion: '',
-    clave_acceso: ''
+    clave_acceso: '',
+    confirmar_clave: '',
+    quiero_definir_clave: false
   });
 
   const handleChange = (field, value) => {
@@ -36,6 +39,19 @@ const NewComercioPage = () => {
         throw new Error('Faltan campos obligatorios');
       }
 
+      // 2. Nueva lógica de validación de contraseña idéntica a Beneficiarios
+      if (comercio.quiero_definir_clave) {
+        if (!comercio.clave_acceso || comercio.clave_acceso.length < 6) {
+          throw new Error('La clave personalizada debe tener al menos 6 caracteres');
+        }
+        if (comercio.clave_acceso !== comercio.confirmar_clave) {
+          throw new Error('Las claves no coinciden');
+        }
+      }
+
+      // 3. Definimos la clave final (personalizada o por defecto)
+      const claveFinal = comercio.quiero_definir_clave ? comercio.clave_acceso : '1234';
+
       const payload = {
         rut_comercio: comercio.rut,
         nombre_comercio: comercio.nombre_comercio,
@@ -43,7 +59,7 @@ const NewComercioPage = () => {
         direccion: comercio.direccion,
         telefono: comercio.telefono,
         rubro: comercio.rubro,
-        clave_acceso: comercio.clave_acceso || '1234'
+        clave_acceso: claveFinal
       };
 
       await comerciosService.crearComercio(payload);
@@ -58,7 +74,9 @@ const NewComercioPage = () => {
           telefono: '',
           rubro: 'Seleccione...',
           direccion: '',
-          clave_acceso: ''
+          clave_acceso: '',
+          confirmar_clave: '',
+          quiero_definir_clave: false
         });
         navigate('/comercios');
       }, 2000);

@@ -23,7 +23,25 @@ export default function TabsLayout() {
       <Tabs.Screen name="comercios" options={{ title: 'Comercios', tabBarIcon: ({ color }) => <Ionicons name="storefront" size={24} color={color} /> }} />
       <Tabs.Screen name="saldos" options={{ title: 'Saldos', tabBarIcon: ({ color }) => <Ionicons name="wallet" size={24} color={color} /> }} />
       <Tabs.Screen name="pagar" options={{ title: 'Pagar', tabBarIcon: ({ color }) => <Ionicons name="qr-code" size={32} color={color} /> }} />
-      <Tabs.Screen name="historial" options={{ href: null }} />
+      
+      {/* NUEVA PESTAÑA: Cuenta (Visible en la barra inferior) */}
+      <Tabs.Screen 
+        name="cuenta" 
+        options={{ 
+          title: 'Cuenta', 
+          tabBarIcon: ({ color }) => <Ionicons name="person-circle-outline" size={28} color={color} /> 
+        }} 
+      />
+
+      {/* PANTALLAS OCULTAS: Navegables pero sin icono en la barra */}
+      <Tabs.Screen name="historial" options={{ href: null, title: 'Historial' }} />
+      <Tabs.Screen 
+        name="cambiar-clave" 
+        options={{ 
+          href: null, 
+          title: 'Cambiar Contraseña' 
+        }} 
+      />
     </Tabs>
   );
 }

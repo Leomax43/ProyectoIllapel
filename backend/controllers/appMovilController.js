@@ -139,8 +139,45 @@ const generarQR = (req, res) => {
 };
 
 
+// 4. Cambiar Contraseña desde la App
+const cambiarClaveMovil = async (req, res) => {
+    const { rut, rol, clave_actual, nueva_clave } = req.body;
+
+    try {
+        // Identificar en qué tabla buscar según el rol
+        const tabla = rol === 'FAMILIA' ? 'familias' : 'comercios';
+        const colRut = rol === 'FAMILIA' ? 'rut_representante' : 'rut_comercio';
+
+        // 1. Obtener la clave actual de la BD
+        const userRes = await pool.query(`SELECT clave_acceso FROM ${tabla} WHERE ${colRut} = $1`, [rut]);
+        
+        if (userRes.rows.length === 0) {
+            return res.status(404).json({ status: 'Error', mensaje: 'Usuario no encontrado.' });
+        }
+
+        // 2. Verificar que la clave actual ingresada sea correcta
+        const match = await bcrypt.compare(clave_actual, userRes.rows[0].clave_acceso);
+        if (!match) {
+            return res.status(401).json({ status: 'Error', mensaje: 'La contraseña actual es incorrecta.' });
+        }
+
+        // 3. Encriptar la nueva contraseña
+        const saltRounds = 10;
+        const claveHasheada = await bcrypt.hash(nueva_clave, saltRounds);
+
+        // 4. Actualizar en la BD
+        await pool.query(
+            `UPDATE ${tabla} SET clave_acceso = $1 WHERE ${colRut} = $2`,
+            [claveHasheada, rut]
+        );
+
+        res.status(200).json({ status: 'Éxito', mensaje: 'Contraseña actualizada correctamente.' });
+
+    } catch (error) {
+        res.status(500).json({ status: 'Error', mensaje: 'Error interno al cambiar la clave', error: error.message });
+    }
+};
 
 
 
-
-module.exports = { loginMovil, obtenerCartola, generarQR };
+module.exports = { loginMovil, obtenerCartola, generarQR, cambiarClaveMovil };
