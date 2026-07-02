@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { API_URL } from '../src/config/api';
+import { useUsuario } from '../src/context/UsuarioContext';
 
 export default function LoginScreen() {
+  const { usuario } = useUsuario();
   const [rut, setRut] = useState('');
   const [clave, setClave] = useState('');
+  const { setUsuario } = useUsuario();
 
   const handleLogin = async () => {
     if (!rut || !clave) {
@@ -24,24 +27,13 @@ export default function LoginScreen() {
 
       if (response.ok) {
         const usuario = data.usuario;
+        setUsuario(usuario);
 
         // EL SEMÁFORO: Redirigimos según el rol que envíe el backend
         if (usuario.rol === 'FAMILIA') {
-          router.replace({
-            pathname: '/(familia)/pagar',
-            params: { 
-              nombreFamilia: usuario.nombre_familia,
-              idFamilia: usuario.id_familia 
-            }
-          });
+          router.replace('/(familia)/pagar');
         } else if (usuario.rol === 'COMERCIO') {
-          router.replace({
-            pathname: '/(comercio)/pago',
-            params: {
-              nombreComercio: usuario.nombre_comercio,
-              rutComercio: usuario.rut_comercio
-            }
-          });
+          router.replace('/(comercio)/pago');
         } else {
           Alert.alert("Error", "Rol no reconocido por el sistema.");
         }

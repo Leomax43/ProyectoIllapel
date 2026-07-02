@@ -23,7 +23,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="comercios" options={{ title: 'Comercios', tabBarIcon: ({ color }) => <Ionicons name="storefront" size={24} color={color} /> }} />
       <Tabs.Screen name="saldos" options={{ title: 'Saldos', tabBarIcon: ({ color }) => <Ionicons name="wallet" size={24} color={color} /> }} />
       <Tabs.Screen name="pagar" options={{ title: 'Pagar', tabBarIcon: ({ color }) => <Ionicons name="qr-code" size={32} color={color} /> }} />
-      <Tabs.Screen name="historial" options={{ title: 'Historial', tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={color} /> }} />
+      <Tabs.Screen name="historial" options={{ href: null }} />
     </Tabs>
   );
 }

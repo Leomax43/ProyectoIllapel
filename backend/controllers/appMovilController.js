@@ -6,10 +6,19 @@ const bcrypt = require('bcrypt');
 const loginMovil = async (req, res) => {
     const { rut, clave } = req.body;
 
+    // Normalizar RUT: quitar puntos y espacios, K mayúscula
+    const normalizarRut = (r) => {
+        if (!r) return '';
+        return r.replace(/\./g, '').replace(/\s/g, '').toUpperCase();
+    };
+    const rutNormalizado = normalizarRut(rut);
+
     try {
         // --- A. INTENTAR COMO FAMILIA ---
-        const famRes = await pool.query('SELECT * FROM familias WHERE rut_representante = $1', [rut]);
-
+        const famRes = await pool.query(
+            "SELECT * FROM familias WHERE REPLACE(UPPER(rut_representante), '.', '') = $1",
+            [rutNormalizado]
+        );
         if (famRes.rows.length > 0) {
             const familia = famRes.rows[0];
             const match = await bcrypt.compare(clave, familia.clave_acceso);
@@ -31,7 +40,6 @@ const loginMovil = async (req, res) => {
         }
 
         // --- B. INTENTAR COMO COMERCIO ---
-        const comRes = await pool.query('SELECT * FROM comercios WHERE rut_comercio = $1', [rut]);
 
         if (comRes.rows.length > 0) {
             const comercio = comRes.rows[0];
@@ -62,12 +70,24 @@ const loginMovil = async (req, res) => {
     }
 }
 
-// 2. Obtener la Cartola (Historial de compras)
+// 2. Obtener la Cartola (Historial de compras) + Saldo actual
 const obtenerCartola = async (req, res) => {
     // Recibimos el ID de la familia
     const { id_familia } = req.params;
 
     try {
+        // Obtener saldo actual de la familia
+        const familiaRes = await pool.query(
+            'SELECT saldo, nombre_representante FROM familias WHERE id_familia = $1',
+            [id_familia]
+        );
+
+        if (familiaRes.rows.length === 0) {
+            return res.status(404).json({ status: 'Error', mensaje: 'Familia no encontrada' });
+        }
+
+        const { saldo, nombre_representante } = familiaRes.rows[0];
+
         // Hacemos un JOIN con los comercios para que la App muestre el "Nombre del local" 
         // en vez del RUT del local (que sería feo para el usuario).
         const transacciones = await pool.query(`
@@ -80,6 +100,8 @@ const obtenerCartola = async (req, res) => {
 
         res.status(200).json({
             status: 'Éxito',
+            saldo_actual: saldo,
+            nombre_familia: nombre_representante,
             total_movimientos: transacciones.rows.length,
             historial: transacciones.rows
         });
