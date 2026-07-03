@@ -16,6 +16,7 @@ const CargaFondosPage = lazy(() => import('./pages/CargaFondosPage.jsx'));
 const TransaccionesPage = lazy(() => import('./pages/TransaccionesPage.jsx'));
 const AprobacionesPage = lazy(() => import('./pages/AprobacionesPage.jsx'));
 const FuncionariosPage = lazy(() => import('./pages/FuncionariosPage.jsx'));
+const SubrogacionesPage = lazy(() => import('./pages/SubrogacionesPage.jsx'));
 
 // Componente simple de carga visual intermedio mientras se descargan los fragmentos de página
 const PageLoader = () => (
@@ -38,6 +39,7 @@ function App() {
     if (allowedPages.includes('transacciones')) return '/transacciones';
     if (allowedPages.includes('aprobaciones')) return '/aprobaciones';
     if (allowedPages.includes('funcionarios')) return '/funcionarios';
+    if (allowedPages.includes('subrogaciones')) return '/subrogaciones';
     return '/login';
   };
 
@@ -58,6 +60,7 @@ function App() {
               <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
               {isAllowed('dashboard') && <Route path="/dashboard" element={<AdminDashboardNew />} />}
               {isAllowed('funcionarios') && <Route path="/funcionarios" element={<FuncionariosPage />} />}
+              {isAllowed('subrogaciones') && <Route path="/subrogaciones" element={<SubrogacionesPage />} />}
 
               {/* Beneficiarios */}
               {isAllowed('beneficiarios') && <Route path="/beneficiarios" element={<BeneficiariesPage />} />}

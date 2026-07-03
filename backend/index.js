@@ -14,6 +14,7 @@ const comerciosRoutes = require('./routes/comerciosRoutes');
 const path = require('path');
 const integrantesRoutes = require('./routes/integrantesRoutes');
 const appMovilRoutes = require('./routes/appMovilRoutes');
+const subrogacionRoutes = require('./routes/subrogacionRoutes');
 
 
 
@@ -36,7 +37,7 @@ app.use('/api/comercios', comerciosRoutes);
 app.use('/archivosDocumentos', express.static(path.join(__dirname, 'archivosDocumentos')));
 app.use('/api/integrantes', integrantesRoutes);
 app.use('/api/movil', appMovilRoutes);
-
+app.use('/api/subrogaciones', subrogacionRoutes);
 
 
 // Endpoint de prueba (Health Check)

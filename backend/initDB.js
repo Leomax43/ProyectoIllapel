@@ -9,6 +9,7 @@ const crearTablas = async () => {
         await pool.query(`
             DROP TABLE IF EXISTS transacciones CASCADE;
             DROP TABLE IF EXISTS cargas_fondos CASCADE;
+            DROP TABLE IF EXISTS subrogaciones CASCADE;
             DROP TABLE IF EXISTS integrantes CASCADE;
             DROP TABLE IF EXISTS familias CASCADE;
             DROP TABLE IF EXISTS comercios CASCADE;
@@ -100,7 +101,23 @@ const crearTablas = async () => {
             );
         `);
 
-        // 6. Tabla Transacciones
+        // 6. Tabla Subrogaciones
+        await pool.query(`
+            CREATE TABLE subrogaciones (
+                id_subrogacion SERIAL PRIMARY KEY,
+                id_admin_subrogado INT REFERENCES admin(id_admin),
+                rol_asignado VARCHAR(50) NOT NULL,
+                rol_original VARCHAR(50) NOT NULL,
+                motivo TEXT,
+                fecha_inicio TIMESTAMP NOT NULL,
+                fecha_fin TIMESTAMP NOT NULL,
+                estado VARCHAR(20) DEFAULT 'ACTIVO',
+                id_super_admin INT REFERENCES admin(id_admin),
+                fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        // 7. Tabla Transacciones
         await pool.query(`
             CREATE TABLE transacciones (
                 id_transaccion SERIAL PRIMARY KEY,

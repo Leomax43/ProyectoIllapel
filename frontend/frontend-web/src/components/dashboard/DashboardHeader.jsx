@@ -41,6 +41,7 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
   const NAV_ITEMS_JEFATURA = [
     { label: 'Aprobaciones', page: 'aprobaciones', path: '/aprobaciones' },
     { label: 'Funcionarios', page: 'funcionarios', path: '/funcionarios' },
+    { label: 'Subrogaciones', page: 'subrogaciones', path: '/subrogaciones' },
   ];
 
   const adminRolUpper = normalizeRole(adminRol);

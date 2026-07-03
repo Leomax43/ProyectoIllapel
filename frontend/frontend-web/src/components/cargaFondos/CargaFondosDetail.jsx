@@ -39,13 +39,13 @@ const CargaFondosDetail = ({ detalle, formatCurrency, formatDate }) => {
       {/* DATOS DEL BENEFICIARIO */}
       <div className="p-[13px_14px] border-b border-gris-borde">
         <div className="text-[11px] font-bold text-azul mb-[8px] uppercase tracking-[0.5px]">Datos del beneficiario</div>
-        <div className="grid grid-cols-2 gap-[7px] mb-[8px]">
+        <div className="grid grid-cols-2 gap-[4px] mb-[6px]">
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">Nombre Familia / Representante</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">Nombre Familia / Representante</div>
             <div className="text-[12px] text-[#222] font-bold">{detalle.nombre_familia}</div>
           </div>
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">RUT Representante</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">RUT Representante</div>
             <div className="text-[12px] text-[#222] font-bold">{detalle.rut_principal}</div>
           </div>
         </div>
@@ -54,21 +54,21 @@ const CargaFondosDetail = ({ detalle, formatCurrency, formatDate }) => {
       {/* DATOS DE LA CARGA */}
       <div className="p-[13px_14px] border-b border-gris-borde">
         <div className="text-[11px] font-bold text-azul mb-[8px] uppercase tracking-[0.5px]">Datos de esta carga</div>
-        <div className="grid grid-cols-2 gap-[7px]">
+        <div className="grid grid-cols-2 gap-[4px]">
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">Fecha</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">Fecha</div>
             <div className="text-[12px] text-[#222] font-bold">{formatDate(detalle.fecha)}</div>
           </div>
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">Monto cargado</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">Monto cargado</div>
             <div className="text-[12px] font-bold text-verde">${formatCurrency(detalle.monto)}</div>
           </div>
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">Motivo</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">Motivo</div>
             <div className="text-[12px] text-[#222] font-bold">{detalle.motivo || '—'}</div>
           </div>
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">Estado de Solicitud</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">Estado de Solicitud</div>
             <div className="mt-[2px]">{getEstadoBadge(detalle.estado)}</div>
           </div>
         </div>

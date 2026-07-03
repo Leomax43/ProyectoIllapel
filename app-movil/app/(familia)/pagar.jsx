@@ -22,7 +22,7 @@ export default function PagarScreen() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           rut_comercio: "77777777-7", // Usamos el Minimarket de nuestro seedDB
-          monto: 5000,
+          monto: 50,
           qr_token: token // Enviamos el código sellado mágicamente con JWT
         })
       });
