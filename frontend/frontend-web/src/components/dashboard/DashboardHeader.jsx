@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllowedPagesForRole, normalizeRole } from '../../utils/permissions';
+import AppMovilQR from '../appMovil/AppMovilQR';
 
 function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
   const navigate = useNavigate();
+  const [showQR, setShowQR] = useState(false);
   const adminName = localStorage.getItem('adminName') || 'USUARIO';
   const adminRol = localStorage.getItem('adminRol') || 'ADMIN';
 
@@ -38,6 +41,7 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
   const NAV_ITEMS_JEFATURA = [
     { label: 'Aprobaciones', page: 'aprobaciones', path: '/aprobaciones' },
     { label: 'Funcionarios', page: 'funcionarios', path: '/funcionarios' },
+    { label: 'Subrogaciones', page: 'subrogaciones', path: '/subrogaciones' },
   ];
 
   const adminRolUpper = normalizeRole(adminRol);
@@ -111,7 +115,19 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
             {item.label}
           </div>
         ))}
+        
+        {/* Botón App Móvil */}
+        <div
+          onClick={() => setShowQR(true)}
+          className="text-white text-[12px] font-medium px-[18px] flex items-center cursor-pointer h-[38px] tracking-[0.3px] ml-auto hover:bg-black/12 gap-[6px]"
+        >
+          <span className="text-[14px]">📱</span>
+          App Móvil
+        </div>
       </nav>
+
+      {/* Modal QR */}
+      {showQR && <AppMovilQR onClose={() => setShowQR(false)} />}
 
       {/* ACCENT BAR — Degradado de 4px */}
       <div className="h-[4px] bg-gradient-to-r from-amarillo via-celeste to-verde"></div>

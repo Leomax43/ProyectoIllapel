@@ -13,11 +13,6 @@
 //export const API_URL = `http://${LOCAL_IP}:${PORT}/api`;
 
 
-
-
-
-
-
 //este es para prueba online
 // src/config/api.js
 

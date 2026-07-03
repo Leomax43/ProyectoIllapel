@@ -122,55 +122,55 @@ const BeneficiaryDetail = ({ beneficiary }) => {
         {activeTab === 'datos-personales' && (
           <>
             <div className="text-[11px] font-bold text-azul mb-[8px] uppercase tracking-[0.5px]">Información general</div>
-            <div className="grid grid-cols-2 gap-[7px] mb-[10px]">
+            <div className="grid grid-cols-2 gap-[8px] mb-[6px]">
               <div className="text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">Nombre completo</div>
+                <div className="text-[11px] text-gris-claro mb-[0px]">Nombre completo</div>
                 <div className="text-[12px] text-[#222] font-bold">{representante.nombre_completo || detail.datos_personales?.nombre_representante || 'N/A'}</div>
               </div>
               <div className="text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">RUT</div>
+                <div className="text-[11px] text-gris-claro mb-[0px]">RUT</div>
                 <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.rut_representante || beneficiary.rut_representante}</div>
               </div>
               <div className="text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">Fecha de nacimiento</div>
+                <div className="text-[11px] text-gris-claro mb-[0px]">Fecha de nacimiento</div>
                 <div className="text-[12px] text-[#222] font-bold">
                   {formatDate(representante.fecha_nacimiento)} ({calculateAge(representante.fecha_nacimiento)} años)
                 </div>
               </div>
               <div className="text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">Sexo</div>
+                <div className="text-[11px] text-gris-claro mb-[0px]">Sexo</div>
                 <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.sexo || 'N/A'}</div>
               </div>
               <div className="text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">Teléfono</div>
+                <div className="text-[11px] text-gris-claro mb-[0px]">Teléfono</div>
                 <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.telefono || 'N/A'}</div>
               </div>
               <div className="text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">Teléfono del hogar</div>
+                <div className="text-[11px] text-gris-claro mb-[0px]">Teléfono del hogar</div>
                 <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.telefono_hogar || 'N/A'}</div>
               </div>
               <div className="col-span-2 text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">Correo electrónico</div>
+                <div className="text-[11px] text-gris-claro mb-[0px]">Correo electrónico</div>
                 <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.correo_electronico || 'N/A'}</div>
               </div>
               <div className="col-span-2 text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">Dirección</div>
+                <div className="text-[11px] text-gris-claro mb-[0px]">Dirección</div>
                 <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.direccion || 'N/A'}</div>
               </div>
               <div className="text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">Sector / localidad</div>
+                <div className="text-[11px] text-gris-claro mb-[0px]">Sector / localidad</div>
                 <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.sector_localidad || 'N/A'}</div>
               </div>
               <div className="text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">¿Tiene discapacidad?</div>
+                <div className="text-[11px] text-gris-claro mb-[0px]">¿Tiene discapacidad?</div>
                 <div className="text-[12px] text-[#222] font-bold">{formatBoolean(detail.datos_personales?.tiene_discapacidad)}</div>
               </div>
               <div className="col-span-2 text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">Observaciones</div>
+                <div className="text-[11px] text-gris-claro mb-[0px]">Observaciones</div>
                 <div className="text-[12px] text-[#222] font-bold">{detail.datos_personales?.observaciones || 'Sin observaciones'}</div>
               </div>
               <div className="text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">Estado de cuenta</div>
+                <div className="text-[11px] text-gris-claro mb-[0px]">Estado de cuenta</div>
                 <div className="text-[12px] text-[#222] font-bold">
                   <span className={`inline-block px-[9px] py-[3px] rounded-[12px] text-[11px] font-semibold ${
                     detail.datos_personales?.estado === 'ACTIVO'
@@ -182,7 +182,7 @@ const BeneficiaryDetail = ({ beneficiary }) => {
                 </div>
               </div>
               <div className="text-[12px]">
-                <div className="text-[11px] text-gris-claro mb-[3px]">Fecha de registro</div>
+                <div className="text-[11px] text-gris-claro mb-[1px]">Fecha de registro</div>
                 <div className="text-[12px] text-[#222] font-bold">{formatDate(detail.datos_personales?.fecha_creacion)}</div>
               </div>
             </div>

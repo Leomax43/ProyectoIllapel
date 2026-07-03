@@ -1,11 +1,11 @@
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
 import { API_URL } from '../../src/config/api';
-
+import { useUsuario } from '../../src/context/UsuarioContext';
 
 export default function PagarScreen() {
-  // Ahora también recibimos el idFamilia
-  const { nombreFamilia, idFamilia } = useLocalSearchParams();
+  const { usuario } = useUsuario();
+  const idFamilia = usuario?.id_familia;
+  const nombreFamilia = usuario?.nombre_familia || '';
   
   const realizarPagoReal = async () => {
     try {
@@ -22,7 +22,7 @@ export default function PagarScreen() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           rut_comercio: "77777777-7", // Usamos el Minimarket de nuestro seedDB
-          monto: 5000,
+          monto: 50,
           qr_token: token // Enviamos el código sellado mágicamente con JWT
         })
       });

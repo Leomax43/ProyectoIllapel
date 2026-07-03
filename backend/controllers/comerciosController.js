@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const bcrypt = require('bcrypt'); // Añadida la importación para encriptar la contraseña
 
 // 1. Obtener todos los comercios (Para la tabla principal)
 const obtenerComercios = async (req, res) => {
@@ -57,16 +58,28 @@ const obtenerComercioDetalle = async (req, res) => {
 
 // 3. Registrar un nuevo comercio
 const crearComercio = async (req, res) => {
-    const { rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono } = req.body;
+    // Agregamos clave_acceso a la extracción de datos
+    const { rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, clave_acceso } = req.body;
     
     try {
+        // Encriptar la contraseña antes de guardarla
+        const saltRounds = 10;
+        const claveAHashear = clave_acceso || '1234'; // Si no viene clave, usamos '1234' por defecto
+        const claveHasheada = await bcrypt.hash(claveAHashear, saltRounds);
+
+        // Agregamos la columna clave_acceso y el parámetro $7 a la consulta SQL
         const result = await pool.query(
-            `INSERT INTO comercios (rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, saldo_acumulado) 
-             VALUES ($1, $2, $3, $4, $5, $6, 0) RETURNING *`,
-            [rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono]
+            `INSERT INTO comercios (rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, saldo_acumulado, clave_acceso) 
+             VALUES ($1, $2, $3, $4, $5, $6, 0, $7) RETURNING *`,
+            [rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, claveHasheada]
         );
         res.status(201).json({ status: 'Éxito', mensaje: 'Comercio registrado correctamente', comercio: result.rows[0] });
     } catch (error) {
+        console.error('Error al crear comercio:', error);
+        // Manejo específico para evitar que la app explote si el RUT ya existe
+        if (error.code === '23505') {
+            return res.status(400).json({ status: 'Error', mensaje: 'El RUT del comercio ya está registrado.' });
+        }
         res.status(500).json({ status: 'Error', mensaje: 'Error al registrar el comercio', error: error.message });
     }
 };

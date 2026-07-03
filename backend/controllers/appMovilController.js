@@ -6,10 +6,19 @@ const bcrypt = require('bcrypt');
 const loginMovil = async (req, res) => {
     const { rut, clave } = req.body;
 
+    // Normalizar RUT: quitar puntos y espacios, K mayúscula
+    const normalizarRut = (r) => {
+        if (!r) return '';
+        return r.replace(/\./g, '').replace(/\s/g, '').toUpperCase();
+    };
+    const rutNormalizado = normalizarRut(rut);
+
     try {
         // --- A. INTENTAR COMO FAMILIA ---
-        const famRes = await pool.query('SELECT * FROM familias WHERE rut_representante = $1', [rut]);
-
+        const famRes = await pool.query(
+            "SELECT * FROM familias WHERE REPLACE(UPPER(rut_representante), '.', '') = $1",
+            [rutNormalizado]
+        );
         if (famRes.rows.length > 0) {
             const familia = famRes.rows[0];
             const match = await bcrypt.compare(clave, familia.clave_acceso);
@@ -31,7 +40,6 @@ const loginMovil = async (req, res) => {
         }
 
         // --- B. INTENTAR COMO COMERCIO ---
-        const comRes = await pool.query('SELECT * FROM comercios WHERE rut_comercio = $1', [rut]);
 
         if (comRes.rows.length > 0) {
             const comercio = comRes.rows[0];
@@ -62,12 +70,24 @@ const loginMovil = async (req, res) => {
     }
 }
 
-// 2. Obtener la Cartola (Historial de compras)
+// 2. Obtener la Cartola (Historial de compras) + Saldo actual
 const obtenerCartola = async (req, res) => {
     // Recibimos el ID de la familia
     const { id_familia } = req.params;
 
     try {
+        // Obtener saldo actual de la familia
+        const familiaRes = await pool.query(
+            'SELECT saldo, nombre_representante FROM familias WHERE id_familia = $1',
+            [id_familia]
+        );
+
+        if (familiaRes.rows.length === 0) {
+            return res.status(404).json({ status: 'Error', mensaje: 'Familia no encontrada' });
+        }
+
+        const { saldo, nombre_representante } = familiaRes.rows[0];
+
         // Hacemos un JOIN con los comercios para que la App muestre el "Nombre del local" 
         // en vez del RUT del local (que sería feo para el usuario).
         const transacciones = await pool.query(`
@@ -80,6 +100,8 @@ const obtenerCartola = async (req, res) => {
 
         res.status(200).json({
             status: 'Éxito',
+            saldo_actual: saldo,
+            nombre_familia: nombre_representante,
             total_movimientos: transacciones.rows.length,
             historial: transacciones.rows
         });
@@ -117,8 +139,45 @@ const generarQR = (req, res) => {
 };
 
 
+// 4. Cambiar Contraseña desde la App
+const cambiarClaveMovil = async (req, res) => {
+    const { rut, rol, clave_actual, nueva_clave } = req.body;
+
+    try {
+        // Identificar en qué tabla buscar según el rol
+        const tabla = rol === 'FAMILIA' ? 'familias' : 'comercios';
+        const colRut = rol === 'FAMILIA' ? 'rut_representante' : 'rut_comercio';
+
+        // 1. Obtener la clave actual de la BD
+        const userRes = await pool.query(`SELECT clave_acceso FROM ${tabla} WHERE ${colRut} = $1`, [rut]);
+        
+        if (userRes.rows.length === 0) {
+            return res.status(404).json({ status: 'Error', mensaje: 'Usuario no encontrado.' });
+        }
+
+        // 2. Verificar que la clave actual ingresada sea correcta
+        const match = await bcrypt.compare(clave_actual, userRes.rows[0].clave_acceso);
+        if (!match) {
+            return res.status(401).json({ status: 'Error', mensaje: 'La contraseña actual es incorrecta.' });
+        }
+
+        // 3. Encriptar la nueva contraseña
+        const saltRounds = 10;
+        const claveHasheada = await bcrypt.hash(nueva_clave, saltRounds);
+
+        // 4. Actualizar en la BD
+        await pool.query(
+            `UPDATE ${tabla} SET clave_acceso = $1 WHERE ${colRut} = $2`,
+            [claveHasheada, rut]
+        );
+
+        res.status(200).json({ status: 'Éxito', mensaje: 'Contraseña actualizada correctamente.' });
+
+    } catch (error) {
+        res.status(500).json({ status: 'Error', mensaje: 'Error interno al cambiar la clave', error: error.message });
+    }
+};
 
 
 
-
-module.exports = { loginMovil, obtenerCartola, generarQR };
+module.exports = { loginMovil, obtenerCartola, generarQR, cambiarClaveMovil };

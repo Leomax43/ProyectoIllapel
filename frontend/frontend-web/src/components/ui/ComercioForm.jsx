@@ -71,7 +71,7 @@ const ComercioForm = ({ comercio, onComercioChange }) => {
             <select
               value={comercio.rubro}
               onChange={(e) => onComercioChange('rubro', e.target.value)}
-              className="border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] w-full outline-none"
+              className="border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] w-full outline-none focus:border-verde"
               style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
             >
               <option disabled value="Seleccione...">Seleccione...</option>
@@ -97,6 +97,51 @@ const ComercioForm = ({ comercio, onComercioChange }) => {
               className="border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] w-full outline-none focus:border-verde"
               style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
             />
+          </div>
+
+          {/* NUEVA SECCIÓN: Clave de acceso */}
+          <div className="flex flex-col gap-[4px] col-span-2 mt-[8px]">
+            <label className="text-[11px] text-gris-texto font-bold">Clave de acceso a la app</label>
+            
+            <div className="bg-[#e8f5e9] border border-[#a5d6a7] text-[#2e7d32] rounded-[3px] p-[8px_12px] text-[12px] flex items-center gap-[8px] mb-[4px]">
+              <span>🔑</span> Se generará una clave automáticamente si no se especifica una.
+            </div>
+            
+            <label className="flex items-center gap-[8px] text-[12px] text-gris-texto cursor-pointer w-fit mb-[4px] mt-[4px]">
+              <input
+                type="checkbox"
+                checked={comercio.quiero_definir_clave || false}
+                onChange={(e) => onComercioChange('quiero_definir_clave', e.target.checked)}
+                className="accent-verde cursor-pointer"
+              />
+              Quiero definir una clave ahora
+            </label>
+
+            {/* Inputs de contraseña (Solo se muestran si el checkbox está activo) */}
+            {comercio.quiero_definir_clave && (
+              <div className="grid grid-cols-2 gap-[12px] mt-[8px]">
+                <div className="flex flex-col gap-[4px]">
+                  <input
+                    type="password"
+                    placeholder="Nueva clave (mín. 6 caracteres)"
+                    value={comercio.clave_acceso || ''}
+                    onChange={(e) => onComercioChange('clave_acceso', e.target.value)}
+                    className="border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] w-full outline-none focus:border-verde"
+                    style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
+                  />
+                </div>
+                <div className="flex flex-col gap-[4px]">
+                  <input
+                    type="password"
+                    placeholder="Confirmar clave"
+                    value={comercio.confirmar_clave || ''}
+                    onChange={(e) => onComercioChange('confirmar_clave', e.target.value)}
+                    className="border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] w-full outline-none focus:border-verde"
+                    style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
         </div>

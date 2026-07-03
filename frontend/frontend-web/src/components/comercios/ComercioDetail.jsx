@@ -26,33 +26,33 @@ const ComercioDetail = ({ selectedComercio, comercioDetalle, formatCurrency, for
         <div className="text-[11px] font-bold text-azul mb-[8px] uppercase tracking-[0.5px]">
           Datos del establecimiento
         </div>
-        <div className="grid grid-cols-2 gap-[7px]">
+        <div className="grid grid-cols-2 gap-[4px]">
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">Nombre</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">Nombre</div>
             <div className="text-[12px] text-[#222] font-bold">{selectedComercio.nombre_comercio}</div>
           </div>
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">RUT</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">RUT</div>
             <div className="text-[12px] text-[#222] font-bold">{selectedComercio.rut_comercio}</div>
           </div>
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">Rubro</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">Rubro</div>
             <div className="text-[12px] text-[#222] font-bold">{selectedComercio.rubro}</div>
           </div>
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">Teléfono</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">Teléfono</div>
             <div className="text-[12px] text-[#222] font-bold">{selectedComercio.telefono}</div>
           </div>
           <div className="text-[12px] col-span-2">
-            <div className="text-[11px] text-gris-claro mb-[3px]">Dirección</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">Dirección</div>
             <div className="text-[12px] text-[#222] font-bold">{selectedComercio.direccion}</div>
           </div>
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">Responsable</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">Responsable</div>
             <div className="text-[12px] text-[#222] font-bold">{selectedComercio.responsable}</div>
           </div>
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">Estado</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">Estado</div>
             <div>
               <span className={`inline-block px-[9px] py-[3px] rounded-[12px] text-[11px] font-semibold ${
                 selectedComercio.estado === 'ACTIVO'
@@ -64,7 +64,7 @@ const ComercioDetail = ({ selectedComercio, comercioDetalle, formatCurrency, for
             </div>
           </div>
           <div className="text-[12px]">
-            <div className="text-[11px] text-gris-claro mb-[3px]">Fecha de registro</div>
+            <div className="text-[11px] text-gris-claro mb-[0px]">Fecha de registro</div>
             <div className="text-[12px] text-[#222] font-bold">{formatDate(selectedComercio.fecha_registro)}</div>
           </div>
         </div>
