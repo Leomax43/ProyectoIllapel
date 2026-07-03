@@ -5,10 +5,10 @@ import { TouchableOpacity } from 'react-native'; // <-- Agregamos TouchableOpaci
 export default function TabsLayout() {
   return (
     <Tabs screenOptions={{
-      tabBarActiveTintColor: '#5D2A7B',
+      tabBarActiveTintColor: '#005B8F',
       tabBarInactiveTintColor: 'gray',
       headerShown: true,
-      headerStyle: { backgroundColor: '#5D2A7B' },
+      headerStyle: { backgroundColor: '#005B8F' },
       headerTintColor: 'white',
       // BOTÓN DE LOGOUT EN LA ESQUINA SUPERIOR DERECHA
       headerRight: () => (
