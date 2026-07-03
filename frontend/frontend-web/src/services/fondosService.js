@@ -1,4 +1,6 @@
-import { request } from './apiClient.js';
+import { request, API_URL } from './apiClient.js';
+
+
 
 const fondosService = {
   // Cargar fondos a una familia
@@ -18,7 +20,7 @@ const fondosService = {
         formData.append('archivo', archivo);
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/fondos/cargar/${id_familia}`, {
+      const response = await fetch(`${API_URL}/api/fondos/cargar/${id_familia}`, {
         method: 'POST',
         body: formData
         // NO incluir Content-Type - el navegador lo establece automáticamente con boundary
@@ -104,7 +106,7 @@ const fondosService = {
       }
 
       // URL con el orden correcto id_familia antes de /cargar
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/fondos/${id_familia}/cargar`, {
+      const response = await fetch(`${API_URL}/api/fondos/${id_familia}/cargar`, {
         method: 'POST',
         body: formData
       });
