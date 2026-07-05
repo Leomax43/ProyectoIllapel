@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import beneficiariesService from '../../services/beneficiariesService';
 
-const BeneficiaryDetail = ({ beneficiary }) => {
+const BeneficiaryDetail = ({ beneficiary, onEstadoCambiado }) => {
   const navigate = useNavigate();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -319,10 +319,21 @@ const BeneficiaryDetail = ({ beneficiary }) => {
 
       {/* ACTION BOTTOM */}
       <div className="flex justify-between gap-[8px] px-[14px] py-[12px] border-t border-gris-borde bg-[#f9f9f9]">
-        <button className="bg-[#b52b2b] text-white border-none rounded-[3px] px-[14px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
-          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
-          Dar de baja
-        </button>
+        {detail?.datos_personales?.estado === 'ACTIVO' ? (
+          <button 
+            onClick={() => onEstadoCambiado && onEstadoCambiado(beneficiary.id_familia, 'BAJA')}
+            className="bg-[#b52b2b] text-white border-none rounded-[3px] px-[14px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+            Dar de baja
+          </button>
+        ) : (
+          <button 
+            onClick={() => onEstadoCambiado && onEstadoCambiado(beneficiary.id_familia, 'ACTIVO')}
+            className="bg-verde text-white border-none rounded-[3px] px-[14px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+            Activar
+          </button>
+        )}
         <div className="flex gap-[8px]">
           <button className="bg-[#c49300] text-white border-none rounded-[3px] px-[14px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
             style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>

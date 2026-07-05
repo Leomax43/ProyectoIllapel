@@ -86,7 +86,10 @@ const BeneficiariesPage = () => {
             onEstadoCambiado={handleEstadoCambiado}
           />
 
-          <BeneficiaryDetail beneficiary={selectedBeneficiary} />
+          <BeneficiaryDetail 
+            beneficiary={selectedBeneficiary} 
+            onEstadoCambiado={handleEstadoCambiado}
+          />
         </div>
       </div>
 

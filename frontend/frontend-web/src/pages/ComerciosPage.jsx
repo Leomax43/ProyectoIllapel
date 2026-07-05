@@ -124,6 +124,7 @@ const ComerciosPage = () => {
               comercioDetalle={comercioDetalle}
               formatCurrency={formatCurrency}
               formatDate={formatDate}
+              onEstadoCambiado={handleEstadoCambiado}
             />
           </div>
         )}
