@@ -23,11 +23,11 @@ export const getAllowedPagesForRole = (role = getCurrentRole()) => {
   const normalizedRole = normalizeRole(role);
 
   if (normalizedRole === ROLES.SUPER_ADMIN) {
-    return ['dashboard', 'beneficiarios', 'comercios', 'fondos', 'transacciones', 'aprobaciones', 'funcionarios', 'subrogaciones'];
+    return ['dashboard', 'beneficiarios', 'comercios', 'fondos', 'transacciones', 'aprobaciones', 'funcionarios', 'subrogaciones', 'exportacion'];
   }
 
   if (normalizedRole === ROLES.JEFATURA || normalizedRole === ROLES.ADMIN) {
-    return ['dashboard', 'beneficiarios', 'comercios', 'fondos', 'transacciones', 'aprobaciones', 'funcionarios'];
+    return ['dashboard', 'beneficiarios', 'comercios', 'fondos', 'transacciones', 'aprobaciones', 'funcionarios', 'exportacion'];
   }
 
   if (normalizedRole === ROLES.ASISTENTE_SOCIAL) {

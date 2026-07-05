@@ -1,27 +1,23 @@
-import { request } from './apiClient.js';
+import { API_URL } from './apiClient';
 
-export async function listFamilias() {
-  const data = await request('/api/familias');
-  if (!Array.isArray(data)) {
-    const error = new Error('Respuesta inválida del servidor al listar familias.');
-    error.payload = data;
-    throw error;
-  }
-  return data;
-}
+const familiasService = {
+  obtenerFamilias: async () => {
+    const response = await fetch(`${API_URL}/api/familias`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.mensaje || 'Error al obtener familias');
+    return data;
+  },
 
-export async function createFamilia(payload) {
-  const data = await request('/api/familias', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  cambiarEstado: async (id_familia, nuevoEstado) => {
+    const response = await fetch(`${API_URL}/api/aprobaciones/familia/${id_familia}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nuevo_estado: nuevoEstado }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.mensaje || 'Error al cambiar estado');
+    return data;
+  },
+};
 
-  if (data?.status && data.status !== 'Éxito') {
-    const error = new Error(data.mensaje || 'Error del servidor al crear la familia.');
-    error.payload = data;
-    throw error;
-  }
-
-  return data;
-}
+export default familiasService;

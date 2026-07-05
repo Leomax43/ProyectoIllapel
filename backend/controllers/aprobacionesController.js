@@ -44,11 +44,12 @@ const obtenerSolicitudesFondos = async (req, res) => {
             ORDER BY cf.fecha_solicitud DESC
         `);
         
-        // Mapear para incluir nombre_familia computado y fecha como alias
+        // Mapear para incluir nombre_familia computado, fecha como alias y renombrar detalles a observaciones
         const solicitudes = result.rows.map(s => ({
             ...s,
             nombre_familia: generarNombreFamilia(s.nombre_representante, s.id_familia),
-            fecha: s.fecha_solicitud
+            fecha: s.fecha_solicitud,
+            observaciones: s.detalles // Renombrar para que el frontend lo encuentre
         }));
         
         res.status(200).json({ status: 'Éxito', solicitudes });

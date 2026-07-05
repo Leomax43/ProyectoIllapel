@@ -42,6 +42,7 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
     { label: 'Aprobaciones', page: 'aprobaciones', path: '/aprobaciones' },
     { label: 'Funcionarios', page: 'funcionarios', path: '/funcionarios' },
     { label: 'Subrogaciones', page: 'subrogaciones', path: '/subrogaciones' },
+    { label: 'Exportar Datos', page: 'exportacion', path: '/exportacion' },
   ];
 
   const adminRolUpper = normalizeRole(adminRol);

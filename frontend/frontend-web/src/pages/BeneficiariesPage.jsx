@@ -7,6 +7,7 @@ import BeneficiariesList from '../components/beneficiarios/BeneficiariesList';
 import BeneficiaryDetail from '../components/beneficiarios/BeneficiaryDetail';
 import { useBeneficiaries } from '../hooks/useBeneficiaries';
 import { useAuth } from '../hooks/useAuth';
+import familiasService from '../services/familiasService';
 
 const BeneficiariesPage = () => {
   const { logout } = useAuth();
@@ -28,6 +29,20 @@ const BeneficiariesPage = () => {
   } = useBeneficiaries();
 
   const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
+  const [mensaje, setMensaje] = useState(null);
+
+  const handleEstadoCambiado = async (id_familia, nuevoEstado) => {
+    if (!confirm(`¿Estás seguro de ${nuevoEstado === 'BAJA' ? 'dar de baja' : 'activar'} este beneficiario?`)) return;
+    
+    try {
+      await familiasService.cambiarEstado(id_familia, nuevoEstado);
+      setMensaje({ tipo: 'exito', texto: `Beneficiario ${nuevoEstado === 'BAJA' ? 'dado de baja' : 'activado'} correctamente` });
+      // Recargar datos
+      window.location.reload();
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error.message });
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gris-bg">
@@ -42,6 +57,15 @@ const BeneficiariesPage = () => {
             </div>
           </div>
         </div>
+
+        {mensaje && (
+          <div className={`p-[10px] mb-[12px] rounded-[4px] text-[12px] font-bold ${
+            mensaje.tipo === 'exito' ? 'bg-[#e6f7f4] text-verde border border-[#b2e8de]' : 'bg-[#fde8e8] text-[#b52b2b] border border-[#f5b8b8]'
+          }`}>
+            {mensaje.texto}
+            <button onClick={() => setMensaje(null)} className="float-right font-bold cursor-pointer bg-transparent border-none">×</button>
+          </div>
+        )}
 
         <BeneficiariesStats stats={stats} />
 
@@ -59,6 +83,7 @@ const BeneficiariesPage = () => {
             onNextPage={nextPage}
             onPrevPage={prevPage}
             onNewSolicitud={() => navigate('/nueva-solicitud')}
+            onEstadoCambiado={handleEstadoCambiado}
           />
 
           <BeneficiaryDetail beneficiary={selectedBeneficiary} />

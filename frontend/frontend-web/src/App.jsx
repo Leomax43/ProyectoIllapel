@@ -17,6 +17,7 @@ const TransaccionesPage = lazy(() => import('./pages/TransaccionesPage.jsx'));
 const AprobacionesPage = lazy(() => import('./pages/AprobacionesPage.jsx'));
 const FuncionariosPage = lazy(() => import('./pages/FuncionariosPage.jsx'));
 const SubrogacionesPage = lazy(() => import('./pages/SubrogacionesPage.jsx'));
+const ExportacionPage = lazy(() => import('./pages/ExportacionPage.jsx'));
 
 // Componente simple de carga visual intermedio mientras se descargan los fragmentos de página
 const PageLoader = () => (
@@ -40,6 +41,7 @@ function App() {
     if (allowedPages.includes('aprobaciones')) return '/aprobaciones';
     if (allowedPages.includes('funcionarios')) return '/funcionarios';
     if (allowedPages.includes('subrogaciones')) return '/subrogaciones';
+    if (allowedPages.includes('exportacion')) return '/exportacion';
     return '/login';
   };
 
@@ -61,6 +63,7 @@ function App() {
               {isAllowed('dashboard') && <Route path="/dashboard" element={<AdminDashboardNew />} />}
               {isAllowed('funcionarios') && <Route path="/funcionarios" element={<FuncionariosPage />} />}
               {isAllowed('subrogaciones') && <Route path="/subrogaciones" element={<SubrogacionesPage />} />}
+              {isAllowed('exportacion') && <Route path="/exportacion" element={<ExportacionPage />} />}
 
               {/* Beneficiarios */}
               {isAllowed('beneficiarios') && <Route path="/beneficiarios" element={<BeneficiariesPage />} />}

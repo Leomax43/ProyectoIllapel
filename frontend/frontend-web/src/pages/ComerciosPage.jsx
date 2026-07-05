@@ -16,6 +16,7 @@ const ComerciosPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [estadoFilter, setEstadoFilter] = useState('Todos');
   const [loading, setLoading] = useState(false);
+  const [mensaje, setMensaje] = useState(null);
 
   useEffect(() => {
     fetchComercios();
@@ -24,7 +25,7 @@ const ComerciosPage = () => {
   const fetchComercios = async () => {
     setLoading(true);
     try {
-      const response = await comerciosService.getComercios();
+      const response = await comerciosService.obtenerComercios();
       setComercios(response);
       if (response.length > 0) {
         setSelectedComercio(response[0]);
@@ -39,7 +40,7 @@ const ComerciosPage = () => {
 
   const fetchComercioDetalle = async (rut) => {
     try {
-      const response = await comerciosService.getComercioDetalle(rut);
+      const response = await comerciosService.obtenerComercioDetalle(rut);
       setComercioDetalle(response);
     } catch (error) {
       console.error('Error fetching detalle:', error);
@@ -62,6 +63,18 @@ const ComerciosPage = () => {
     fetchComercioDetalle(comercio.rut_comercio);
   };
 
+  const handleEstadoCambiado = async (rut, nuevoEstado) => {
+    if (!confirm(`¿Estás seguro de ${nuevoEstado === 'BAJA' ? 'dar de baja' : 'activar'} este comercio?`)) return;
+    
+    try {
+      await comerciosService.cambiarEstado(rut, nuevoEstado);
+      setMensaje({ tipo: 'exito', texto: `Comercio ${nuevoEstado === 'BAJA' ? 'dado de baja' : 'activado'} correctamente` });
+      fetchComercios();
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error.message });
+    }
+  };
+
   const formatCurrency = (value) => `$${value.toLocaleString('es-CL')}`;
   const formatDate = (date) => new Date(date).toLocaleDateString('es-CL');
 
@@ -79,22 +92,32 @@ const ComerciosPage = () => {
           </div>
         </div>
 
+        {mensaje && (
+          <div className={`p-[10px] mb-[12px] rounded-[4px] text-[12px] font-bold ${
+            mensaje.tipo === 'exito' ? 'bg-[#e6f7f4] text-verde border border-[#b2e8de]' : 'bg-[#fde8e8] text-[#b52b2b] border border-[#f5b8b8]'
+          }`}>
+            {mensaje.texto}
+            <button onClick={() => setMensaje(null)} className="float-right font-bold cursor-pointer bg-transparent border-none">×</button>
+          </div>
+        )}
+
         {loading ? (
           <div className="text-center text-[12px] text-gris-texto py-[32px]">Cargando comercios...</div>
         ) : (
           <div className="grid grid-cols-[1.3fr_1fr] gap-[14px] items-start">
-            <ComerciosList 
-              filteredComercios={filteredComercios}
-              totalComercios={comercios.length}
-              selectedComercio={selectedComercio}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              estadoFilter={estadoFilter}
-              onEstadoChange={setEstadoFilter}
-              onComercioSelect={handleComercioSelect}
-              onNewComercio={() => navigate('/nuevo-comercio')}
-              formatCurrency={formatCurrency}
-            />
+      <ComerciosList
+        filteredComercios={filteredComercios}
+        totalComercios={comercios.length}
+        selectedComercio={selectedComercio}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        estadoFilter={estadoFilter}
+        onEstadoChange={setEstadoFilter}
+        onComercioSelect={handleComercioSelect}
+        onNewComercio={() => navigate('/nuevo-comercio')}
+        formatCurrency={(val) => `$${parseInt(val || 0).toLocaleString('es-CL')}`}
+        onEstadoCambiado={handleEstadoCambiado}
+      />
 
             <ComercioDetail 
               selectedComercio={selectedComercio}

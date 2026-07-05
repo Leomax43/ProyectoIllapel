@@ -21,20 +21,7 @@ const TablaTransacciones = ({
           <span className="inline-block w-[3px] h-[16px] bg-amarillo rounded-[2px] mr-[8px] align-middle"></span>
           Movimientos del sistema
         </div>
-        <div className="flex gap-[5px]">
-          <button className="text-white border-none rounded-[3px] px-[14px] py-[6px] text-[12px] cursor-pointer font-bold hover:brightness-110"
-            style={{ background: 'rgba(255,255,255,0.15)', fontFamily: "'Exo 2', Arial, sans-serif" }}>
-            Excel
-          </button>
-          <button className="text-white border-none rounded-[3px] px-[14px] py-[6px] text-[12px] cursor-pointer font-bold hover:brightness-110"
-            style={{ background: 'rgba(255,255,255,0.15)', fontFamily: "'Exo 2', Arial, sans-serif" }}>
-            CSV
-          </button>
-          <button className="text-white border-none rounded-[3px] px-[14px] py-[6px] text-[12px] cursor-pointer font-bold hover:brightness-110"
-            style={{ background: 'rgba(255,255,255,0.15)', fontFamily: "'Exo 2', Arial, sans-serif" }}>
-            PDF
-          </button>
-        </div>
+        <div className="flex gap-[5px]"></div>
       </div>
 
       {/* LEYENDA */}
