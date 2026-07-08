@@ -27,7 +27,7 @@ const obtenerResumen = async (req, res) => {
 
         const [activasRes, pendientesRes, comerciosRes, fondosRes, totalFamiliasRes, familiasRes] = await Promise.all([
             pool.query("SELECT COUNT(*) FROM familias WHERE estado = 'ACTIVO'"),
-            pool.query("SELECT COUNT(*) FROM familias WHERE estado = 'PENDIENTE'"),
+            pool.query("SELECT COUNT(*) FROM cargas_fondos WHERE estado = 'PENDIENTE'"),
             pool.query("SELECT COUNT(*) FROM comercios WHERE estado = 'ACTIVO'"),
             pool.query("SELECT COALESCE(SUM(monto), 0) as total FROM cargas_fondos WHERE estado = 'APROBADO' AND fecha_solicitud >= $1", [primerDiaMes]),
             pool.query(`SELECT COUNT(*) FROM familias ${whereClause}`, queryParams),
