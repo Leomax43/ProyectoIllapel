@@ -23,8 +23,7 @@ const cargarFondos = async (req, res) => {
             return res.status(403).json({ status: 'Error', mensaje: 'La cuenta no está ACTIVA' });
         }
 
-        // Requisito de los 30 días (comentado para pruebas según lo solicitado)
-        /*
+        
         const ultimasCargas = await pool.query(`
             SELECT fecha_solicitud FROM cargas_fondos 
             WHERE id_familia = $1 AND estado = 'APROBADO' AND fecha_solicitud >= NOW() - INTERVAL '30 days'
@@ -34,7 +33,7 @@ const cargarFondos = async (req, res) => {
             await pool.query('ROLLBACK');
             return res.status(400).json({ status: 'Error', mensaje: 'Bloqueo: Ya recibió fondos en los últimos 30 días.' });
         }
-        */
+        
         
         // Guardar PDF si se adjunta desde el formulario del Frontend
         let pdfResolucionPath = null;
