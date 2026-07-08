@@ -90,6 +90,11 @@ const BeneficiaryDetail = ({ beneficiary, onEstadoCambiado }) => {
     );
   }
 
+
+  const BASE_URL = import.meta.env.VITE_API_URL 
+  ? import.meta.env.VITE_API_URL.replace('/api', '') 
+  : 'https://proyectoillapel.onrender.com';
+
   return (
     <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden">
       {/* PANEL HEADER */}
@@ -289,7 +294,7 @@ const BeneficiaryDetail = ({ beneficiary, onEstadoCambiado }) => {
                     </div>
                   </div>
                   <a
-                    href={`http://localhost:3000${detail.datos_personales.pdf_ficha_social}`}
+                    href={`${BASE_URL}${detail.datos_personales.pdf_ficha_social}`}
                     download
                     target="_blank"
                     rel="noopener noreferrer"

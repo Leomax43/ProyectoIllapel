@@ -28,6 +28,13 @@ const CargaFondosDetail = ({ detalle, formatCurrency, formatDate }) => {
     return <span className={baseClass}>{normalizado}</span>;
   };
 
+
+
+  const BASE_URL = import.meta.env.VITE_API_URL 
+  ? import.meta.env.VITE_API_URL.replace('/api', '') 
+  : 'https://proyectoillapel.onrender.com';
+
+  
   return (
     <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden mb-[14px]">
       {/* HEADER */}
@@ -89,7 +96,7 @@ const CargaFondosDetail = ({ detalle, formatCurrency, formatDate }) => {
         <div className="text-[11px] font-bold text-azul mb-[6px] uppercase tracking-[0.5px]">Documento de Respaldo</div>
         {detalle.pdf_resolucion ? (
           <a
-            href={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/uploads/resoluciones/${detalle.pdf_resolucion}`}
+            href={`${BASE_URL}${detalle.pdf_resolucion}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-[6px] text-[12px] text-[#b52b2b] font-bold no-underline hover:underline"
