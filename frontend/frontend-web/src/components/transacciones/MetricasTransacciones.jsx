@@ -22,9 +22,9 @@ const MetricasTransacciones = ({ metricas }) => {
       valueClass: 'text-[#c49300]',
     },
     {
-      label: 'Pagos por RUT+PIN',
+      label: 'Pagos por QR',
       value: metricas?.pagosRutPin || 0,
-      sub: `vs ${metricas?.pagosQr || 0} por QR`,
+      sub: 'escaneados por comercio',
       barClass: 'bg-azul',
       valueClass: 'text-azul',
     },

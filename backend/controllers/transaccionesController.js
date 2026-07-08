@@ -41,21 +41,16 @@ const obtenerMetricas = async (req, res) => {
         );
         const totalPagos = parseInt(pagosRes.rows[0].total);
 
-        // 5. Pagos por RUT+PIN
-        const pagosRutPinRes = await pool.query(
-            `SELECT COUNT(*) as total FROM transacciones 
-             WHERE fecha >= $1 AND fecha <= $2 AND metodo_pago ILIKE '%PIN%'`,
-            [primerDiaMes, ultimoDiaMes]
-        );
-        const pagosRutPin = parseInt(pagosRutPinRes.rows[0].total);
-
-        // 6. Pagos por QR
+        // 5. Pagos por QR (se usa para la métrica "Pagos por RUT+PIN" en el frontend)
         const pagosQrRes = await pool.query(
             `SELECT COUNT(*) as total FROM transacciones 
              WHERE fecha >= $1 AND fecha <= $2 AND metodo_pago ILIKE '%QR%'`,
             [primerDiaMes, ultimoDiaMes]
         );
         const pagosQr = parseInt(pagosQrRes.rows[0].total);
+        
+        // Para mantener compatibilidad con el frontend, pagosRutPin contiene los pagos QR
+        const pagosRutPin = pagosQr;
 
         const mesActual = ahora.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
 
