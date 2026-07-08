@@ -21,8 +21,9 @@ const aprobacionesService = {
     });
   },
 
-  obtenerUrlPdf: (idCarga) => {
-    return `${API_URL}/api/aprobaciones/fondos/${idCarga}/pdf`;
+  obtenerUrlPdf: (rutaArchivo) => {
+    const BASE_URL = API_URL.replace('/api', '');
+    return `${BASE_URL}${rutaArchivo}`;
   }
 };
 

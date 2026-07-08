@@ -94,8 +94,16 @@ const AprobacionesPage = () => {
   };
 
   const verDocumento = (idCarga) => {
-    const url = aprobacionesService.obtenerUrlPdf(idCarga);
-    window.open(url, '_blank');
+    // 1. Buscamos la solicitud en nuestro estado
+    const solicitud = solicitudes.find(s => s.id_carga === idCarga);
+
+    // 2. Verificamos que exista y tenga un PDF
+    if (solicitud && solicitud.pdf_resolucion) {
+      const url = aprobacionesService.obtenerUrlPdf(solicitud.pdf_resolucion);
+      window.open(url, '_blank');
+    } else {
+      alert('Esta solicitud no tiene un documento adjunto.');
+    }
   };
 
   const solicitudesFiltradas = solicitudes.filter(s => 
