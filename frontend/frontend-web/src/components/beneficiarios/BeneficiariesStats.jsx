@@ -2,8 +2,7 @@ const BeneficiariesStats = ({ stats }) => {
   const pills = [
     { label: 'total registrados', count: stats?.total_registrados || 0, style: 'bg-[#e0eaf0] text-azul border-[#b0ccd8]' },
     { label: 'activos', count: stats?.activos || 0, style: 'bg-[#e6f7f4] text-verde border-[#b2e8de]' },
-    { label: 'pendientes', count: stats?.pendientes || 0, style: 'bg-[#fff8e0] text-[#a07800] border-[#f0d970]' },
-    { label: 'dados de baja', count: stats?.bajas || 0, style: 'bg-[#fde8e8] text-[#b52b2b] border-[#f5b8b8]' },
+    { label: 'dados de baja', count: stats?.bajas || 0, style: 'bg-[#fde8e8] text-[#b52b2b] border border-[#f5b8b8]' },
   ];
 
   return (
