@@ -7,7 +7,7 @@ export const obtenerTransacciones = async (filtros = {}) => {
   if (filtros.fecha_inicio) queryParams.append('fecha_inicio', filtros.fecha_inicio);
   if (filtros.fecha_fin) queryParams.append('fecha_fin', filtros.fecha_fin);
   if (filtros.tipo && filtros.tipo !== 'todos') queryParams.append('tipo', filtros.tipo);
-  if (filtros.rut_comercio && filtros.rut_comercio !== 'todos') queryParams.append('rut_comercio', filtros.rut_comercio);
+  if (filtros.rubro && filtros.rubro !== 'todos') queryParams.append('rubro', filtros.rubro);
   if (filtros.id_familia) queryParams.append('id_familia', filtros.id_familia);
 
   return request(`/api/transacciones?${queryParams.toString()}`, {

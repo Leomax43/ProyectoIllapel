@@ -67,7 +67,6 @@ const BeneficiaryDetail = ({ beneficiary, onEstadoCambiado }) => {
     { id: 'datos-personales', label: 'Datos personales' },
     { id: 'nucleo-familiar', label: 'Núcleo familiar' },
     { id: 'historial', label: 'Historial' },
-    { id: 'pin', label: 'PIN' },
     { id: 'documentos', label: 'Documentos' },
   ];
 
@@ -273,13 +272,6 @@ const BeneficiaryDetail = ({ beneficiary, onEstadoCambiado }) => {
           </>
         )}
 
-        {/* PIN */}
-        {activeTab === 'pin' && (
-          <div className="text-center text-gris-claro p-[20px]">
-            PIN - Funcionalidad pendiente (Implementación por Maximiliano)
-          </div>
-        )}
-
         {/* DOCUMENTOS */}
         {activeTab === 'documentos' && (
           <>
@@ -335,7 +327,9 @@ const BeneficiaryDetail = ({ beneficiary, onEstadoCambiado }) => {
           </button>
         )}
         <div className="flex gap-[8px]">
-          <button className="bg-[#c49300] text-white border-none rounded-[3px] px-[14px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+          <button 
+            onClick={() => navigate(`/nueva-carga?rut=${detail?.datos_personales?.rut_representante || beneficiary?.rut_representante}`)}
+            className="bg-[#c49300] text-white border-none rounded-[3px] px-[14px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
             style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
             Cargar fondos
           </button>

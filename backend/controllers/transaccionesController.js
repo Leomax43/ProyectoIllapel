@@ -80,7 +80,7 @@ const obtenerMetricas = async (req, res) => {
 
 // Nueva función: Obtener todas las transacciones con filtros
 const obtenerTransacciones = async (req, res) => {
-    const { tipo, rut_comercio, id_familia } = req.query;
+    const { tipo, rubro, id_familia } = req.query;
     
     try {
         let query = `
@@ -111,10 +111,10 @@ const obtenerTransacciones = async (req, res) => {
             paramCount++;
         }
 
-        // Filtro por comercio
-        if (rut_comercio && rut_comercio !== 'todos') {
-            query += ` AND t.rut_comercio = $${paramCount}`;
-            params.push(rut_comercio);
+        // Filtro por rubro (tipo de comercio)
+        if (rubro && rubro !== 'todos') {
+            query += ` AND c.rubro ILIKE $${paramCount}`;
+            params.push(`%${rubro}%`);
             paramCount++;
         }
 

@@ -28,7 +28,7 @@ const FuncionariosPage = () => {
             <div className="text-[32px] mb-[10px]">🚫</div>
             <div className="text-[16px] font-bold text-[#b52b2b] mb-[8px]">Acceso denegado</div>
             <div className="text-[13px] text-gris-texto mb-[20px]">
-              Solo Jefatura puede registrar funcionarios.
+              Solo Jefatura y Super Admin pueden registrar funcionarios.
             </div>
             <button 
               onClick={() => navigate('/dashboard')}
@@ -44,6 +44,18 @@ const FuncionariosPage = () => {
     );
   }
 
+  // Determinar qué roles puede crear según el rol del usuario logueado
+  const rolesDisponibles = adminRol === ROLES.SUPER_ADMIN
+    ? [
+        { value: 'ASISTENTE_SOCIAL', label: 'Asistente Social (Carga de datos y solicitudes)' },
+        { value: 'ENCARGADO_COMERCIOS', label: 'Encargado de comercios (Solo comercios y transacciones)' },
+        { value: 'JEFATURA', label: 'Jefatura (Aprobaciones y control total)' },
+      ]
+    : [
+        { value: 'ASISTENTE_SOCIAL', label: 'Asistente Social (Carga de datos y solicitudes)' },
+        { value: 'ENCARGADO_COMERCIOS', label: 'Encargado de comercios (Solo comercios y transacciones)' },
+      ];
+
   return (
     <div className="flex flex-col min-h-screen bg-gris-bg">
       <DashboardHeader currentPage="funcionarios" onLogout={logout} />
@@ -53,7 +65,9 @@ const FuncionariosPage = () => {
           <div>
             <div className="text-[18px] font-bold text-azul">Registrar Funcionario Municipal</div>
             <div className="text-[12px] text-gris-texto mt-[2px] font-light">
-              Cree accesos para nuevos asistentes sociales o personal de jefatura.
+              {adminRol === ROLES.SUPER_ADMIN 
+                ? 'Cree accesos para nuevos asistentes sociales, encargados de comercios o personal de jefatura.' 
+                : 'Cree accesos para nuevos asistentes sociales o encargados de comercios.'}
             </div>
           </div>
         </div>
@@ -112,9 +126,9 @@ const FuncionariosPage = () => {
                   className="border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] text-gris-texto outline-none"
                   style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
                 >
-                  <option value="ASISTENTE_SOCIAL">Asistente Social (Carga de datos y solicitudes)</option>
-                  <option value="ENCARGADO_COMERCIOS">Encargado de comercios (Solo comercios y transacciones)</option>
-                  <option value="JEFATURA">Jefatura (Aprobaciones y control total)</option>
+                  {rolesDisponibles.map(rol => (
+                    <option key={rol.value} value={rol.value}>{rol.label}</option>
+                  ))}
                 </select>
               </div>
 

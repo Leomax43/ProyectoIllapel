@@ -1,4 +1,7 @@
+import { useNavigate } from 'react-router-dom';
+
 const ComercioDetail = ({ selectedComercio, comercioDetalle, formatCurrency, formatDate, onEstadoCambiado }) => {
+  const navigate = useNavigate();
   if (!selectedComercio) {
     return (
       <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden mb-[14px]">
@@ -128,7 +131,9 @@ const ComercioDetail = ({ selectedComercio, comercioDetalle, formatCurrency, for
               Activar
             </button>
           )}
-          <button className="bg-verde text-white border-none rounded-[3px] px-[18px] py-[7px] text-[12px] font-bold cursor-pointer hover:brightness-110"
+          <button 
+            onClick={() => navigate(`/comercios/editar/${selectedComercio.rut_comercio}`)}
+            className="bg-verde text-white border-none rounded-[3px] px-[18px] py-[7px] text-[12px] font-bold cursor-pointer hover:brightness-110"
             style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
             Editar datos
           </button>

@@ -26,6 +26,17 @@ const comerciosService = {
     return data;
   },
 
+  actualizarComercio: async (rut, comercioData) => {
+    const response = await fetch(`${API_URL}/api/comercios/${rut}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(comercioData),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.mensaje || 'Error al actualizar comercio');
+    return data;
+  },
+
   cambiarEstado: async (rut, nuevoEstado) => {
     const response = await fetch(`${API_URL}/api/comercios/${rut}/estado`, {
       method: 'PUT',

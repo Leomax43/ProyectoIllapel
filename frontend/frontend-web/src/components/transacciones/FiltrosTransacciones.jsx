@@ -7,8 +7,8 @@ const FiltrosTransacciones = ({
   onFechaFinChange,
   tipoFiltro,
   onTipoFiltroChange,
-  comercioFiltro,
-  onComercioFiltroChange
+  rubroFiltro,
+  onRubroFiltroChange
 }) => {
   return (
     <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden mb-[14px]">
@@ -52,16 +52,19 @@ const FiltrosTransacciones = ({
           <option value="ANULADO">Anulado</option>
         </select>
         <select
-          value={comercioFiltro}
-          onChange={(e) => onComercioFiltroChange(e.target.value)}
+          value={rubroFiltro}
+          onChange={(e) => onRubroFiltroChange(e.target.value)}
           className="border border-gris-borde rounded-[3px] px-[9px] py-[5px] text-[12px] text-gris-texto w-[92%] outline-none"
           style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
         >
-          <option value="todos">Todos los comercios</option>
-          <option value="11.111.111-1">Minimarket Don Jorge</option>
-          <option value="22.222.222-2">Ferretería El Clavo</option>
-          <option value="33.333.333-3">Supermercado La Esperanza</option>
-          <option value="44.444.444-4">Librería Saber</option>
+          <option value="todos">Todos los rubros</option>
+          <option>Almacén / Minimarket</option>
+          <option>Panadería / Pastelería</option>
+          <option>Carnicería / Rotisería</option>
+          <option>Feria libre / Frutas y Verduras</option>
+          <option>Farmacia</option>
+          <option>Librería / Bazar</option>
+          <option>Otro</option>
         </select>
         <button className="bg-azul text-white border-none rounded-[3px] px-[14px] py-[6px] text-[12px] cursor-pointer whitespace-nowrap font-bold hover:brightness-110"
           style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>

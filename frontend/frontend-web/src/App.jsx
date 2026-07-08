@@ -11,6 +11,7 @@ const NewSolicitudPage = lazy(() => import('./pages/NewSolicitudPage.jsx'));
 const EditBeneficiarioPage = lazy(() => import('./pages/EditBeneficiarioPage.jsx'));
 const ComerciosPage = lazy(() => import('./pages/ComerciosPage.jsx'));
 const NewComercioPage = lazy(() => import('./pages/NewComercioPage.jsx'));
+const EditComercioPage = lazy(() => import('./pages/EditComercioPage.jsx'));
 const CargaFondosHistorialPage = lazy(() => import('./pages/CargaFondosHistorialPage.jsx'));
 const CargaFondosPage = lazy(() => import('./pages/CargaFondosPage.jsx'));
 const TransaccionesPage = lazy(() => import('./pages/TransaccionesPage.jsx'));
@@ -76,6 +77,7 @@ function App() {
               {/* Comercios */}
               {isAllowed('comercios') && <Route path="/comercios" element={<ComerciosPage />} />}
               {isAllowed('comercios') && <Route path="/nuevo-comercio" element={<NewComercioPage />} />}
+              {isAllowed('comercios') && <Route path="/comercios/editar/:rut" element={<EditComercioPage />} />}
               
               {/* Fondos y Transacciones */}
               {isAllowed('fondos') && <Route path="/fondos" element={<CargaFondosHistorialPage />} />}
