@@ -13,7 +13,8 @@ const BeneficiariesList = ({
   onNextPage,
   onPrevPage,
   onNewSolicitud,
-  onNavigate: externalNavigate
+  onNavigate: externalNavigate,
+  onEstadoCambiado
 }) => {
   const internalNavigate = useNavigate();
   const navigate = externalNavigate || internalNavigate;
@@ -99,16 +100,27 @@ const BeneficiariesList = ({
                 </span>
               </td>
               <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]">
-                <button className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white mr-[3px] bg-azul font-medium"
-                  style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
-                  Ver
-                </button>
-                {ben.estado === 'ACTIVO' && (
+                {ben.estado === 'ACTIVO' ? (
+                  <>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); navigate(`/nueva-carga?rut=${ben.rut_representante}`); }}
+                      className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white bg-[#c49300] font-medium mr-[3px] hover:brightness-110"
+                      style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+                      Fondos
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); onEstadoCambiado && onEstadoCambiado(ben.id_familia, 'BAJA'); }}
+                      className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white bg-[#b52b2b] font-medium hover:brightness-110"
+                      style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+                      Dar de baja
+                    </button>
+                  </>
+                ) : (
                   <button 
-                    onClick={(e) => { e.stopPropagation(); navigate(`/nueva-carga?rut=${ben.rut_representante}`); }}
-                    className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white bg-[#c49300] font-medium"
+                    onClick={(e) => { e.stopPropagation(); onEstadoCambiado && onEstadoCambiado(ben.id_familia, 'ACTIVO'); }}
+                    className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white bg-verde font-medium hover:brightness-110"
                     style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
-                    Fondos
+                    Activar
                   </button>
                 )}
               </td>

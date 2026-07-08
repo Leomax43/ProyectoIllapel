@@ -6,7 +6,7 @@
 //Este es para prueba local en lan
 // 1. Aquí pones la IP de tu PC actual. 
 // Cuando cambies de red o de PC, ¡solo modificas esta línea!
-//const LOCAL_IP = '192.168.1.215'; 
+//const LOCAL_IP = '192.168.1.75'; 
 //const PORT = '3000'; // El puerto donde corre tu backend de Express
 
 // 2. Exportamos la URL base completa

@@ -109,4 +109,36 @@ const cambiarEstadoComercio = async (req, res) => {
     }
 };
 
-module.exports = { obtenerComercios, obtenerComercioDetalle, crearComercio, cambiarEstadoComercio };
+// 5. Actualizar datos de un comercio
+const actualizarComercio = async (req, res) => {
+    const { rut } = req.params;
+    const { nombre_comercio, rubro, direccion, responsable, telefono } = req.body;
+
+    try {
+        const result = await pool.query(
+            `UPDATE comercios 
+             SET nombre_comercio = COALESCE($1, nombre_comercio),
+                 rubro = COALESCE($2, rubro),
+                 direccion = COALESCE($3, direccion),
+                 responsable = COALESCE($4, responsable),
+                 telefono = COALESCE($5, telefono)
+             WHERE rut_comercio = $6 RETURNING *`,
+            [nombre_comercio, rubro, direccion, responsable, telefono, rut]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ status: 'Error', mensaje: 'Comercio no encontrado' });
+        }
+
+        res.status(200).json({
+            status: 'Éxito',
+            mensaje: 'Comercio actualizado correctamente',
+            comercio: result.rows[0]
+        });
+
+    } catch (error) {
+        res.status(500).json({ status: 'Error', mensaje: 'Error al actualizar el comercio', error: error.message });
+    }
+};
+
+module.exports = { obtenerComercios, obtenerComercioDetalle, crearComercio, cambiarEstadoComercio, actualizarComercio };

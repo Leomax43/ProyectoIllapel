@@ -1,4 +1,7 @@
-const ComercioDetail = ({ selectedComercio, comercioDetalle, formatCurrency, formatDate }) => {
+import { useNavigate } from 'react-router-dom';
+
+const ComercioDetail = ({ selectedComercio, comercioDetalle, formatCurrency, formatDate, onEstadoCambiado }) => {
+  const navigate = useNavigate();
   if (!selectedComercio) {
     return (
       <div className="bg-white border border-gris-borde rounded-[6px] overflow-hidden mb-[14px]">
@@ -111,13 +114,26 @@ const ComercioDetail = ({ selectedComercio, comercioDetalle, formatCurrency, for
       </div>
 
       {/* ACTION BUTTONS */}
-      <div className="p-[13px_14px]">
+      <div className="px-[14px] py-[12px] border-t border-gris-borde bg-[#f9f9f9]">
         <div className="flex justify-between gap-[8px]">
-          <button className="bg-[#b52b2b] text-white border-none rounded-[3px] px-[16px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
-            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
-            Dar de baja
-          </button>
-          <button className="bg-verde text-white border-none rounded-[3px] px-[18px] py-[7px] text-[12px] font-bold cursor-pointer hover:brightness-110"
+          {selectedComercio.estado === 'ACTIVO' ? (
+            <button 
+              onClick={() => onEstadoCambiado && onEstadoCambiado(selectedComercio.rut_comercio, 'BAJA')}
+              className="bg-[#b52b2b] text-white border-none rounded-[3px] px-[16px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+              style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+              Dar de baja
+            </button>
+          ) : (
+            <button 
+              onClick={() => onEstadoCambiado && onEstadoCambiado(selectedComercio.rut_comercio, 'ACTIVO')}
+              className="bg-verde text-white border-none rounded-[3px] px-[16px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+              style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+              Activar
+            </button>
+          )}
+          <button 
+            onClick={() => navigate(`/comercios/editar/${selectedComercio.rut_comercio}`)}
+            className="bg-verde text-white border-none rounded-[3px] px-[18px] py-[7px] text-[12px] font-bold cursor-pointer hover:brightness-110"
             style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
             Editar datos
           </button>

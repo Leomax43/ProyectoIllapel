@@ -42,6 +42,7 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
     { label: 'Aprobaciones', page: 'aprobaciones', path: '/aprobaciones' },
     { label: 'Funcionarios', page: 'funcionarios', path: '/funcionarios' },
     { label: 'Subrogaciones', page: 'subrogaciones', path: '/subrogaciones' },
+    { label: 'Exportar Datos', page: 'exportacion', path: '/exportacion' },
   ];
 
   const adminRolUpper = normalizeRole(adminRol);
@@ -116,7 +117,7 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
           </div>
         ))}
         
-        {/* Botón App Móvil */}
+        {/* Botón App Móvil — Comentado hasta que se implemente la app
         <div
           onClick={() => setShowQR(true)}
           className="text-white text-[12px] font-medium px-[18px] flex items-center cursor-pointer h-[38px] tracking-[0.3px] ml-auto hover:bg-black/12 gap-[6px]"
@@ -124,6 +125,7 @@ function DashboardHeader({ currentPage = 'dashboard', onLogout }) {
           <span className="text-[14px]">📱</span>
           App Móvil
         </div>
+        */}
       </nav>
 
       {/* Modal QR */}

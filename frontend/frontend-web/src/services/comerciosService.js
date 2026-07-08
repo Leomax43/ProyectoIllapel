@@ -1,61 +1,52 @@
-import { request } from './apiClient';
+import { API_URL } from './apiClient';
 
 const comerciosService = {
-  // Obtener todos los comercios
-  getComercios: async () => {
-    try {
-      const data = await request('/api/comercios', {
-        method: 'GET'
-      });
-      return data;
-    } catch (error) {
-      console.error('Error fetching comercios:', error);
-      throw error;
-    }
+  obtenerComercios: async () => {
+    const response = await fetch(`${API_URL}/api/comercios`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.mensaje || 'Error al obtener comercios');
+    return data.comercios || data.datos || data;
   },
 
-  // Obtener detalle de un comercio específico
-  getComercioDetalle: async (rut) => {
-    try {
-      const data = await request(`/api/comercios/${rut}`, {
-        method: 'GET'
-      });
-      return data;
-    } catch (error) {
-      console.error('Error fetching comercio detail:', error);
-      throw error;
-    }
+  obtenerComercioDetalle: async (rut) => {
+    const response = await fetch(`${API_URL}/api/comercios/${rut}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.mensaje || 'Error al obtener detalle');
+    return data.comercio || data.datos || data;
   },
 
-  // Crear un nuevo comercio
   crearComercio: async (comercioData) => {
-    try {
-      const data = await request('/api/comercios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(comercioData)
-      });
-      return data;
-    } catch (error) {
-      console.error('Error creating comercio:', error);
-      throw error;
-    }
+    const response = await fetch(`${API_URL}/api/comercios`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(comercioData),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.mensaje || 'Error al crear comercio');
+    return data;
   },
 
-  // Cambiar estado de un comercio
-  cambiarEstadoComercio: async (rut, nuevoEstado) => {
-    try {
-      const data = await request(`/api/comercios/${rut}/estado`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nuevo_estado: nuevoEstado })
-      });
-      return data;
-    } catch (error) {
-      console.error('Error changing comercio status:', error);
-      throw error;
-    }
-  }
+  actualizarComercio: async (rut, comercioData) => {
+    const response = await fetch(`${API_URL}/api/comercios/${rut}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(comercioData),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.mensaje || 'Error al actualizar comercio');
+    return data;
+  },
+
+  cambiarEstado: async (rut, nuevoEstado) => {
+    const response = await fetch(`${API_URL}/api/comercios/${rut}/estado`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nuevo_estado: nuevoEstado }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.mensaje || 'Error al cambiar estado');
+    return data;
+  },
 };
 
 export default comerciosService;

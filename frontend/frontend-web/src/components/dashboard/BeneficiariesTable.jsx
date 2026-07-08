@@ -46,11 +46,7 @@ function BeneficiariesTable({
           <span className="inline-block w-[3px] h-[16px] bg-amarillo rounded-[2px] mr-[8px] align-middle"></span>
           Actividad reciente — Beneficiarios
         </div>
-        <div className="flex gap-[5px]">
-          <button className="bg-azul text-white border-none px-[10px] py-[4px] rounded-[3px] text-[11px] cursor-pointer hover:brightness-110" style={{ background: 'rgba(255,255,255,0.15)', fontFamily: "'Exo 2', Arial, sans-serif" }}>Excel</button>
-          <button className="text-white border-none px-[10px] py-[4px] rounded-[3px] text-[11px] cursor-pointer hover:brightness-110" style={{ background: 'rgba(255,255,255,0.15)', fontFamily: "'Exo 2', Arial, sans-serif" }}>CSV</button>
-          <button className="text-white border-none px-[10px] py-[4px] rounded-[3px] text-[11px] cursor-pointer hover:brightness-110" style={{ background: 'rgba(255,255,255,0.15)', fontFamily: "'Exo 2', Arial, sans-serif" }}>PDF</button>
-        </div>
+        <div className="flex gap-[5px]"></div>
       </div>
 
       {/* TABLE CONTROLS */}

@@ -41,6 +41,15 @@ const loginMovil = async (req, res) => {
 
         // --- B. INTENTAR COMO COMERCIO ---
 
+        // --- B. INTENTAR COMO COMERCIO ---
+        
+        // Esta es la consulta a la base de datos que falta:
+        const comRes = await pool.query(
+            "SELECT * FROM comercios WHERE REPLACE(UPPER(rut_comercio), '.', '') = $1",
+            [rutNormalizado]
+        );
+
+        // Ahora sí comRes existe y el servidor puede evaluarlo:
         if (comRes.rows.length > 0) {
             const comercio = comRes.rows[0];
             
@@ -53,7 +62,7 @@ const loginMovil = async (req, res) => {
             return res.status(200).json({
                 status: 'Éxito',
                 usuario: {
-                    rol: 'COMERCIO', // <-- El Semáforo lo detectará
+                    rol: 'COMERCIO', 
                     rut_comercio: comercio.rut_comercio,
                     nombre_comercio: comercio.nombre_comercio,
                     saldo_acumulado: comercio.saldo_acumulado

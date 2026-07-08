@@ -19,7 +19,7 @@ const TransaccionesPage = () => {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [tipoFiltro, setTipoFiltro] = useState('todos');
-  const [comercioFiltro, setComercioFiltro] = useState('todos');
+  const [rubroFiltro, setRubroFiltro] = useState('todos');
   const [paginaActual, setPaginaActual] = useState(1);
   const itemsPorPagina = 8;
 
@@ -40,7 +40,7 @@ useEffect(() => {
         fecha_inicio: fInicioParam,
         fecha_fin: fFinParam,
         tipo: tipoFiltro === 'todos' ? '' : tipoFiltro,
-        rut_comercio: comercioFiltro === 'todos' ? '' : comercioFiltro
+        rubro: rubroFiltro === 'todos' ? '' : rubroFiltro
       });
       
       setTransacciones(transData.transacciones || []);
@@ -53,7 +53,7 @@ useEffect(() => {
   };
 
   fetchData();
-}, [fechaInicio, fechaFin, tipoFiltro, comercioFiltro]);
+}, [fechaInicio, fechaFin, tipoFiltro, rubroFiltro]);
 
   const transaccionesFiltradas = transacciones.filter(tx => {
     if (!searchTerm.trim()) return true;
@@ -140,8 +140,8 @@ useEffect(() => {
           onFechaFinChange={setFechaFin}
           tipoFiltro={tipoFiltro}
           onTipoFiltroChange={setTipoFiltro}
-          comercioFiltro={comercioFiltro}
-          onComercioFiltroChange={setComercioFiltro}
+          rubroFiltro={rubroFiltro}
+          onRubroFiltroChange={setRubroFiltro}
         />
 
         <TablaTransacciones

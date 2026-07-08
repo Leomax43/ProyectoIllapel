@@ -8,7 +8,8 @@ const ComerciosList = ({
   onEstadoChange, 
   onComercioSelect, 
   onNewComercio,
-  formatCurrency 
+  formatCurrency,
+  onEstadoCambiado
 }) => {
   const badgeStyle = (estado) => {
     if (estado === 'ACTIVO') return 'bg-[#e6f7f4] text-verde border border-[#b2e8de]';
@@ -86,17 +87,19 @@ const ComerciosList = ({
                 </span>
               </td>
               <td className="px-[12px] py-[7px] border-b border-[#f0f0f0] text-[#333]" onClick={(e) => e.stopPropagation()}>
-                <button
-                  onClick={() => onComercioSelect(comercio)}
-                  className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white mr-[3px] bg-azul font-medium"
-                  style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
-                >
-                  Ver
-                </button>
-                {comercio.estado !== 'BAJA' && (
-                  <button className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white bg-[#b52b2b] font-medium"
+                {comercio.estado === 'ACTIVO' ? (
+                  <button 
+                    onClick={() => onEstadoCambiado && onEstadoCambiado(comercio.rut_comercio, 'BAJA')}
+                    className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white bg-[#b52b2b] font-medium hover:brightness-110"
                     style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
-                    Baja
+                    Dar de baja
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => onEstadoCambiado && onEstadoCambiado(comercio.rut_comercio, 'ACTIVO')}
+                    className="px-[9px] py-[3px] rounded-[3px] text-[11px] border-none cursor-pointer text-white bg-verde font-medium hover:brightness-110"
+                    style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+                    Activar
                   </button>
                 )}
               </td>
