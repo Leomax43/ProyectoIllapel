@@ -4,7 +4,7 @@ import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DashboardFooter from '../components/dashboard/DashboardFooter';
 import { useAuth } from '../hooks/useAuth';
 import comerciosService from '../services/comerciosService';
-import { API_URL } from '../config/api';
+
 
 const LiquidarComercioPage = () => {
   const { rut } = useParams();
@@ -28,7 +28,10 @@ const LiquidarComercioPage = () => {
         setLoading(true);
         // Usamos fetch nativo para reutilizar el endpoint que ya existe
         const token = localStorage.getItem('illapel_token') ? JSON.parse(localStorage.getItem('illapel_token')).token : '';
-        const response = await fetch(`${API_URL}/comercios/${rut}`, {
+
+        const baseUrl = import.meta.env.VITE_API_URL || 'https://proyectoillapel.onrender.com/api';
+
+        const response = await fetch(`${baseUrl}/comercios/${rut}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
