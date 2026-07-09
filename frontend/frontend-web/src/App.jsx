@@ -80,8 +80,8 @@ function App() {
               {isAllowed('comercios') && <Route path="/nuevo-comercio" element={<NewComercioPage />} />}
               {isAllowed('comercios') && <Route path="/comercios/editar/:rut" element={<EditComercioPage />} />}
               
-              {isAllowed('liquidar_comercios') && <Route path="/comercios/liquidar/:rut" element={<LiquidarComercioPage />} />}
-              
+              {isAllowed('liquidar_comercios') && <Route path="/comercios/liquidar/" element={<LiquidarComercioPage />} />}
+
               {/* Fondos y Transacciones */}
               {isAllowed('fondos') && <Route path="/fondos" element={<CargaFondosHistorialPage />} />}
               {isAllowed('fondos') && <Route path="/nueva-carga" element={<CargaFondosPage />} />}
