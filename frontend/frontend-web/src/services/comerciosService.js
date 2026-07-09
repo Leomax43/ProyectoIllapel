@@ -48,13 +48,32 @@ const comerciosService = {
     return data;
   },
   
+  // Nueva función para liquidar el saldo del comercio
   liquidarFondos: async (rut, formData) => {
-    // Nota: No usamos JSON.stringify ni establecemos el Content-Type
-    // El navegador configura automáticamente el Content-Type a 'multipart/form-data' al usar FormData
-    return request(`/api/comercios/${rut}/liquidar`, {
+    // 1. Obtenemos el token de seguridad
+    const tokenStr = localStorage.getItem('illapel_token');
+    const token = tokenStr ? JSON.parse(tokenStr).token : '';
+    
+    // 2. Obtenemos la URL base
+    const baseUrl = import.meta.env.VITE_API_URL || 'https://proyectoillapel.onrender.com/api';
+
+    // 3. Hacemos la petición nativa
+    const response = await fetch(`${baseUrl}/comercios/${rut}/liquidar`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+        // IMPORTANTE: Cuando enviamos formData, NO debemos poner 'Content-Type'. 
+        // El navegador lo configura automáticamente como 'multipart/form-data'.
+      },
       body: formData,
     });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.mensaje || 'Error al procesar la liquidación en el servidor');
+    }
+
+    return await response.json();
   }
     
 };
