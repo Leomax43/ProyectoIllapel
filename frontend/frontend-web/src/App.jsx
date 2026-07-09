@@ -19,6 +19,7 @@ const AprobacionesPage = lazy(() => import('./pages/AprobacionesPage.jsx'));
 const FuncionariosPage = lazy(() => import('./pages/FuncionariosPage.jsx'));
 const SubrogacionesPage = lazy(() => import('./pages/SubrogacionesPage.jsx'));
 const ExportacionPage = lazy(() => import('./pages/ExportacionPage.jsx'));
+const LiquidarComercioPage = lazy(() => import('./pages/LiquidarComercioPage.jsx'));
 
 // Componente simple de carga visual intermedio mientras se descargan los fragmentos de página
 const PageLoader = () => (
@@ -78,6 +79,8 @@ function App() {
               {isAllowed('comercios') && <Route path="/comercios" element={<ComerciosPage />} />}
               {isAllowed('comercios') && <Route path="/nuevo-comercio" element={<NewComercioPage />} />}
               {isAllowed('comercios') && <Route path="/comercios/editar/:rut" element={<EditComercioPage />} />}
+              
+              {isAllowed('liquidar_comercios') && <Route path="/comercios/liquidar/:rut" element={<LiquidarComercioPage />} />}
               
               {/* Fondos y Transacciones */}
               {isAllowed('fondos') && <Route path="/fondos" element={<CargaFondosHistorialPage />} />}

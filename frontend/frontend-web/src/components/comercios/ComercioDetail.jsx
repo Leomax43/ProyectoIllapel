@@ -116,27 +116,43 @@ const ComercioDetail = ({ selectedComercio, comercioDetalle, formatCurrency, for
       {/* ACTION BUTTONS */}
       <div className="px-[14px] py-[12px] border-t border-gris-borde bg-[#f9f9f9]">
         <div className="flex justify-between gap-[8px]">
-          {selectedComercio.estado === 'ACTIVO' ? (
+          <div className="flex gap-[8px]">
+            {selectedComercio.estado === 'ACTIVO' ? (
+              <button 
+                onClick={() => onEstadoCambiado && onEstadoCambiado(selectedComercio.rut_comercio, 'BAJA')}
+                className="bg-[#b52b2b] text-white border-none rounded-[3px] px-[16px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+                style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+                Dar de baja
+              </button>
+            ) : (
+              <button 
+                onClick={() => onEstadoCambiado && onEstadoCambiado(selectedComercio.rut_comercio, 'ACTIVO')}
+                className="bg-verde text-white border-none rounded-[3px] px-[16px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+                style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
+                Activar
+              </button>
+            )}
             <button 
-              onClick={() => onEstadoCambiado && onEstadoCambiado(selectedComercio.rut_comercio, 'BAJA')}
-              className="bg-[#b52b2b] text-white border-none rounded-[3px] px-[16px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+              onClick={() => navigate(`/comercios/editar/${selectedComercio.rut_comercio}`)}
+              className="bg-azul text-white border-none rounded-[3px] px-[18px] py-[7px] text-[12px] font-bold cursor-pointer hover:brightness-110"
               style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
-              Dar de baja
+              Editar datos
             </button>
-          ) : (
+          </div>
+
+          {/* NUEVO BOTÓN DE LIQUIDACIÓN (Solo si hay saldo) */}
+          {parseFloat(selectedComercio.saldo_acumulado) > 0 && (
             <button 
-              onClick={() => onEstadoCambiado && onEstadoCambiado(selectedComercio.rut_comercio, 'ACTIVO')}
-              className="bg-verde text-white border-none rounded-[3px] px-[16px] py-[7px] text-[12px] cursor-pointer font-bold hover:brightness-110"
+              onClick={() => navigate(`/comercios/liquidar/${selectedComercio.rut_comercio}`)}
+              className="bg-[#c49300] text-white border-none rounded-[3px] px-[18px] py-[7px] text-[12px] font-bold cursor-pointer hover:brightness-110 flex items-center gap-[6px]"
               style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
-              Activar
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+              Liquidar Fondos
             </button>
           )}
-          <button 
-            onClick={() => navigate(`/comercios/editar/${selectedComercio.rut_comercio}`)}
-            className="bg-verde text-white border-none rounded-[3px] px-[18px] py-[7px] text-[12px] font-bold cursor-pointer hover:brightness-110"
-            style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
-            Editar datos
-          </button>
         </div>
       </div>
     </div>

@@ -47,6 +47,16 @@ const comerciosService = {
     if (!response.ok) throw new Error(data.mensaje || 'Error al cambiar estado');
     return data;
   },
+  
+  liquidarFondos: async (rut, formData) => {
+    // Nota: No usamos JSON.stringify ni establecemos el Content-Type
+    // El navegador configura automáticamente el Content-Type a 'multipart/form-data' al usar FormData
+    return request(`/api/comercios/${rut}/liquidar`, {
+      method: 'POST',
+      body: formData,
+    });
+  }
+    
 };
 
 export default comerciosService;
