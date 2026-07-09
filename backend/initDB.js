@@ -2,11 +2,13 @@ const pool = require('./config/db');
 
 const crearTablas = async () => {
     try {
-        console.log("--- Reiniciando Base de Datos (V5.1 - Modelo Normalizado con Claves de Comercio) ---");
+        console.log("--- Reiniciando Base de Datos (V5.2 - Modelo Normalizado con Liquidaciones) ---");
 
         await pool.query('BEGIN');
 
+        // IMPORTANTE: Se agregó liquidaciones_comercios al DROP
         await pool.query(`
+            DROP TABLE IF EXISTS liquidaciones_comercios CASCADE;
             DROP TABLE IF EXISTS transacciones CASCADE;
             DROP TABLE IF EXISTS cargas_fondos CASCADE;
             DROP TABLE IF EXISTS subrogaciones CASCADE;
@@ -65,7 +67,7 @@ const crearTablas = async () => {
             );
         `);
 
-        // 4. Tabla Comercios (¡AQUÍ ESTÁ LA NUEVA COLUMNA!)
+        // 4. Tabla Comercios
         await pool.query(`
             CREATE TABLE comercios (
                 rut_comercio VARCHAR(12) PRIMARY KEY,
@@ -126,6 +128,18 @@ const crearTablas = async () => {
                 monto INT NOT NULL,
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 metodo_pago VARCHAR(20) DEFAULT 'APP_MOVIL'
+            );
+        `);
+
+        // 8. NUEVA TABLA: Liquidaciones Comercios
+        await pool.query(`
+            CREATE TABLE liquidaciones_comercios (
+                id_liquidacion SERIAL PRIMARY KEY,
+                rut_comercio VARCHAR(12) REFERENCES comercios(rut_comercio),
+                id_admin INT REFERENCES admin(id_admin),
+                monto_liquidado INT NOT NULL,
+                fecha_liquidacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                pdf_comprobante VARCHAR(255)
             );
         `);
 
