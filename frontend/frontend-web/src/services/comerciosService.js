@@ -50,20 +50,23 @@ const comerciosService = {
   
   // Nueva función para liquidar el saldo del comercio
   liquidarFondos: async (rut, formData) => {
-    // 1. Obtenemos el token de seguridad
     const tokenStr = localStorage.getItem('illapel_token');
     const token = tokenStr ? JSON.parse(tokenStr).token : '';
     
-    // 2. Obtenemos la URL base
-    const baseUrl = import.meta.env.VITE_API_URL || 'https://proyectoillapel.onrender.com/api';
+    // 1. Obtenemos la URL base de Vercel o usamos la de Render por defecto
+    let baseUrl = import.meta.env.VITE_API_URL || 'https://proyectoillapel.onrender.com/api';
+    
+    // 2. BLINDAJE: Si la URL base no termina en '/api', se lo agregamos a la fuerza.
+    if (!baseUrl.endsWith('/api')) {
+        baseUrl += '/api';
+    }
 
-    // 3. Hacemos la petición nativa
+    // 3. Ahora la petición siempre irá a /api/comercios/...
     const response = await fetch(`${baseUrl}/comercios/${rut}/liquidar`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
-        // IMPORTANTE: Cuando enviamos formData, NO debemos poner 'Content-Type'. 
-        // El navegador lo configura automáticamente como 'multipart/form-data'.
+        // Recuerda: NO enviamos 'Content-Type' aquí, el navegador lo hace solo con FormData
       },
       body: formData,
     });
