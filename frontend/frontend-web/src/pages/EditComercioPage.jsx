@@ -21,6 +21,11 @@ const EditComercioPage = () => {
     telefono: '',
     rubro: 'Seleccione...',
     direccion: '',
+    // Nuevos campos
+    correo_electronico: '',
+    nombre_banco: '',
+    tipo_cuenta: '',
+    numero_cuenta: '',
     clave_acceso: '',
     confirmar_clave: '',
     quiero_definir_clave: false
@@ -39,6 +44,11 @@ const EditComercioPage = () => {
           telefono: datos.telefono || '',
           rubro: datos.rubro || 'Seleccione...',
           direccion: datos.direccion || '',
+          // Rellenar nuevos campos
+          correo_electronico: datos.correo_electronico || '',
+          nombre_banco: datos.nombre_banco || '',
+          tipo_cuenta: datos.tipo_cuenta || '',
+          numero_cuenta: datos.numero_cuenta || '',
           clave_acceso: '',
           confirmar_clave: '',
           quiero_definir_clave: false
@@ -75,6 +85,11 @@ const EditComercioPage = () => {
         direccion: comercio.direccion,
         telefono: comercio.telefono,
         rubro: comercio.rubro,
+        // Incluir campos bancarios en el envío
+        correo_electronico: comercio.correo_electronico,
+        nombre_banco: comercio.nombre_banco,
+        tipo_cuenta: comercio.tipo_cuenta,
+        numero_cuenta: comercio.numero_cuenta
       };
 
       await comerciosService.actualizarComercio(rut, payload);

@@ -131,6 +131,20 @@ const LiquidarComercioPage = () => {
                 </div>
               </div>
             </div>
+            
+
+
+
+            {/* Nueva sección bancaria exclusiva en la página de Liquidación */}
+            <div className="mt-[20px] p-[15px] bg-azul text-white rounded-[6px] text-[13px]">
+              <div className="font-bold border-b border-white/20 pb-[5px] mb-[10px]">Información Bancaria de Pago</div>
+              <div className="grid grid-cols-2 gap-[10px]">
+                <div>Banco: <span className="font-bold">{comercio.nombre_banco}</span></div>
+                <div>Tipo: <span className="font-bold">{comercio.tipo_cuenta}</span></div>
+                <div>N° Cuenta: <span className="font-bold">{comercio.numero_cuenta}</span></div>
+                <div>Correo: <span className="font-bold">{comercio.correo_electronico}</span></div>
+              </div>
+            </div>
 
             {/* Input para el Documento */}
             <div className="mb-[25px]">

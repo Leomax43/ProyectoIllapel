@@ -20,6 +20,12 @@ const NewComercioPage = () => {
     telefono: '',
     rubro: 'Seleccione...',
     direccion: '',
+    // Nuevos campos bancarios
+    correo_electronico: '',
+    nombre_banco: '',
+    tipo_cuenta: '',
+    numero_cuenta: '',
+    // Claves
     clave_acceso: '',
     confirmar_clave: '',
     quiero_definir_clave: false
@@ -59,6 +65,10 @@ const NewComercioPage = () => {
         direccion: comercio.direccion,
         telefono: comercio.telefono,
         rubro: comercio.rubro,
+        correo_electronico: comercio.correo_electronico, // Nuevo campo
+        nombre_banco: comercio.nombre_banco,             // Nuevo campo
+        tipo_cuenta: comercio.tipo_cuenta,               // Nuevo campo
+        numero_cuenta: comercio.numero_cuenta,           // Nuevo campo
         clave_acceso: claveFinal
       };
 
