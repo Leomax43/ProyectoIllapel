@@ -99,6 +99,51 @@ const ComercioForm = ({ comercio, onComercioChange }) => {
             />
           </div>
 
+
+          {/* Sección Datos Bancarios */}
+          <div className="text-[14px] font-bold text-azul mb-[12px] mt-[20px] border-b border-gris-borde pb-[5px]">
+          Información Bancaria (Obligatoria)
+            </div>
+              <div className="grid grid-cols-2 gap-[16px]">
+                <div className="col-span-2">
+                  <label className="text-[12px] font-bold text-gris-texto">Correo electrónico del comercio *</label>
+                  <input 
+                    type="email"
+                    value={comercio.correo_electronico || ''}
+                    onChange={(e) => onComercioChange('correo_electronico', e.target.value)}
+                    className="w-full border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] outline-none focus:border-verde"
+                  />
+                  </div>
+                <div>
+                <label className="text-[12px] font-bold text-gris-texto">Nombre del Banco *</label>
+                <input 
+                  type="text"
+                  value={comercio.nombre_banco || ''}
+                  onChange={(e) => onComercioChange('nombre_banco', e.target.value)}
+                  className="w-full border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] outline-none focus:border-verde"
+                />
+              </div>
+            <div>
+              <label className="text-[12px] font-bold text-gris-texto">Tipo de cuenta *</label>
+              <input 
+                type="text"
+                placeholder="Ej: Cuenta RUT, Corriente..."
+                value={comercio.tipo_cuenta || ''}
+                onChange={(e) => onComercioChange('tipo_cuenta', e.target.value)}
+                className="w-full border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] outline-none focus:border-verde"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="text-[12px] font-bold text-gris-texto">Número de cuenta *</label>
+              <input 
+                type="text"
+                value={comercio.numero_cuenta || ''}
+                onChange={(e) => onComercioChange('numero_cuenta', e.target.value)}
+                className="w-full border border-gris-borde rounded-[3px] px-[9px] py-[6px] text-[12px] outline-none focus:border-verde"
+              />
+            </div>
+          </div>
+
           {/* NUEVA SECCIÓN: Clave de acceso */}
           <div className="flex flex-col gap-[4px] col-span-2 mt-[8px]">
             <label className="text-[11px] text-gris-texto font-bold">Clave de acceso a la app</label>
