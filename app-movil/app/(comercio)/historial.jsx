@@ -1,4 +1,4 @@
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { useState, useEffect } from 'react';
 import { API_URL } from '../../src/config/api';
 import { useUsuario } from '../../src/context/UsuarioContext';
@@ -9,28 +9,38 @@ export default function HistorialComercioScreen() {
   const [ventas, setVentas] = useState([]);
   const [nombreComercio, setNombreComercio] = useState('');
   const [cargando, setCargando] = useState(true);
+  const [refrescando, setRefrescando] = useState(false); // Estado para el pull-to-refresh
+
+
+  const cargarHistorial = async () => {
+    try {
+      const response = await fetch(`${API_URL}/comercios/${rutComercio}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setNombreComercio(data.datos_comercio?.nombre_comercio || '');
+        setVentas(data.historial_ventas || []);
+      } else {
+        console.error('Error al cargar historial:', data.mensaje);
+      }
+    } catch (error) {
+      console.error('Error de conexión:', error);
+    } finally {
+      setCargando(false);
+      setRefrescando(false); // Detenemos la animación de carga
+    }
+  };
 
   useEffect(() => {
-    const cargarHistorial = async () => {
-      try {
-        const response = await fetch(`${API_URL}/comercios/${rutComercio}`);
-        const data = await response.json();
-
-        if (response.ok) {
-          setNombreComercio(data.datos_comercio?.nombre_comercio || '');
-          setVentas(data.historial_ventas || []);
-        } else {
-          console.error('Error al cargar historial:', data.mensaje);
-        }
-      } catch (error) {
-        console.error('Error de conexión:', error);
-      } finally {
-        setCargando(false);
-      }
-    };
-
-    cargarHistorial();
+    if (rutComercio) {
+      cargarHistorial();
+    }
   }, [rutComercio]);
+
+  const onRefresh = () => {
+    setRefrescando(true);
+    cargarHistorial();
+  };
 
   const formatearFecha = (fecha) => {
     if (!fecha) return '—';
@@ -57,7 +67,7 @@ export default function HistorialComercioScreen() {
     </View>
   );
 
-  if (cargando) {
+  if (cargando && !refrescando) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#27AE60" />
@@ -83,6 +93,14 @@ export default function HistorialComercioScreen() {
           renderItem={renderItem}
           keyExtractor={(item) => item.id_transaccion.toString()}
           contentContainerStyle={styles.lista}
+          
+          refreshControl={
+            <RefreshControl 
+              refreshing={refrescando} 
+              onRefresh={onRefresh} 
+              tintColor="#27AE60" 
+            />
+          }
         />
       )}
     </View>

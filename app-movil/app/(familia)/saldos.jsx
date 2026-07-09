@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
 import { useState, useEffect } from 'react';
 import { API_URL } from '../../src/config/api';
 import { useUsuario } from '../../src/context/UsuarioContext';
@@ -13,7 +13,38 @@ export default function SaldosScreen() {
   const [nombre, setNombre] = useState('');
   const [movimientos, setMovimientos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [refrescando, setRefrescando] = useState(false);
 
+
+
+
+  const cargarDatos = async () => {
+    try {
+      const url = `${API_URL}/movil/familia/${idFamilia}/cartola`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (response.ok) {
+        const saldoBackend = data.saldo_actual !== undefined ? data.saldo_actual : data.saldo;
+        if (saldoBackend !== undefined && saldoBackend !== null) {
+          setSaldo(Number(saldoBackend));
+        }
+        setNombre(data.nombre_familia || '');
+        setMovimientos(data.historial || []);
+      }
+    } catch (error) {
+      console.error('Error crítico:', error);
+    }
+  };
+
+
+  const onRefresh = async () => {
+    setRefrescando(true);
+    await cargarDatos();
+    setRefrescando(false);
+  };
+
+  
   useEffect(() => {
     const cargarSaldo = async () => {
       try {
@@ -69,6 +100,15 @@ export default function SaldosScreen() {
   }
 
   return (
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refrescando} onRefresh={onRefresh} tintColor="#5D2A7B" />
+      }
+    >
+      
+
+      
     <View style={styles.container}>
       <Text style={styles.titulo}>Resumen de Saldos</Text>
       {nombre ? <Text style={styles.subtitulo}>Beneficiario: {nombre}</Text> : null}
@@ -111,6 +151,7 @@ export default function SaldosScreen() {
         )}
       </View>
     </View>
+  </ScrollView>
   );
 }
 
