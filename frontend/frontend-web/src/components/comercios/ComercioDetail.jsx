@@ -143,7 +143,7 @@ const ComercioDetail = ({ selectedComercio, comercioDetalle, formatCurrency, for
           {/* NUEVO BOTÓN DE LIQUIDACIÓN (Solo si hay saldo) */}
           {parseFloat(selectedComercio.saldo_acumulado) > 0 && (
             <button 
-              onClick={() => navigate(`/comercios/liquidar/${selectedComercio.rut_comercio}`)}
+              onClick={() => navigate('/comercios/liquidar', { state: { comercio: selectedComercio } })}
               className="bg-[#c49300] text-white border-none rounded-[3px] px-[18px] py-[7px] text-[12px] font-bold cursor-pointer hover:brightness-110 flex items-center gap-[6px]"
               style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -153,6 +153,10 @@ const ComercioDetail = ({ selectedComercio, comercioDetalle, formatCurrency, for
               Liquidar Fondos
             </button>
           )}
+
+
+
+          
         </div>
       </div>
     </div>

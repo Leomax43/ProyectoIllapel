@@ -1,53 +1,32 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DashboardFooter from '../components/dashboard/DashboardFooter';
 import { useAuth } from '../hooks/useAuth';
 import comerciosService from '../services/comerciosService';
 
-
 const LiquidarComercioPage = () => {
-  const { rut } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout } = useAuth();
   
-  // Obtener el ID del administrador que está realizando el pago
+  // Recibimos los datos "escondidos" que nos envió la página anterior
+  const comercio = location.state?.comercio;
+
   const userStr = localStorage.getItem('illapel_token');
   const idAdmin = userStr ? JSON.parse(userStr).id_admin : localStorage.getItem('id_admin') || 1;
 
-  const [comercio, setComercio] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
   const [file, setFile] = useState(null);
 
-  // Cargar los datos del comercio al entrar a la página
+  // Si alguien entra a la URL directamente o recarga la página, los datos se pierden.
+  // Lo devolvemos a la lista de comercios automáticamente.
   useEffect(() => {
-    const fetchComercio = async () => {
-      try {
-        setLoading(true);
-        // Usamos fetch nativo para reutilizar el endpoint que ya existe
-        const token = localStorage.getItem('illapel_token') ? JSON.parse(localStorage.getItem('illapel_token')).token : '';
-
-        const baseUrl = import.meta.env.VITE_API_URL || 'https://proyectoillapel.onrender.com/api';
-
-        const response = await fetch(`${baseUrl}/comercios/${rut}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (!response.ok) throw new Error('No se pudo cargar la información del comercio');
-        
-        const data = await response.json();
-        setComercio(data.datos_comercio);
-      } catch (error) {
-        setMessage({ type: 'error', text: error.message });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchComercio();
-  }, [rut]);
+    if (!comercio) {
+      navigate('/comercios');
+    }
+  }, [comercio, navigate]);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -68,11 +47,6 @@ const LiquidarComercioPage = () => {
       return;
     }
 
-    if (parseFloat(comercio.saldo_acumulado) <= 0) {
-      setMessage({ type: 'error', text: 'Este comercio no tiene saldo pendiente por liquidar.' });
-      return;
-    }
-
     if (!confirm(`¿Confirma que se ha realizado la transferencia de $${parseInt(comercio.saldo_acumulado).toLocaleString('es-CL')} al comercio ${comercio.nombre_comercio}?`)) {
       return;
     }
@@ -86,11 +60,11 @@ const LiquidarComercioPage = () => {
       formData.append('monto_liquidado', comercio.saldo_acumulado);
       formData.append('comprobante', file);
 
-      await comerciosService.liquidarFondos(rut, formData);
+      // Usamos el RUT que venía en los datos de memoria para la petición al backend
+      await comerciosService.liquidarFondos(comercio.rut_comercio, formData);
 
       setMessage({ type: 'success', text: '✅ Liquidación registrada con éxito. El saldo del comercio ha sido reiniciado a $0.' });
       
-      // Redirigir de vuelta a la lista de comercios después de 2.5 segundos
       setTimeout(() => {
         navigate('/comercios');
       }, 2500);
@@ -101,32 +75,8 @@ const LiquidarComercioPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col min-h-screen bg-gris-bg">
-        <DashboardHeader currentPage="comercios" onLogout={logout} />
-        <div className="flex-1 flex items-center justify-center text-gris-texto text-[14px]">
-          Cargando datos del comercio...
-        </div>
-        <DashboardFooter />
-      </div>
-    );
-  }
-
-  if (!comercio) {
-    return (
-      <div className="flex flex-col min-h-screen bg-gris-bg">
-        <DashboardHeader currentPage="comercios" onLogout={logout} />
-        <div className="flex-1 p-[20px]">
-          <div className="bg-[#fde8e8] text-[#b52b2b] p-[15px] rounded border border-[#f5b8b8]">
-            Comercio no encontrado.
-            <button onClick={() => navigate('/comercios')} className="ml-4 font-bold underline">Volver</button>
-          </div>
-        </div>
-        <DashboardFooter />
-      </div>
-    );
-  }
+  // Prevenir un error visual milisegundos antes de redireccionar si no hay comercio
+  if (!comercio) return null; 
 
   return (
     <div className="flex flex-col min-h-screen bg-gris-bg">
@@ -161,7 +111,6 @@ const LiquidarComercioPage = () => {
         )}
 
         <form onSubmit={handleSubmit} className="bg-white rounded-[6px] border border-gris-borde overflow-hidden shadow-sm">
-          {/* Título de la tarjeta */}
           <div className="bg-azul text-white px-[20px] py-[12px] font-bold text-[14px]">
             Resumen de Liquidación
           </div>
@@ -214,7 +163,7 @@ const LiquidarComercioPage = () => {
               <button 
                 type="submit"
                 className="px-[20px] py-[10px] text-[13px] font-bold text-white bg-verde rounded-[4px] hover:brightness-110 disabled:opacity-50 flex items-center gap-[8px]"
-                disabled={submitting || parseFloat(comercio.saldo_acumulado) <= 0}
+                disabled={submitting}
                 style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
               >
                 {submitting ? 'Procesando pago...' : 'Registrar Liquidación y Reiniciar Saldo'}
