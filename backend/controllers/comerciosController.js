@@ -57,17 +57,24 @@ const obtenerComercioDetalle = async (req, res) => {
 
 // 3. Registrar un nuevo comercio
 const crearComercio = async (req, res) => {
-    const { rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, clave_acceso } = req.body;
+    // Agregamos los nuevos campos a la extracción de datos
+    const { 
+        rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, 
+        clave_acceso, correo_electronico, nombre_banco, tipo_cuenta, numero_cuenta 
+    } = req.body;
     
     try {
         const saltRounds = 10;
         const claveAHashear = clave_acceso || '1234'; 
         const claveHasheada = await bcrypt.hash(claveAHashear, saltRounds);
 
+        // Agregamos los parámetros para los nuevos campos en la consulta SQL
         const result = await pool.query(
-            `INSERT INTO comercios (rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, saldo_acumulado, clave_acceso) 
-             VALUES ($1, $2, $3, $4, $5, $6, 0, $7) RETURNING *`,
-            [rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, claveHasheada]
+            `INSERT INTO comercios (rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, 
+             correo_electronico, nombre_banco, tipo_cuenta, numero_cuenta, saldo_acumulado, clave_acceso) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0, $11) RETURNING *`,
+            [rut_comercio, nombre_comercio, rubro, direccion, responsable, telefono, 
+             correo_electronico, nombre_banco, tipo_cuenta, numero_cuenta, claveHasheada]
         );
         res.status(201).json({ status: 'Éxito', mensaje: 'Comercio registrado correctamente', comercio: result.rows[0] });
     } catch (error) {
@@ -107,7 +114,8 @@ const cambiarEstadoComercio = async (req, res) => {
 // 5. Actualizar datos de un comercio
 const actualizarComercio = async (req, res) => {
     const { rut } = req.params;
-    const { nombre_comercio, rubro, direccion, responsable, telefono } = req.body;
+    // Agregamos los nuevos campos aquí
+    const { nombre_comercio, rubro, direccion, responsable, telefono, correo_electronico, nombre_banco, tipo_cuenta, numero_cuenta } = req.body;
 
     try {
         const result = await pool.query(
@@ -116,9 +124,13 @@ const actualizarComercio = async (req, res) => {
                  rubro = COALESCE($2, rubro),
                  direccion = COALESCE($3, direccion),
                  responsable = COALESCE($4, responsable),
-                 telefono = COALESCE($5, telefono)
-             WHERE rut_comercio = $6 RETURNING *`,
-            [nombre_comercio, rubro, direccion, responsable, telefono, rut]
+                 telefono = COALESCE($5, telefono),
+                 correo_electronico = COALESCE($6, correo_electronico),
+                 nombre_banco = COALESCE($7, nombre_banco),
+                 tipo_cuenta = COALESCE($8, tipo_cuenta),
+                 numero_cuenta = COALESCE($9, numero_cuenta)
+             WHERE rut_comercio = $10 RETURNING *`,
+            [nombre_comercio, rubro, direccion, responsable, telefono, correo_electronico, nombre_banco, tipo_cuenta, numero_cuenta, rut]
         );
 
         if (result.rows.length === 0) {
