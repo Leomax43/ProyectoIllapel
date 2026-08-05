@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import DashboardHeader from '../components/dashboard/DashboardHeader';
-import DashboardFooter from '../components/dashboard/DashboardFooter';
+import DashboardHeader from '../components/layout/DashboardHeader';
+import DashboardFooter from '../components/layout/DashboardFooter';
 import { useAuth } from '../hooks/useAuth';
 import { useFuncionarios } from '../hooks/useFuncionarios';
 import { ROLES } from '../utils/permissions';

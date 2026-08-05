@@ -75,7 +75,7 @@ const obtenerMetricas = async (req, res) => {
 
 // Nueva función: Obtener todas las transacciones con filtros
 const obtenerTransacciones = async (req, res) => {
-    const { tipo, rubro, id_familia } = req.query;
+    const { tipo, rubro, id_familia, fecha_inicio, fecha_fin } = req.query;
     
     try {
         let query = `
@@ -117,6 +117,20 @@ const obtenerTransacciones = async (req, res) => {
         if (id_familia) {
             query += ` AND t.id_familia = $${paramCount}`;
             params.push(id_familia);
+            paramCount++;
+        }
+
+        // Filtro por fecha de inicio
+        if (fecha_inicio) {
+            query += ` AND t.fecha >= $${paramCount}`;
+            params.push(fecha_inicio);
+            paramCount++;
+        }
+
+        // Filtro por fecha de fin
+        if (fecha_fin) {
+            query += ` AND t.fecha <= $${paramCount}`;
+            params.push(fecha_fin);
             paramCount++;
         }
 

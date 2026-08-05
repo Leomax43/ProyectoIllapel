@@ -1,61 +1,65 @@
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert, Animated } from 'react-native';
 import { useState } from 'react';
 import { API_URL } from '../../src/config/api';
 import { useUsuario } from '../../src/context/UsuarioContext';
 import QRCode from 'react-native-qrcode-svg';
 import { Ionicons } from '@expo/vector-icons';
+import { COLORES } from '../../src/config/colores';
+import FondoPantalla from '../../src/components/FondoPantalla';
+import GradienteHeader from '../../src/components/GradienteHeader';
+import BotonGradiente from '../../src/components/BotonGradiente';
+import AnimacionEntrada from '../../src/components/AnimacionEntrada';
+import { useFloatAnimacion } from '../../src/components/useFloatAnimacion';
 
 export default function PagarScreen() {
   const { usuario } = useUsuario();
   const idFamilia = usuario?.id_familia;
   const nombreFamilia = usuario?.nombre_familia || '';
-  
-  const [qrToken, setQrToken] = useState(null);
-  const [cargando, setCargando] = useState(false); // Inicia en false para mostrar el botón primero
 
-  // Función que pide el QR de 5 minutos al backend
+  const [qrToken, setQrToken] = useState(null);
+  const [cargando, setCargando] = useState(false);
+
+  const floatY = useFloatAnimacion();
+
   const generarNuevoQR = async () => {
     setCargando(true);
     try {
       const response = await fetch(`${API_URL}/movil/familia/${idFamilia}/generar-qr`);
       const data = await response.json();
-      
+
       if (response.ok) {
-        setQrToken(data.qr_data); // El JWT seguro
+        setQrToken(data.qr_data);
       } else {
-        Alert.alert("Error", data.mensaje || "No se pudo generar el código");
+        Alert.alert('Error', data.mensaje || 'No se pudo generar el código');
       }
-    } catch (error) {
-      Alert.alert("Error de Conexión", "No se pudo comunicar con el servidor municipal.");
+    } catch {
+      Alert.alert('Error de Conexión', 'No se pudo comunicar con el servidor municipal.');
     } finally {
       setCargando(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Encabezado con colores de Illapel */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Billetera Digital</Text>
-        <Text style={styles.subtitle}>{nombreFamilia}</Text>
-      </View>
+    <FondoPantalla>
+      <GradienteHeader titulo="Billetera Digital" subtitulo={nombreFamilia} colors={[COLORES.azul, COLORES.celeste]} />
 
-      <View style={styles.qrCard}>
-        
-        {/* LÓGICA CONDICIONAL: Si no hay QR y no está cargando, mostramos el botón inicial */}
+      <AnimacionEntrada style={styles.card}>
         {!qrToken && !cargando ? (
           <View style={styles.initialContainer}>
-            <Ionicons name="qr-code" size={80} color="#005B8F" style={{ marginBottom: 20 }} />
+            <Animated.View style={{ transform: [{ translateY: floatY }] }}>
+              <Ionicons name="qr-code" size={80} color={COLORES.azul} style={{ marginBottom: 20 }} />
+            </Animated.View>
             <Text style={styles.instruccionesIniciales}>
               Cuando estés en la caja listo para pagar, genera tu código seguro.
             </Text>
-            
-            <TouchableOpacity style={styles.generateButton} onPress={generarNuevoQR}>
-              <Text style={styles.generateButtonText}>Generar código de pago</Text>
-            </TouchableOpacity>
+
+            <BotonGradiente
+              titulo="Generar código de pago"
+              colors={[COLORES.azul, COLORES.celeste]}
+              onPress={generarNuevoQR}
+            />
           </View>
         ) : (
-          /* Si ya se presionó el botón, mostramos el cargando o el QR */
           <>
             <Text style={styles.instrucciones}>
               Muestra este código al comerciante para pagar.
@@ -63,12 +67,12 @@ export default function PagarScreen() {
 
             <View style={styles.qrContainer}>
               {cargando ? (
-                <ActivityIndicator size="large" color="#005B8F" />
+                <ActivityIndicator size="large" color={COLORES.azul} />
               ) : qrToken ? (
                 <QRCode
                   value={qrToken}
                   size={220}
-                  color="#002B49" 
+                  color={COLORES.azul}
                   backgroundColor="white"
                 />
               ) : (
@@ -83,52 +87,34 @@ export default function PagarScreen() {
               </Text>
             </View>
 
-            <TouchableOpacity 
-              style={styles.refreshButton} 
+            <BotonGradiente
+              titulo="Generar nuevo código"
+              colors={[COLORES.azul, COLORES.celeste]}
               onPress={generarNuevoQR}
-              disabled={cargando}
-            >
-              <Ionicons name="refresh" size={20} color="#005B8F" style={{ marginRight: 8 }} />
-              <Text style={styles.refreshText}>Generar nuevo código</Text>
-            </TouchableOpacity>
+              cargando={cargando}
+            />
           </>
         )}
-      </View>
-    </View>
+      </AnimacionEntrada>
+    </FondoPantalla>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#F0F4F8',
-    alignItems: 'center' 
-  },
-  header: {
-    width: '100%',
-    backgroundColor: '#005B8F',
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    borderBottomWidth: 5,
-    borderBottomColor: '#F2A900',
-    alignItems: 'center',
-    marginBottom: 30
-  },
-  title: { fontSize: 24, fontWeight: 'bold', color: 'white', marginBottom: 5 },
-  subtitle: { fontSize: 16, color: '#E1F0FF' },
-  qrCard: {
+  card: {
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 24,
     width: '85%',
     alignItems: 'center',
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-    minHeight: 400, // Ayuda a que la tarjeta no cambie drásticamente de tamaño
-    justifyContent: 'center'
+    minHeight: 400,
+    justifyContent: 'center',
+    alignSelf: 'center'
   },
   initialContainer: {
     alignItems: 'center',
@@ -136,32 +122,14 @@ const styles = StyleSheet.create({
   },
   instruccionesIniciales: {
     fontSize: 16,
-    color: '#666',
+    color: COLORES.grisMedio,
     textAlign: 'center',
     marginBottom: 30,
     lineHeight: 24
   },
-  generateButton: {
-    backgroundColor: '#005B8F',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    width: '100%',
-    alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  generateButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold'
-  },
   instrucciones: {
     fontSize: 15,
-    color: '#333',
+    color: COLORES.grisOscuro,
     textAlign: 'center',
     marginBottom: 20,
     fontWeight: '500'
@@ -173,12 +141,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: COLORES.celeste,
     borderRadius: 12,
     marginBottom: 20,
     padding: 10
   },
-  errorText: { color: '#D32F2F', fontWeight: 'bold' },
+  errorText: { color: COLORES.rojo, fontWeight: 'bold' },
   alertaContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -193,21 +161,5 @@ const styles = StyleSheet.create({
     color: '#B8860B',
     marginLeft: 6,
     flexShrink: 1
-  },
-  refreshButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#005B8F',
-    backgroundColor: 'transparent'
-  },
-  refreshText: {
-    color: '#005B8F',
-    fontWeight: 'bold',
-    fontSize: 15
   }
 });

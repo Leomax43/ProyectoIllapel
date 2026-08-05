@@ -53,7 +53,7 @@ const CargaFondosDetail = ({ detalle, formatCurrency, formatDate }) => {
           </div>
           <div className="text-[12px]">
             <div className="text-[11px] text-gris-claro mb-[0px]">RUT Representante</div>
-            <div className="text-[12px] text-[#222] font-bold">{detalle.rut_principal}</div>
+            <div className="text-[12px] text-[#222] font-bold">{detalle.rut_representante || detalle.rut_principal}</div>
           </div>
         </div>
       </div>

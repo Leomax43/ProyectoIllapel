@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardHeader from '../components/dashboard/DashboardHeader';
-import DashboardFooter from '../components/dashboard/DashboardFooter';
+import DashboardHeader from '../components/layout/DashboardHeader';
+import DashboardFooter from '../components/layout/DashboardFooter';
 import { useAuth } from '../hooks/useAuth';
 import subrogacionService from '../services/subrogacionService';
 
@@ -26,6 +26,9 @@ const SubrogacionesPage = () => {
   const [mensaje, setMensaje] = useState(null);
 
   const idSuperAdmin = JSON.parse(localStorage.getItem('illapel_user') || '{}').id_admin;
+
+  const hoy = new Date();
+  const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
   useEffect(() => {
     cargarDatos();
@@ -76,6 +79,16 @@ const SubrogacionesPage = () => {
   const handleCrearSubrogacion = async () => {
     if (!formData.rol_asignado || !formData.fecha_inicio || !formData.fecha_fin) {
       setMensaje({ tipo: 'error', texto: 'Completa todos los campos obligatorios' });
+      return;
+    }
+
+    if (formData.fecha_inicio < hoyStr) {
+      setMensaje({ tipo: 'error', texto: 'La fecha de inicio no puede ser anterior a hoy.' });
+      return;
+    }
+
+    if (formData.fecha_fin <= formData.fecha_inicio) {
+      setMensaje({ tipo: 'error', texto: 'La fecha de fin debe ser posterior a la fecha de inicio.' });
       return;
     }
 
@@ -296,6 +309,7 @@ const SubrogacionesPage = () => {
                 <input
                   type="date"
                   value={formData.fecha_inicio}
+                  min={hoyStr}
                   onChange={(e) => setFormData({...formData, fecha_inicio: e.target.value})}
                   className="w-full border border-gris-borde rounded-[4px] px-[10px] py-[6px] text-[12px]"
                 />
@@ -305,6 +319,7 @@ const SubrogacionesPage = () => {
                 <input
                   type="date"
                   value={formData.fecha_fin}
+                  min={formData.fecha_inicio || hoyStr}
                   onChange={(e) => setFormData({...formData, fecha_fin: e.target.value})}
                   className="w-full border border-gris-borde rounded-[4px] px-[10px] py-[6px] text-[12px]"
                 />

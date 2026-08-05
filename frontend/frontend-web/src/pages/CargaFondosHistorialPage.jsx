@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardHeader from '../components/dashboard/DashboardHeader';
-import DashboardFooter from '../components/dashboard/DashboardFooter';
+import DashboardHeader from '../components/layout/DashboardHeader';
+import DashboardFooter from '../components/layout/DashboardFooter';
 import CargaFondosList from '../components/cargaFondos/CargaFondosList';
 import CargaFondosDetail from '../components/cargaFondos/CargaFondosDetail'; 
 import { useAuth } from '../hooks/useAuth';
@@ -14,7 +14,6 @@ const CargaFondosHistorialPage = () => {
 
   const {
     cargas,
-    cargasFiltradas: cargasFiltradasPorTexto,
     totalFiltradas,
     searchTerm,
     setSearchTerm,
@@ -27,17 +26,12 @@ const CargaFondosHistorialPage = () => {
     totalPages,
     nextPage,
     prevPage
-  } = useCargaFondosHistorial();
+  } = useCargaFondosHistorial(estadoFilter);
 
   const formatCurrency = (value) => parseInt(value).toLocaleString('es-CL');
   const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('es-CL') : '—';
 
-  const cargasFiltradasFinal = cargasFiltradasPorTexto.filter(carga => {
-    if (estadoFilter === 'TODOS') return true;
-    return carga.estado && carga.estado.toUpperCase() === estadoFilter.toUpperCase();
-  });
-
-  const detalle = selectedCarga || (cargasFiltradasFinal.length > 0 ? cargasFiltradasFinal[0] : null);
+  const detalle = selectedCarga || (cargas.length > 0 ? cargas[0] : null);
 
   const metricaCards = metricas ? [
     { label: 'Cargas este mes', value: metricas.cargasEsteMes, sub: metricas.nombreMesAño, color: 'azul' },
@@ -80,7 +74,7 @@ const CargaFondosHistorialPage = () => {
 
         <div className="grid grid-cols-[1.4fr_1fr] gap-[14px] items-start">
           <CargaFondosList 
-            cargasFiltradas={cargasFiltradasFinal}
+            cargasFiltradas={cargas}
             totalCargas={totalFiltradas}
             selectedCarga={selectedCarga}
             searchTerm={searchTerm}

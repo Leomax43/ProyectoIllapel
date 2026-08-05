@@ -8,6 +8,8 @@ export function useDashboardPaginado(searchTerm = '') {
       solicitudesPendientes: 0,
       comerciosRegistrados: 0,
       fondosCargadosTotales: 0,
+      cargasSemana: 0,
+      cuentasDadasDeBaja: 0,
     },
     familias: [],
     paginacion: {

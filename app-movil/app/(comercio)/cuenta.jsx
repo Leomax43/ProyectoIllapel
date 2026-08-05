@@ -1,71 +1,98 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useUsuario } from '../../src/context/UsuarioContext';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { COLORES } from '../../src/config/colores';
+import { useId } from 'react';
+import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
+import FondoPantalla from '../../src/components/FondoPantalla';
+import AnimacionEntrada from '../../src/components/AnimacionEntrada';
+import BotonGradiente from '../../src/components/BotonGradiente';
 
 export default function CuentaScreen() {
   const { usuario } = useUsuario();
-  
+
   const esFamilia = usuario?.rol === 'FAMILIA';
-  const colorTema = esFamilia ? '#5D2A7B' : '#27AE60';
-  
+  const colorTema = esFamilia ? COLORES.azul : COLORES.verde;
+  const gradientId = useId().replace(/:/g, '');
+
   const nombre = esFamilia ? usuario?.nombre_familia : usuario?.nombre_comercio;
   const rut = esFamilia ? usuario?.rut_representante : usuario?.rut_comercio;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.profileCard}>
-        <Ionicons name={esFamilia ? "home" : "storefront"} size={80} color={colorTema} />
-        <Text style={[styles.nombre, { color: colorTema }]}>{nombre}</Text>
-        <Text style={styles.rut}>RUT: {rut}</Text>
-        <View style={[styles.badge, { backgroundColor: colorTema }]}>
-          <Text style={styles.badgeText}>{usuario?.rol}</Text>
-        </View>
-      </View>
+    <FondoPantalla color={COLORES.verdeClaro}>
+      <View style={styles.container}>
+        <AnimacionEntrada>
+          <View style={styles.profileCard}>
+            <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="none">
+              <Defs>
+                <LinearGradient id={`perfil-${gradientId}`} x1="0" y1="0" x2="1" y2="1">
+                  <Stop offset="0" stopColor={colorTema} />
+                  <Stop offset="1" stopColor={COLORES.verdeClaro} />
+                </LinearGradient>
+              </Defs>
+              <Rect x="0" y="0" width="100%" height="100%" rx="16" fill={`url(#perfil-${gradientId})`} />
+            </Svg>
+            <View style={styles.iconCircle}>
+              <Ionicons name={esFamilia ? "home" : "storefront"} size={44} color={colorTema} />
+            </View>
+            <Text style={styles.nombre}>{nombre}</Text>
+            <Text style={styles.rut}>RUT: {rut}</Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{usuario?.rol}</Text>
+            </View>
+          </View>
+        </AnimacionEntrada>
 
-      <TouchableOpacity 
-        style={[styles.botonClave, { backgroundColor: colorTema }]}
-        onPress={() => router.push(esFamilia ? '/(familia)/cambiar-clave' : '/(comercio)/cambiar-clave')}
-      >
-        <Ionicons name="lock-closed-outline" size={24} color="white" />
-        <Text style={styles.textoBoton}>Cambiar Contraseña</Text>
-      </TouchableOpacity>
-    </View>
+        <AnimacionEntrada delay={140}>
+          <BotonGradiente
+            titulo="Cambiar Contraseña"
+            colors={[colorTema, COLORES.verdeClaro]}
+            onPress={() => router.push(esFamilia ? '/(familia)/cambiar-clave' : '/(comercio)/cambiar-clave')}
+            icon={<Ionicons name="lock-closed-outline" size={22} color="#FFFFFF" />}
+            style={styles.boton}
+          />
+        </AnimacionEntrada>
+      </View>
+    </FondoPantalla>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5', padding: 20, alignItems: 'center' },
+  container: { flex: 1, padding: 24, alignItems: 'center' },
   profileCard: {
-    backgroundColor: 'white',
     width: '100%',
     borderRadius: 16,
-    padding: 30,
+    paddingVertical: 40,
+    paddingHorizontal: 24,
     alignItems: 'center',
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    marginTop: 20,
-    marginBottom: 40
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 5,
+    marginTop: 24,
+    marginBottom: 44,
   },
-  nombre: { fontSize: 22, fontWeight: 'bold', marginTop: 10, textAlign: 'center' },
-  rut: { fontSize: 16, color: '#666', marginTop: 5 },
-  badge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20, marginTop: 15 },
-  badgeText: { color: 'white', fontWeight: 'bold', fontSize: 12 },
-  botonClave: {
-    flexDirection: 'row',
-    width: '100%',
-    padding: 16,
-    borderRadius: 12,
+  iconCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: 'rgba(255,255,255,0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4
+    marginBottom: 18,
   },
-  textoBoton: { color: 'white', fontSize: 16, fontWeight: 'bold', marginLeft: 10 }
+  nombre: { fontSize: 24, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center' },
+  rut: { fontSize: 16, color: 'rgba(255,255,255,0.85)', marginTop: 8 },
+  badge: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: COLORES.amarillo,
+    marginTop: 20,
+  },
+  badgeText: { color: COLORES.verde, fontWeight: 'bold', fontSize: 13, letterSpacing: 1 },
+  boton: { height: 62 },
 });

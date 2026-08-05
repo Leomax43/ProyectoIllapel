@@ -25,11 +25,13 @@ const obtenerResumen = async (req, res) => {
         primerDiaMes.setDate(1);
         primerDiaMes.setHours(0, 0, 0, 0);
 
-        const [activasRes, pendientesRes, comerciosRes, fondosRes, totalFamiliasRes, familiasRes] = await Promise.all([
+        const [activasRes, pendientesRes, comerciosRes, fondosRes, cargasSemanaRes, bajasRes, totalFamiliasRes, familiasRes] = await Promise.all([
             pool.query("SELECT COUNT(*) FROM familias WHERE estado = 'ACTIVO'"),
             pool.query("SELECT COUNT(*) FROM cargas_fondos WHERE estado = 'PENDIENTE'"),
             pool.query("SELECT COUNT(*) FROM comercios WHERE estado = 'ACTIVO'"),
             pool.query("SELECT COALESCE(SUM(monto), 0) as total FROM cargas_fondos WHERE estado = 'APROBADO' AND fecha_solicitud >= $1", [primerDiaMes]),
+            pool.query("SELECT COUNT(*) FROM cargas_fondos WHERE estado = 'APROBADO' AND fecha_solicitud >= date_trunc('week', NOW())"),
+            pool.query("SELECT COUNT(*) FROM familias WHERE estado = 'BAJA'"),
             pool.query(`SELECT COUNT(*) FROM familias ${whereClause}`, queryParams),
             pool.query(
                 `SELECT f.id_familia, f.rut_representante, f.nombre_representante, f.saldo, f.estado, f.fecha_registro, MAX(c.fecha_solicitud) as ultima_carga FROM familias f LEFT JOIN cargas_fondos c ON f.id_familia = c.id_familia AND c.estado = 'APROBADO' ${whereClause.replace('WHERE', 'WHERE') || ''} GROUP BY f.id_familia ORDER BY f.id_familia DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`,
@@ -53,7 +55,9 @@ const obtenerResumen = async (req, res) => {
                 beneficiariosActivos: parseInt(activasRes.rows[0].count),
                 solicitudesPendientes: parseInt(pendientesRes.rows[0].count),
                 comerciosRegistrados: parseInt(comerciosRes.rows[0].count),
-                fondosCargadosTotales: parseInt(fondosRes.rows[0].total)
+                fondosCargadosTotales: parseInt(fondosRes.rows[0].total),
+                cargasSemana: parseInt(cargasSemanaRes.rows[0].count),
+                cuentasDadasDeBaja: parseInt(bajasRes.rows[0].count)
             },
             familias,
             paginacion: {

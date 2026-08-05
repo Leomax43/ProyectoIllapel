@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import DashboardHeader from '../components/dashboard/DashboardHeader';
-import DashboardFooter from '../components/dashboard/DashboardFooter';
+import DashboardHeader from '../components/layout/DashboardHeader';
+import DashboardFooter from '../components/layout/DashboardFooter';
 import BeneficiarioForm from '../components/ui/BeneficiarioForm';
 import IntegrantesTable from '../components/ui/IntegrantesTable';
 import { useAuth } from '../hooks/useAuth';

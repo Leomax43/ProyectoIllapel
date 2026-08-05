@@ -2,6 +2,10 @@ import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-nativ
 import { useState, useEffect } from 'react';
 import { API_URL } from '../../src/config/api';
 import { useUsuario } from '../../src/context/UsuarioContext';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORES } from '../../src/config/colores';
+import FondoPantalla from '../../src/components/FondoPantalla';
+import AnimacionEntrada from '../../src/components/AnimacionEntrada';
 
 export default function HistorialScreen() {
   const { usuario } = useUsuario();
@@ -16,8 +20,7 @@ export default function HistorialScreen() {
         const data = await response.json();
 
         if (response.ok) {
-          // Obligatorio usar data.historial porque así lo nombra tu controlador backend
-          setMovimientos(data.historial || []); 
+          setMovimientos(data.historial || []);
         } else {
           console.error('Error al cargar historial:', data.mensaje);
         }
@@ -36,72 +39,82 @@ export default function HistorialScreen() {
   const formatearFecha = (fecha) => {
     if (!fecha) return '—';
     const date = new Date(fecha);
-    return date.toLocaleDateString('es-CL', { 
-      day: '2-digit', 
-      month: 'short', 
+    return date.toLocaleDateString('es-CL', {
+      day: '2-digit',
+      month: 'short',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.item}>
-      <View style={styles.itemHeader}>
-        <Text style={styles.comercio}>{item.nombre_comercio || 'Comercio'}</Text>
-        <Text style={styles.monto}>-${Number(item.monto).toLocaleString('es-CL')}</Text>
+  const renderItem = ({ item, index }) => (
+    <AnimacionEntrada delay={index * 60}>
+      <View style={styles.item}>
+        <View style={styles.itemHeader}>
+          <Text style={styles.comercio}>{item.nombre_comercio || 'Comercio'}</Text>
+          <Text style={styles.monto}>-${Number(item.monto).toLocaleString('es-CL')}</Text>
+        </View>
+        <View style={styles.itemFooter}>
+          <Text style={styles.fecha}>{formatearFecha(item.fecha)}</Text>
+          <Text style={styles.metodo}>{item.metodo_pago || 'QR'}</Text>
+        </View>
       </View>
-      <View style={styles.itemFooter}>
-        <Text style={styles.fecha}>{formatearFecha(item.fecha)}</Text>
-        <Text style={styles.metodo}>{item.metodo_pago || 'QR'}</Text>
-      </View>
-    </View>
+    </AnimacionEntrada>
   );
 
   if (cargando) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#5D2A7B" />
-        <Text style={styles.texto}>Cargando historial...</Text>
-      </View>
+      <FondoPantalla>
+        <View style={styles.centrado}>
+          <ActivityIndicator size="large" color={COLORES.azul} />
+          <Text style={styles.texto}>Cargando historial...</Text>
+        </View>
+      </FondoPantalla>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Historial de Compras</Text>
-
-      {movimientos.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>No hay movimientos registrados</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={movimientos}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id_transaccion.toString()}
-          contentContainerStyle={styles.lista}
-        />
-      )}
-    </View>
+    <FondoPantalla>
+      <FlatList
+        style={styles.scroll}
+        contentContainerStyle={movimientos.length === 0 ? [styles.contenido, styles.contenidoVacio] : styles.contenido}
+        data={movimientos}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id_transaccion.toString()}
+        ListHeaderComponent={<Text style={styles.titulo}>Historial de Compras</Text>}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Ionicons name="receipt-outline" size={52} color={COLORES.grisClaro} />
+            <Text style={styles.emptyText}>No hay movimientos registrados</Text>
+          </View>
+        }
+      />
+    </FondoPantalla>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scroll: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+  },
+  contenido: {
     padding: 16,
+  },
+  contenidoVacio: {
+    flexGrow: 1,
+  },
+  centrado: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   titulo: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#5D2A7B',
+    color: COLORES.azul,
     marginBottom: 16,
     marginTop: 8,
-  },
-  lista: {
-    paddingBottom: 16,
   },
   item: {
     backgroundColor: 'white',
@@ -113,6 +126,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORES.azul,
   },
   itemHeader: {
     flexDirection: 'row',
@@ -123,13 +138,13 @@ const styles = StyleSheet.create({
   comercio: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: COLORES.grisOscuro,
     flex: 1,
   },
   monto: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#D32F2F',
+    color: COLORES.rojo,
   },
   itemFooter: {
     flexDirection: 'row',
@@ -138,25 +153,26 @@ const styles = StyleSheet.create({
   },
   fecha: {
     fontSize: 12,
-    color: '#999',
+    color: COLORES.grisClaro,
   },
   metodo: {
     fontSize: 12,
-    color: '#5D2A7B',
+    color: COLORES.azul,
     fontWeight: '500',
   },
   empty: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 60,
+    paddingBottom: 40,
   },
   emptyText: {
     fontSize: 14,
-    color: '#999',
+    color: COLORES.grisClaro,
+    marginTop: 12,
   },
   texto: {
     marginTop: 10,
-    color: '#666',
+    color: COLORES.grisMedio,
   },
 });

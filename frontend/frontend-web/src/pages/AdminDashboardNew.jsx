@@ -2,8 +2,8 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useDashboardPaginado } from '../hooks/useDashboardPaginado.js';
-import DashboardHeader from '../components/dashboard/DashboardHeader.jsx';
-import DashboardFooter from '../components/dashboard/DashboardFooter';
+import DashboardHeader from '../components/layout/DashboardHeader.jsx';
+import DashboardFooter from '../components/layout/DashboardFooter';
 import MetricsCards from '../components/dashboard/MetricsCards.jsx';
 import QuickAlerts from '../components/dashboard/QuickAlerts.jsx';
 import BeneficiariesTable from '../components/dashboard/BeneficiariesTable.jsx';
@@ -24,6 +24,8 @@ function AdminDashboard() {
       solicitudesPendientes: 0,
       comerciosRegistrados: 0,
       fondosCargadosTotales: 0,
+      cargasSemana: 0,
+      cuentasDadasDeBaja: 0,
     },
     familias = [],
     paginacion = {

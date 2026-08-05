@@ -5,8 +5,6 @@ const FiltrosTransacciones = ({
   onFechaInicioChange,
   fechaFin,
   onFechaFinChange,
-  tipoFiltro,
-  onTipoFiltroChange,
   rubroFiltro,
   onRubroFiltroChange
 }) => {
@@ -16,7 +14,7 @@ const FiltrosTransacciones = ({
         <span className="inline-block w-[3px] h-[16px] bg-amarillo rounded-[2px] mr-[8px] align-middle"></span>
         Filtros de búsqueda
       </div>
-      <div className="p-[10px_12px] border-b border-gris-borde grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-[8px] items-center">
+      <div className="p-[10px_12px] border-b border-gris-borde grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-[8px] items-center">
         <input
           type="text"
           placeholder="Buscar por beneficiario, RUT o comercio..."
@@ -39,18 +37,6 @@ const FiltrosTransacciones = ({
           className="border border-gris-borde rounded-[3px] px-[9px] py-[5px] text-[12px] w-[92%] outline-none focus:border-verde"
           style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
         />
-        <select
-          value={tipoFiltro}
-          onChange={(e) => onTipoFiltroChange(e.target.value)}
-          className="border border-gris-borde rounded-[3px] px-[9px] py-[5px] text-[12px] text-gris-texto w-[92%] outline-none"
-          style={{ fontFamily: "'Exo 2', Arial, sans-serif" }}
-        >
-          <option value="todos">Todos los tipos</option>
-          <option value="CARGA">Carga de fondos</option>
-          <option value="QR">Pago QR</option>
-          <option value="RUT+PIN">Pago RUT+PIN</option>
-          <option value="ANULADO">Anulado</option>
-        </select>
         <select
           value={rubroFiltro}
           onChange={(e) => onRubroFiltroChange(e.target.value)}

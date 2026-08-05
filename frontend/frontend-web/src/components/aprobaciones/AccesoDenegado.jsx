@@ -1,5 +1,5 @@
-import DashboardHeader from '../dashboard/DashboardHeader';
-import DashboardFooter from '../dashboard/DashboardFooter';
+import DashboardHeader from '../layout/DashboardHeader';
+import DashboardFooter from '../layout/DashboardFooter';
 
 const AccesoDenegado = ({ logout, navigate }) => {
   return (

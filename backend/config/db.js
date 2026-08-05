@@ -30,15 +30,17 @@ module.exports = pool;
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// SSL solo para hosts remotos (Render). El Postgres local nativo no lo soporta.
+const host = process.env.DB_HOST || 'localhost';
+const esLocal = host === 'localhost' || host === '127.0.0.1';
+
 const pool = new Pool({
   user: process.env.DB_USER,
-  host: process.env.DB_HOST,
+  host: host,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
-  ssl: { 
-    rejectUnauthorized: false // Requisito para la conexión segura en Render
-  }
+  ssl: esLocal ? undefined : { rejectUnauthorized: false }
 });
 
 pool.on('error', (err) => {

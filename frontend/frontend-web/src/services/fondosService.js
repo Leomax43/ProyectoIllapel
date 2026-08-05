@@ -39,57 +39,20 @@ const fondosService = {
       throw error;
     }
   },
-  obtenerTodasLasCargas: async () => {
+  obtenerCargas: async ({ page = 1, limit = 8, search = '', estado = 'TODOS' } = {}) => {
     try {
-      const response = await request('/api/familias', {
-        method: 'GET'
-      });
-      console.log('📦 Familias obtenidas:', response);
-      
-      // Para cada familia, obtener su detalle con historial
-      let todasLasCargas = [];
-      if (response.familias && Array.isArray(response.familias)) {
-        for (const familia of response.familias) {
-          try {
-            // Obtener detalle de la familia con historial usando rut_representante
-            const detalleResponse = await request(`/api/familias/${familia.rut_representante}`, {
-              method: 'GET'
-            });
-            
-            console.log('📋 Respuesta detalle:', detalleResponse);
-            
-            // historial_cargas está en el nivel raíz de la respuesta
-            if (detalleResponse.historial_cargas && Array.isArray(detalleResponse.historial_cargas)) {
-              const cargasConNombreFamilia = detalleResponse.historial_cargas.map(carga => ({
-                id_carga: carga.id_carga,
-                fecha: carga.fecha,
-                monto: carga.monto,
-                motivo: carga.motivo,
-                detalles: carga.detalles,
-                pdf_resolucion: carga.pdf_resolucion,
-                nombre_representante: familia.nombre_representante,
-                nombre_familia: familia.nombre_familia,
-                rut_principal: familia.rut_representante,
-                saldo: familia.saldo,
-                estado: carga.estado
-              }));
-              todasLasCargas = [...todasLasCargas, ...cargasConNombreFamilia];
-            }
-          } catch (err) {
-            console.warn(`⚠️ Error obteniendo detalle de familia ${familia.rut_representante}:`, err.message);
-          }
-        }
+      const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+      if (search) {
+        params.set('search', search);
       }
-      
-      // Ordenar por fecha descendente
-      todasLasCargas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-      
-      console.log('✅ Total de cargas compiladas:', todasLasCargas.length);
-      return todasLasCargas;
+      if (estado && estado !== 'TODOS') {
+        params.set('estado', estado);
+      }
+
+      const response = await request(`/api/fondos?${params.toString()}`);
+      return response;
     } catch (error) {
       console.error('Error obteniendo cargas:', error);
-      console.error('Status error:', error.status);
-      console.error('Payload error:', error.payload);
       throw error;
     }
   },

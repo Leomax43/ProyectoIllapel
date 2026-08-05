@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardHeader from '../components/dashboard/DashboardHeader';
-import DashboardFooter from '../components/dashboard/DashboardFooter';
+import DashboardHeader from '../components/layout/DashboardHeader';
+import DashboardFooter from '../components/layout/DashboardFooter';
 import MetricasTransacciones from '../components/transacciones/MetricasTransacciones';
 import FiltrosTransacciones from '../components/transacciones/FiltrosTransacciones';
 import TablaTransacciones from '../components/transacciones/TablaTransacciones';
@@ -18,7 +18,6 @@ const TransaccionesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
-  const [tipoFiltro, setTipoFiltro] = useState('todos');
   const [rubroFiltro, setRubroFiltro] = useState('todos');
   const [paginaActual, setPaginaActual] = useState(1);
   const itemsPorPagina = 8;
@@ -39,7 +38,6 @@ useEffect(() => {
       const transData = await obtenerTransacciones({
         fecha_inicio: fInicioParam,
         fecha_fin: fFinParam,
-        tipo: tipoFiltro === 'todos' ? '' : tipoFiltro,
         rubro: rubroFiltro === 'todos' ? '' : rubroFiltro
       });
       
@@ -53,7 +51,7 @@ useEffect(() => {
   };
 
   fetchData();
-}, [fechaInicio, fechaFin, tipoFiltro, rubroFiltro]);
+}, [fechaInicio, fechaFin, rubroFiltro]);
 
   const transaccionesFiltradas = transacciones.filter(tx => {
     if (!searchTerm.trim()) return true;
@@ -124,7 +122,7 @@ useEffect(() => {
           <div>
             <div className="text-[18px] font-bold text-azul">Historial de transacciones</div>
             <div className="text-[12px] text-gris-texto mt-[2px] font-light">
-              Registro completo de todos los movimientos del sistema: cargas de fondos, pagos por QR y pagos por RUT+PIN. Filtre por fecha, beneficiario, comercio o tipo de operación.
+              Registro de los movimientos del sistema: pagos realizados por los beneficiarios con su billetera digital en los comercios adheridos (App Móvil QR). Filtre por fecha, beneficiario o comercio.
             </div>
           </div>
         </div>
@@ -138,8 +136,6 @@ useEffect(() => {
           onFechaInicioChange={setFechaInicio}
           fechaFin={fechaFin}
           onFechaFinChange={setFechaFin}
-          tipoFiltro={tipoFiltro}
-          onTipoFiltroChange={setTipoFiltro}
           rubroFiltro={rubroFiltro}
           onRubroFiltroChange={setRubroFiltro}
         />
