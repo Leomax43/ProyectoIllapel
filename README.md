@@ -55,6 +55,7 @@ Configuración de la Base de Datos:
 Si utilizas Docker para la base de datos, abre una terminal en la raíz del proyecto (donde está el archivo docker-compose.yml) y levanta el contenedor antes de continuar:
 
 docker-compose up -d
+
 Una vez que la base de datos esté corriendo, vuelve a la carpeta backend/, inicializa las tablas y pobla la base de datos con información de prueba ejecutando:
 
 **Configuración de la Base de Datos:**
