@@ -21,7 +21,7 @@ Sigue estas instrucciones estrictamente en orden para levantar el proyecto en tu
 * Aplicación [Expo Go](https://expo.dev/client) en tu dispositivo móvil (para probar la app).
 
 ### 1. Clonar el repositorio
-```bash
+```
 git clone [https://github.com/Leomax43/ProyectoIllapel.git](https://github.com/Leomax43/ProyectoIllapel.git)
 cd ProyectoIllapel
 ```
@@ -31,7 +31,7 @@ cd ProyectoIllapel
 ### 2. Configuración del Backend (Base de Datos y API)
 Abre una terminal y navega a la carpeta del backend para instalar las dependencias.
 
-```bash
+```
 cd backend
 npm install
 ```
@@ -39,7 +39,7 @@ npm install
 **Instalación de dependencias críticas:**
 Asegúrate de instalar los siguientes paquetes requeridos para el manejo de archivos, autenticación y encriptación. En tu terminal del backend, ejecuta:
 
-```bash
+```
 # Para el manejo de subida de archivos (PDFs, comprobantes)
 npm install multer
 
@@ -50,16 +50,23 @@ npm install jsonwebtoken
 npm install bcrypt
 ```
 
+Configuración de la Base de Datos:
+
+Si utilizas Docker para la base de datos, abre una terminal en la raíz del proyecto (donde está el archivo docker-compose.yml) y levanta el contenedor antes de continuar:
+
+docker-compose up -d
+Una vez que la base de datos esté corriendo, vuelve a la carpeta backend/, inicializa las tablas y pobla la base de datos con información de prueba ejecutando:
+
 **Configuración de la Base de Datos:**
 1. Crea un archivo `.env` en la carpeta `backend/` basándote en un posible `.env.example` o configura las variables de conexión a tu base de datos PostgreSQL local.
 2. Inicializa las tablas y pobla la base de datos con información de prueba ejecutando:
-```bash
+```
 node initDB.js
 node seedDB.js
 ```
 
 **Levantar el servidor:**
-```bash
+```
 npm run dev
 ```
 *(El servidor quedará corriendo normalmente en `http://localhost:3000` o el puerto configurado).*
@@ -69,7 +76,7 @@ npm run dev
 ### 3. Configuración del Frontend Web (Panel de Administración)
 Abre una **nueva pestaña** en tu terminal y navega a la carpeta del frontend web.
 
-```bash
+```
 cd frontend/frontend-web
 npm install
 npm run dev
@@ -81,7 +88,7 @@ npm run dev
 ### 4. Configuración de la Aplicación Móvil
 Abre una **tercera pestaña** en tu terminal y navega a la carpeta de la app.
 
-```bash
+```
 cd app-movil
 npm install
 npx expo start
