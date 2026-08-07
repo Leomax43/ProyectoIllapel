@@ -99,33 +99,6 @@ npx expo start
 ---
 
 
-### 5. Preparación para Producción (Cambio de IP a Servidor Municipal)
-Si deseas levantar este proyecto en un servidor real en lugar de tu entorno local (localhost), debes ajustar las direcciones apuntando a la IP pública del servidor.
-
-Ajuste en Backend (API):
-
-Abre el archivo .env del servidor y asegúrate de configurar las credenciales definitivas de la base de datos.
-
-Actualiza los permisos de CORS en el código para permitir conexiones entrantes desde el dominio oficial de la municipalidad.
-
-Ajuste en Frontend Web:
-
-En la carpeta frontend/frontend-web, abre o crea el archivo .env.
-
-Declara la variable de entorno con la IP del servidor:
-VITE_API_URL=http://<IP_DEL_SERVIDOR_MUNICIPAL>:3000/api
-
-Compila el proyecto para producción ejecutando: npm run build
-
-Ajuste en Aplicación Móvil:
-
-En la carpeta app-movil, busca el archivo de configuración central (ej. src/config/api.js).
-
-Cambia la constante de conexión:
-export const API_URL = 'http://<IP_DEL_SERVIDOR_MUNICIPAL>:3000/api';
-
-Genera el instalador final (.apk o .aab) ejecutando: eas build -p android --profile preview
-
 
 ##  Credenciales de Prueba (SeedDB)
 Si ejecutaste el comando `node seedDB.js` correctamente, puedes acceder al sistema con los siguientes usuarios de prueba (La clave para todos es: **1234**):
