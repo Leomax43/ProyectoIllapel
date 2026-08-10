@@ -1,14 +1,15 @@
 import { Tabs, router } from 'expo-router'; // <-- Agregamos router
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native'; // <-- Agregamos TouchableOpacity
+import { COLORES } from '../../src/config/colores';
 
 export default function TabsLayout() {
   return (
     <Tabs screenOptions={{
-      tabBarActiveTintColor: '#005B8F',
+      tabBarActiveTintColor: COLORES.azul,
       tabBarInactiveTintColor: 'gray',
       headerShown: true,
-      headerStyle: { backgroundColor: '#005B8F' },
+      headerStyle: { backgroundColor: COLORES.azul },
       headerTintColor: 'white',
       // BOTÓN DE LOGOUT EN LA ESQUINA SUPERIOR DERECHA
       headerRight: () => (

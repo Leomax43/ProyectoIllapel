@@ -6,18 +6,13 @@ function QuickAlerts({ indicadores }) {
       style: 'bg-[#fff8e0] text-[#a07800] border-[#f0d970]',
     },
     {
-      label: 'fondos cargados hoy',
-      count: 0,
+      label: 'cargas de la semana',
+      count: indicadores.cargasSemana || 0,
       style: 'bg-[#e6f7f4] text-verde border-[#b2e8de]',
     },
     {
-      label: 'transacciones hoy',
-      count: 0,
-      style: 'bg-[#e6f5fc] text-[#1a8fb5] border-[#b3dff0]',
-    },
-    {
       label: 'cuentas dadas de baja',
-      count: 0,
+      count: indicadores.cuentasDadasDeBaja || 0,
       style: 'bg-[#fde8e8] text-[#b52b2b] border-[#f5b8b8]',
     },
   ];

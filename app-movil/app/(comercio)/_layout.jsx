@@ -1,14 +1,15 @@
 import { Tabs, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
+import { COLORES } from '../../src/config/colores';
 
 export default function ComercioLayout() {
   return (
     <Tabs screenOptions={{
-      tabBarActiveTintColor: '#27AE60', // Verde vibrante para los comercios
+      tabBarActiveTintColor: COLORES.verde,
       tabBarInactiveTintColor: 'gray',
       headerShown: true,
-      headerStyle: { backgroundColor: '#27AE60' },
+      headerStyle: { backgroundColor: COLORES.verde },
       headerTintColor: 'white',
       // BOTÓN DE LOGOUT EN LA ESQUINA SUPERIOR DERECHA
       headerRight: () => (
@@ -53,6 +54,14 @@ export default function ComercioLayout() {
         options={{ 
           href: null, 
           title: 'Cambiar Contraseña' 
+        }} 
+      />
+
+      {/* PANTALLA OCULTA: Salir (sin uso, no debe aparecer como pestaña) */}
+      <Tabs.Screen 
+        name="salir" 
+        options={{ 
+          href: null 
         }} 
       />
     </Tabs>

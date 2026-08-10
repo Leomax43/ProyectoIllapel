@@ -26,10 +26,7 @@ const TablaTransacciones = ({
 
       {/* LEYENDA */}
       <div className="px-[12px] py-[7px] border-b border-gris-borde bg-[#fafafa] flex gap-[12px] flex-wrap text-[11px] text-gris-texto">
-        <span><span className={badgeStyle('carga')}>Carga de fondos</span> Asignación municipal</span>
         <span><span className={badgeStyle('pago-qr')}>Pago QR</span> Escaneado por comercio</span>
-        <span><span className={badgeStyle('pago-pin')}>Pago RUT+PIN</span> Ingreso manual</span>
-        <span><span className={badgeStyle('anulado')}>Anulado</span> Operación revertida</span>
       </div>
 
       {/* TABLE */}

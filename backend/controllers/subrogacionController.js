@@ -3,6 +3,24 @@ const pool = require('../config/db');
 // Obtener todas las subrogaciones activas e históricas
 const obtenerSubrogaciones = async (req, res) => {
     try {
+        // Auto-finalizar subrogaciones cuyo fecha_fin ya pasó
+        const expiradas = await pool.query(`
+            UPDATE subrogaciones SET estado = 'FINALIZADA'
+            WHERE estado = 'ACTIVO' AND fecha_fin < CURRENT_DATE
+            RETURNING id_subrogacion, id_admin_subrogado, rol_original
+        `);
+
+        // Restaurar el rol original de quienes ya no tienen ninguna subrogación activa
+        for (const exp of expiradas.rows) {
+            const otras = await pool.query(`
+                SELECT 1 FROM subrogaciones
+                WHERE id_admin_subrogado = $1 AND estado = 'ACTIVO' AND id_subrogacion <> $2 LIMIT 1
+            `, [exp.id_admin_subrogado, exp.id_subrogacion]);
+            if (otras.rows.length === 0) {
+                await pool.query('UPDATE admin SET rol = $1 WHERE id_admin = $2', [exp.rol_original, exp.id_admin_subrogado]);
+            }
+        }
+
         const result = await pool.query(`
             SELECT 
                 s.id_subrogacion,
@@ -52,6 +70,31 @@ const crearSubrogacion = async (req, res) => {
         const rolesValidos = ['SUPER_ADMIN', 'JEFATURA', 'ASISTENTE_SOCIAL', 'ENCARGADO_COMERCIOS'];
         if (!rolesValidos.includes(rol_asignado)) {
             return res.status(400).json({ mensaje: "El rol asignado no es válido." });
+        }
+
+        // 3.1 Validar fechas
+        if (!fecha_inicio || !fecha_fin) {
+            return res.status(400).json({ mensaje: "Debes indicar las fechas de inicio y fin." });
+        }
+        const hoy = new Date();
+        const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+        const fechaInicioStr = String(fecha_inicio).split('T')[0];
+        const fechaFinStr = String(fecha_fin).split('T')[0];
+
+        if (fechaInicioStr < hoyStr) {
+            return res.status(400).json({ mensaje: "La fecha de inicio no puede ser anterior a hoy." });
+        }
+        if (fechaFinStr <= fechaInicioStr) {
+            return res.status(400).json({ mensaje: "La fecha de fin debe ser posterior a la fecha de inicio." });
+        }
+
+        // 3.2 Evitar solapamiento: el admin no puede tener otra subrogación activa
+        const activaRes = await pool.query(
+            'SELECT id_subrogacion FROM subrogaciones WHERE id_admin_subrogado = $1 AND estado = $2 LIMIT 1',
+            [id_admin_subrogado, 'ACTIVO']
+        );
+        if (activaRes.rows.length > 0) {
+            return res.status(400).json({ mensaje: "El administrador ya tiene una subrogación activa. Finalízala antes de crear otra." });
         }
 
         // 4. Insertar la subrogación

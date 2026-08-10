@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardHeader from '../components/dashboard/DashboardHeader';
-import DashboardFooter from '../components/dashboard/DashboardFooter';
+import DashboardHeader from '../components/layout/DashboardHeader';
+import DashboardFooter from '../components/layout/DashboardFooter';
 import ComerciosList from '../components/comercios/ComerciosList'; 
 import ComercioDetail from '../components/comercios/ComercioDetail';
 import { useAuth } from '../hooks/useAuth';

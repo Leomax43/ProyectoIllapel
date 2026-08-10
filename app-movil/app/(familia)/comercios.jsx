@@ -1,10 +1,14 @@
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { useState, useEffect } from 'react';
 import { API_URL } from '../../src/config/api';
-import { useUsuario } from '../../src/context/UsuarioContext';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORES } from '../../src/config/colores';
+import Svg, { Defs, LinearGradient, Stop, Circle } from 'react-native-svg';
+import FondoPantalla from '../../src/components/FondoPantalla';
+import GradienteHeader from '../../src/components/GradienteHeader';
+import AnimacionEntrada from '../../src/components/AnimacionEntrada';
 
 export default function ComerciosScreen() {
-  const { usuario } = useUsuario();
   const [comercios, setComercios] = useState([]);
   const [cargando, setCargando] = useState(true);
 
@@ -15,9 +19,7 @@ export default function ComerciosScreen() {
         const data = await response.json();
 
         if (response.ok) {
-          // El endpoint devuelve un array directamente
           const lista = Array.isArray(data) ? data : data.comercios || [];
-          // Filtrar solo comercios activos
           setComercios(lista.filter(c => c.estado === 'ACTIVO'));
         } else {
           console.error('Error al cargar comercios:', data.mensaje);
@@ -32,62 +34,77 @@ export default function ComerciosScreen() {
     cargarComercios();
   }, []);
 
-  const renderItem = ({ item }) => (
-    <View style={styles.item}>
-      <View style={styles.itemHeader}>
-        <Text style={styles.nombre}>{item.nombre_comercio}</Text>
+  const renderItem = ({ item, index }) => (
+    <AnimacionEntrada delay={index * 60}>
+      <View style={styles.item}>
+        <View style={styles.itemHeader}>
+          <View style={styles.iconCircle}>
+            <Svg style={StyleSheet.absoluteFill} width="38" height="38">
+              <Defs>
+                <LinearGradient id={`com-${item.rut_comercio}`} x1="0" y1="0" x2="1" y2="1">
+                  <Stop offset="0" stopColor={COLORES.azul} />
+                  <Stop offset="1" stopColor={COLORES.celeste} />
+                </LinearGradient>
+              </Defs>
+              <Circle cx="19" cy="19" r="19" fill={`url(#com-${item.rut_comercio})`} />
+            </Svg>
+            <Ionicons name="storefront" size={20} color="#FFFFFF" />
+          </View>
+          <Text style={styles.nombre}>{item.nombre_comercio}</Text>
+        </View>
+        <View style={styles.itemFooter}>
+          <Text style={styles.rubro}>{item.rubro || 'Comercio'}</Text>
+          <Text style={styles.direccion}>{item.direccion || 'Sin dirección'}</Text>
+        </View>
       </View>
-      <View style={styles.itemFooter}>
-        <Text style={styles.rubro}>{item.rubro || 'Comercio'}</Text>
-        <Text style={styles.direccion}>{item.direccion || 'Sin dirección'}</Text>
-      </View>
-    </View>
+    </AnimacionEntrada>
   );
 
   if (cargando) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#5D2A7B" />
-        <Text style={styles.texto}>Cargando comercios...</Text>
-      </View>
+      <FondoPantalla>
+        <View style={styles.centrado}>
+          <ActivityIndicator size="large" color={COLORES.azul} />
+          <Text style={styles.texto}>Cargando comercios...</Text>
+        </View>
+      </FondoPantalla>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Comercios Disponibles</Text>
-
-      {comercios.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>No hay comercios registrados</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={comercios}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.rut_comercio}
-          contentContainerStyle={styles.lista}
-        />
-      )}
-    </View>
+    <FondoPantalla>
+      <GradienteHeader titulo="Comercios Disponibles" colors={[COLORES.azul, COLORES.celeste]} />
+      <FlatList
+        style={styles.scroll}
+        contentContainerStyle={comercios.length === 0 ? [styles.contenido, styles.contenidoVacio] : styles.contenido}
+        data={comercios}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.rut_comercio}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Ionicons name="storefront-outline" size={52} color={COLORES.grisClaro} />
+            <Text style={styles.emptyText}>No hay comercios registrados</Text>
+          </View>
+        }
+      />
+    </FondoPantalla>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scroll: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+  },
+  contenido: {
     padding: 16,
   },
-  titulo: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#5D2A7B',
-    marginBottom: 16,
-    marginTop: 8,
+  contenidoVacio: {
+    flexGrow: 1,
   },
-  lista: {
-    paddingBottom: 16,
+  centrado: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   item: {
     backgroundColor: 'white',
@@ -99,14 +116,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORES.azul,
   },
   itemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
+  },
+  iconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    overflow: 'hidden',
+    backgroundColor: '#E1F0FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   nombre: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: COLORES.grisOscuro,
+    flex: 1,
   },
   itemFooter: {
     flexDirection: 'row',
@@ -115,25 +147,26 @@ const styles = StyleSheet.create({
   },
   rubro: {
     fontSize: 13,
-    color: '#5D2A7B',
+    color: COLORES.azul,
     fontWeight: '500',
   },
   direccion: {
     fontSize: 12,
-    color: '#999',
+    color: COLORES.grisClaro,
   },
   empty: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 60,
+    paddingBottom: 40,
   },
   emptyText: {
     fontSize: 14,
-    color: '#999',
+    color: COLORES.grisClaro,
+    marginTop: 12,
   },
   texto: {
     marginTop: 10,
-    color: '#666',
+    color: COLORES.grisMedio,
   },
 });

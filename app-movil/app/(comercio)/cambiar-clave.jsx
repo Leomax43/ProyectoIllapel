@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
 import { API_URL } from '../../src/config/api';
 import { useUsuario } from '../../src/context/UsuarioContext';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { COLORES } from '../../src/config/colores';
+import FondoPantalla from '../../src/components/FondoPantalla';
+import AnimacionEntrada from '../../src/components/AnimacionEntrada';
+import BotonGradiente from '../../src/components/BotonGradiente';
 
 export default function CambiarClaveScreen() {
   const { usuario } = useUsuario();
@@ -11,9 +15,12 @@ export default function CambiarClaveScreen() {
   const [nuevaClave, setNuevaClave] = useState('');
   const [confirmarClave, setConfirmarClave] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [focoActual, setFocoActual] = useState(false);
+  const [focoNueva, setFocoNueva] = useState(false);
+  const [focoConfirmar, setFocoConfirmar] = useState(false);
 
   const esFamilia = usuario?.rol === 'FAMILIA';
-  const colorTema = esFamilia ? '#5D2A7B' : '#27AE60';
+  const colorTema = esFamilia ? COLORES.azul : COLORES.verde;
 
   const handleCambiarClave = async () => {
     if (!claveActual || !nuevaClave || !confirmarClave) {
@@ -28,7 +35,7 @@ export default function CambiarClaveScreen() {
     setCargando(true);
     try {
       const rut = esFamilia ? usuario.rut_representante : usuario.rut_comercio;
-      
+
       const response = await fetch(`${API_URL}/movil/cambiar-clave`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -39,97 +46,104 @@ export default function CambiarClaveScreen() {
 
       if (response.ok) {
         Alert.alert('¡Éxito!', data.mensaje, [
-          { text: 'OK', onPress: () => router.back() } // Vuelve a la pantalla de Cuenta
+          { text: 'OK', onPress: () => router.back() }
         ]);
       } else {
         Alert.alert('Error', data.mensaje);
       }
-    } catch (error) {
+    } catch {
       Alert.alert('Error de Red', 'No se pudo conectar con el servidor.');
     } finally {
       setCargando(false);
     }
   };
 
+  const inputBox = (enfocado) => [
+    styles.inputBox,
+    enfocado && { borderColor: COLORES.verdeClaro, backgroundColor: '#FFFFFF' }
+  ];
+
   return (
-    <View style={styles.container}>
-      <Text style={[styles.titulo, { color: colorTema }]}>Seguridad</Text>
-      <Text style={styles.subtitulo}>Ingresa tu contraseña actual y la nueva contraseña que deseas utilizar.</Text>
+    <FondoPantalla color={COLORES.verdeClaro}>
+      <View style={styles.container}>
+        <AnimacionEntrada>
+          <Text style={[styles.titulo, { color: colorTema }]}>Seguridad</Text>
+          <Text style={styles.subtitulo}>Ingresa tu contraseña actual y la nueva contraseña que deseas utilizar.</Text>
+        </AnimacionEntrada>
 
-      <View style={styles.inputContainer}>
-        <Ionicons name="key-outline" size={20} color="#666" style={styles.icon} />
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña Actual"
-          secureTextEntry
-          value={claveActual}
-          onChangeText={setClaveActual}
-        />
+        <AnimacionEntrada delay={80}>
+          <View style={inputBox(focoActual)}>
+            <Ionicons name="key-outline" size={20} color={focoActual ? colorTema : COLORES.grisClaro} />
+            <TextInput
+              style={styles.input}
+              placeholder="Contraseña Actual"
+              secureTextEntry
+              value={claveActual}
+              onChangeText={setClaveActual}
+              onFocus={() => setFocoActual(true)}
+              onBlur={() => setFocoActual(false)}
+            />
+          </View>
+        </AnimacionEntrada>
+
+        <AnimacionEntrada delay={150}>
+          <View style={inputBox(focoNueva)}>
+            <Ionicons name="lock-closed-outline" size={20} color={focoNueva ? colorTema : COLORES.grisClaro} />
+            <TextInput
+              style={styles.input}
+              placeholder="Nueva Contraseña"
+              secureTextEntry
+              value={nuevaClave}
+              onChangeText={setNuevaClave}
+              onFocus={() => setFocoNueva(true)}
+              onBlur={() => setFocoNueva(false)}
+            />
+          </View>
+        </AnimacionEntrada>
+
+        <AnimacionEntrada delay={220}>
+          <View style={inputBox(focoConfirmar)}>
+            <Ionicons name="checkmark-circle-outline" size={20} color={focoConfirmar ? colorTema : COLORES.grisClaro} />
+            <TextInput
+              style={styles.input}
+              placeholder="Confirmar Nueva Contraseña"
+              secureTextEntry
+              value={confirmarClave}
+              onChangeText={setConfirmarClave}
+              onFocus={() => setFocoConfirmar(true)}
+              onBlur={() => setFocoConfirmar(false)}
+            />
+          </View>
+        </AnimacionEntrada>
+
+        <AnimacionEntrada delay={290}>
+          <BotonGradiente
+            titulo="Guardar Contraseña"
+            colors={[colorTema, COLORES.verdeClaro]}
+            onPress={handleCambiarClave}
+            cargando={cargando}
+            icon={<Ionicons name="shield-checkmark-outline" size={20} color="#FFFFFF" />}
+          />
+        </AnimacionEntrada>
       </View>
-
-      <View style={styles.inputContainer}>
-        <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.icon} />
-        <TextInput
-          style={styles.input}
-          placeholder="Nueva Contraseña"
-          secureTextEntry
-          value={nuevaClave}
-          onChangeText={setNuevaClave}
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Ionicons name="checkmark-circle-outline" size={20} color="#666" style={styles.icon} />
-        <TextInput
-          style={styles.input}
-          placeholder="Confirmar Nueva Contraseña"
-          secureTextEntry
-          value={confirmarClave}
-          onChangeText={setConfirmarClave}
-        />
-      </View>
-
-      <TouchableOpacity 
-        style={[styles.botonGuardar, { backgroundColor: colorTema }]} 
-        onPress={handleCambiarClave}
-        disabled={cargando}
-      >
-        {cargando ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text style={styles.textoBoton}>Guardar Contraseña</Text>
-        )}
-      </TouchableOpacity>
-    </View>
+    </FondoPantalla>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white', padding: 20 },
+  container: { flex: 1, padding: 20 },
   titulo: { fontSize: 28, fontWeight: 'bold', marginBottom: 10, marginTop: 20 },
-  subtitulo: { fontSize: 15, color: '#666', marginBottom: 30, lineHeight: 22 },
-  inputContainer: {
+  subtitulo: { fontSize: 15, color: COLORES.grisMedio, marginBottom: 26, lineHeight: 22 },
+  inputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    marginBottom: 15,
-    paddingHorizontal: 15,
-    height: 55,
+    backgroundColor: '#F4F8FA',
+    borderRadius: 14,
+    marginBottom: 14,
+    paddingHorizontal: 16,
+    height: 56,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
   },
-  icon: { marginRight: 10 },
-  input: { flex: 1, fontSize: 16, color: '#333' },
-  botonGuardar: {
-    height: 55,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4
-  },
-  textoBoton: { color: 'white', fontSize: 16, fontWeight: 'bold' }
+  input: { flex: 1, fontSize: 16, color: COLORES.grisOscuro, marginLeft: 12, outlineWidth: 0, outlineStyle: 'none' },
 });

@@ -25,3 +25,18 @@ Thumbs.db
 
 # Configuración de editores locales
 .vscode/
+
+# Configuración y artefactos de agentes (locales)
+.agents/
+AGENTS.md
+skills-lock.json
+
+# Bitácora e informes de revisión (locales, no versionar)
+informes/
+
+# Artefactos de pruebas con agentes (Playwright CLI)
+.playwright/
+.playwright-cli/
+
+# Logs de desarrollo local
+expo_web.log
