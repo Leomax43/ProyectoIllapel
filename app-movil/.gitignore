@@ -21,6 +21,9 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
+# Backups locales de imágenes (no viajan al build)
+*_original.png
+
 # debug
 npm-debug.*
 yarn-debug.*
